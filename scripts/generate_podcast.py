@@ -159,7 +159,7 @@ def synthesize_audio(turns: list[dict], output_path: str) -> str:
                             speaker="Host",
                             voice_config=types.VoiceConfig(
                                 prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                    voice_name="Puck",
+                                    voice_name="Charon",
                                 )
                             ),
                         ),
@@ -167,7 +167,7 @@ def synthesize_audio(turns: list[dict], output_path: str) -> str:
                             speaker="Guest",
                             voice_config=types.VoiceConfig(
                                 prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                    voice_name="Kore",
+                                    voice_name="Leda",
                                 )
                             ),
                         ),
@@ -220,7 +220,7 @@ def _synthesize_chunked(client, turns: list[dict], output_path: str) -> str:
                                 speaker="Host",
                                 voice_config=types.VoiceConfig(
                                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                        voice_name="Puck",
+                                        voice_name="Charon",
                                     )
                                 ),
                             ),
@@ -228,7 +228,7 @@ def _synthesize_chunked(client, turns: list[dict], output_path: str) -> str:
                                 speaker="Guest",
                                 voice_config=types.VoiceConfig(
                                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                        voice_name="Kore",
+                                        voice_name="Leda",
                                     )
                                 ),
                             ),
