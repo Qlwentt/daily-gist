@@ -69,6 +69,12 @@ def generate_transcript(newsletter_text: str) -> str:
         ],
         "creativity": 0.8,
         "output_language": "English",
+        "user_instructions": (
+            "Output ONLY dialogue in <Person1> and <Person2> tags. "
+            "Do NOT include any scratchpad, thinking blocks, stage directions, "
+            "meta-commentary, or prompt instructions in your output. "
+            "Start with a single greeting and never repeat it later in the conversation."
+        ),
     }
 
     # Generate transcript only (no TTS) — pass raw text directly
@@ -76,8 +82,8 @@ def generate_transcript(newsletter_text: str) -> str:
     transcript_path = podcastfy_generate(
         text=newsletter_text,
         conversation_config=conversation_config,
-        llm_model_name="gemini-2.0-flash",
-        api_key_label="GEMINI_API_KEY",
+        llm_model_name="claude-sonnet-4-20250514",
+        api_key_label="ANTHROPIC_API_KEY",
         transcript_only=True,
     )
 
@@ -86,6 +92,76 @@ def generate_transcript(newsletter_text: str) -> str:
 
     with open(transcript_path, "r") as f:
         return f.read()
+
+
+# ---------------------------------------------------------------------------
+# Step 1.5: Clean transcript — remove leaked artifacts
+# ---------------------------------------------------------------------------
+
+# Greeting patterns that indicate the start of the show
+_GREETING_RE = re.compile(
+    r"^(hey |hi |hello |good morning|welcome |what'?s up|greetings)",
+    re.IGNORECASE,
+)
+
+
+def clean_transcript(raw: str) -> str:
+    """Remove LLM artifacts from a Podcastfy transcript before parsing.
+
+    Handles:
+    - <scratchpad>/<thinking> blocks
+    - Triple-backtick fenced code blocks
+    - [bracketed instructions/stage directions]
+    - Text outside <Person1>/<Person2> tags (preamble, trailing notes)
+    - Duplicate opener greetings
+    - **bold** markdown inside turns
+    - Instruction-like lines inside turns (lines starting with "Note:" etc.)
+    """
+
+    text = raw
+
+    # 1. Remove <scratchpad>...</scratchpad> and <thinking>...</thinking> blocks
+    text = re.sub(r"<scratchpad>.*?</scratchpad>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<thinking>.*?</thinking>", "", text, flags=re.DOTALL | re.IGNORECASE)
+
+    # 2. Remove triple-backtick fenced blocks (```...```)
+    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+
+    # 3. Remove [bracketed instructions] (e.g. [pause], [laugh], [Note: ...])
+    text = re.sub(r"\[.*?\]", "", text)
+
+    # 4. Keep only <Person1>...</Person1> and <Person2>...</Person2> segments
+    #    This strips preamble, trailing notes, and any text between tags
+    person_tags = re.findall(r"(<Person[12]>.*?</Person[12]>)", text, re.DOTALL)
+    if person_tags:
+        text = "\n".join(person_tags)
+
+    # 5. Strip **bold** markdown inside turns
+    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+
+    # 6. Remove instruction-like lines inside tags (e.g. "Note:", "Instructions:", etc.)
+    text = re.sub(
+        r"(?m)^\s*(Note|Instructions?|Reminder|TODO|NB|IMPORTANT):.*$",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    # 7. Deduplicate opener: if first two Host (Person1) turns both start with
+    #    a greeting, drop the first one (keep the second which is usually richer)
+    p1_matches = list(re.finditer(r"<Person1>(.*?)</Person1>", text, re.DOTALL))
+    if len(p1_matches) >= 2:
+        first_text = p1_matches[0].group(1).strip()
+        second_text = p1_matches[1].group(1).strip()
+        if _GREETING_RE.match(first_text) and _GREETING_RE.match(second_text):
+            # Remove the first Person1 tag entirely
+            text = text[:p1_matches[0].start()] + text[p1_matches[0].end():]
+            logger.info("Removed duplicate opener greeting from transcript")
+
+    # Collapse excessive blank lines
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    return text.strip()
 
 
 # ---------------------------------------------------------------------------
@@ -314,6 +390,11 @@ def main():
     logger.info("Step 1: Generating transcript with Podcastfy + Gemini...")
     transcript = generate_transcript(newsletter_text)
     logger.info(f"Transcript generated: {len(transcript)} characters")
+
+    # Step 1.5: Clean transcript — remove leaked LLM artifacts
+    logger.info("Step 1.5: Cleaning transcript...")
+    transcript = clean_transcript(transcript)
+    logger.info(f"Transcript after cleaning: {len(transcript)} characters")
 
     if args.transcript_only:
         with open(args.result_file, "w") as rf:

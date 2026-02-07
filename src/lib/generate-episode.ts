@@ -65,7 +65,15 @@ async function runPythonScript(
         "--output", outputPath,
         "--result-file", resultPath,
       ],
-      { timeout: 900_000, maxBuffer: 10 * 1024 * 1024 },
+      {
+        timeout: 900_000,
+        maxBuffer: 10 * 1024 * 1024,
+        env: {
+          ...process.env,
+          GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+          ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+        },
+      },
       (error, _stdout, stderr) => {
         if (error) {
           reject(new Error(`Podcast generation failed: ${stderr || error.message}`));

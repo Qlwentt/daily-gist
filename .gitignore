@@ -52,3 +52,4 @@ data/
 
 # test fixtures
 test-email*.json
+scripts/test_*
