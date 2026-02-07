@@ -106,6 +106,8 @@ def parse_transcript(transcript: str) -> list[dict]:
 
     for person_tag, text in matches:
         clean_text = text.strip()
+        # Phonetic spelling so TTS pronounces "Gist" with a soft G
+        clean_text = re.sub(r"\bGist\b", "Jist", clean_text)
         if clean_text:
             turns.append({
                 "speaker": speaker_map[person_tag],
