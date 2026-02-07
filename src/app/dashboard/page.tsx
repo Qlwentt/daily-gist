@@ -2,13 +2,15 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { NotificationBanners } from "@/components/notification-banner";
+import { EpisodeList } from "@/components/episode-list";
 
 type Episode = {
   id: string;
   title: string;
   date: string;
   status: string;
-  audio_url: string | null;
+  transcript: string | null;
+  error_message: string | null;
 };
 
 type UserRecord = {
@@ -75,7 +77,7 @@ export default async function DashboardPage() {
       .returns<Notification[]>(),
     supabase
       .from("episodes")
-      .select("id, title, date, status, audio_url")
+      .select("id, title, date, status, transcript, error_message")
       .eq("user_id", user.id)
       .order("date", { ascending: false })
       .limit(20)
@@ -142,37 +144,7 @@ export default async function DashboardPage() {
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
-            {episodes.map((episode) => (
-              <div
-                key={episode.id}
-                className="p-4 flex items-center justify-between"
-              >
-                <div>
-                  <p className="font-medium">{episode.title}</p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(episode.date).toLocaleDateString("en-US", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <StatusBadge status={episode.status} />
-                  {episode.status === "ready" && (
-                    <Link
-                      href={`/dashboard/episodes/${episode.id}`}
-                      className="text-blue-600 hover:text-blue-700 text-sm"
-                    >
-                      View transcript
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <EpisodeList episodes={episodes} />
         )}
       </div>
 
@@ -221,22 +193,5 @@ export default async function DashboardPage() {
         )}
       </div>
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    processing: "bg-blue-100 text-blue-800",
-    ready: "bg-green-100 text-green-800",
-    failed: "bg-red-100 text-red-800",
-  };
-
-  return (
-    <span
-      className={`px-2 py-1 rounded text-xs font-medium ${styles[status] || "bg-gray-100 text-gray-800"}`}
-    >
-      {status}
-    </span>
   );
 }
