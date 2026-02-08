@@ -1,9 +1,4 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { execFile } from "child_process";
-import { writeFile, unlink, readFile } from "fs/promises";
-import { join } from "path";
-import { tmpdir } from "os";
-import { randomUUID } from "crypto";
 
 type RawEmailRow = {
   id: string;
@@ -14,10 +9,9 @@ type RawEmailRow = {
   html_body: string | null;
 };
 
-type PodcastOutput = {
-  audio_path?: string;
-  transcript?: string;
-  error?: string;
+type PodcastServiceResponse = {
+  audio_base64: string;
+  transcript: string;
 };
 
 function stripHtml(html: string): string {
@@ -47,45 +41,51 @@ function formatEmailsForPodcast(emails: RawEmailRow[]): string {
     .join("\n\n");
 }
 
-async function runPythonScript(
-  inputPath: string,
-  outputPath: string,
-  resultPath: string
-): Promise<PodcastOutput> {
-  const scriptDir = join(process.cwd(), "scripts");
-  const pythonBin = join(scriptDir, ".venv", "bin", "python");
-  const scriptPath = join(scriptDir, "generate_podcast.py");
+async function callPodcastService(
+  userId: string,
+  newsletterText: string
+): Promise<{ audioBuffer: Buffer; transcript: string }> {
+  const serviceUrl = process.env.PODCAST_GENERATOR_URL;
+  const apiKey = process.env.GENERATOR_API_KEY;
 
-  await new Promise<void>((resolve, reject) => {
-    execFile(
-      pythonBin,
-      [
-        scriptPath,
-        "--input", inputPath,
-        "--output", outputPath,
-        "--result-file", resultPath,
-      ],
-      {
-        timeout: 900_000,
-        maxBuffer: 10 * 1024 * 1024,
-        env: {
-          ...process.env,
-          GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-          ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-        },
+  if (!serviceUrl) {
+    throw new Error("PODCAST_GENERATOR_URL environment variable is required");
+  }
+  if (!apiKey) {
+    throw new Error("GENERATOR_API_KEY environment variable is required");
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15 * 60 * 1000);
+
+  try {
+    const response = await fetch(`${serviceUrl}/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-      (error, _stdout, stderr) => {
-        if (error) {
-          reject(new Error(`Podcast generation failed: ${stderr || error.message}`));
-          return;
-        }
-        resolve();
-      }
-    );
-  });
+      body: JSON.stringify({
+        user_id: userId,
+        newsletter_text: newsletterText,
+      }),
+      signal: controller.signal,
+    });
 
-  const raw = await readFile(resultPath, "utf-8");
-  return JSON.parse(raw) as PodcastOutput;
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new Error(
+        `Podcast service returned ${response.status}: ${text}`
+      );
+    }
+
+    const data = (await response.json()) as PodcastServiceResponse;
+    const audioBuffer = Buffer.from(data.audio_base64, "base64");
+
+    return { audioBuffer, transcript: data.transcript };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function generateEpisodeForUser(userId: string): Promise<void> {
@@ -136,27 +136,15 @@ export async function generateEpisodeForUser(userId: string): Promise<void> {
     );
   }
 
-  const tmpId = randomUUID();
-  const inputPath = join(tmpdir(), `dailygist-input-${tmpId}.txt`);
-  const outputPath = join(tmpdir(), `dailygist-output-${tmpId}.mp3`);
-  const resultPath = join(tmpdir(), `dailygist-result-${tmpId}.json`);
-
   try {
-    // Write formatted content to temp file
     const content = formatEmailsForPodcast(emails);
-    await writeFile(inputPath, content, "utf-8");
-
-    // Generate podcast via Google Cloud Podcast API
-    const result = await runPythonScript(inputPath, outputPath, resultPath);
-
-    if (result.error) {
-      throw new Error(result.error);
-    }
+    const { audioBuffer, transcript } = await callPodcastService(
+      userId,
+      content
+    );
 
     // Upload MP3 to Supabase Storage
-    // TODO: Create 'podcasts' bucket in Supabase dashboard first
     const storagePath = `${userId}/${today}.mp3`;
-    const audioBuffer = await readFile(outputPath);
 
     const { error: uploadError } = await supabase.storage
       .from("podcasts")
@@ -178,7 +166,7 @@ export async function generateEpisodeForUser(userId: string): Promise<void> {
     await supabase
       .from("episodes")
       .update({
-        transcript: result.transcript || null,
+        transcript: transcript || null,
         audio_url: publicUrl,
         status: "ready",
       })
@@ -199,10 +187,7 @@ export async function generateEpisodeForUser(userId: string): Promise<void> {
     await supabase
       .from("raw_emails")
       .update({ processed_at: new Date().toISOString() })
-      .in(
-        "id",
-        emailIds
-      );
+      .in("id", emailIds);
   } catch (err) {
     // Mark episode as failed
     const errorMessage =
@@ -216,10 +201,5 @@ export async function generateEpisodeForUser(userId: string): Promise<void> {
       .eq("id", episode.id);
 
     throw err;
-  } finally {
-    // Clean up temp files
-    await unlink(inputPath).catch(() => {});
-    await unlink(outputPath).catch(() => {});
-    await unlink(resultPath).catch(() => {});
   }
 }

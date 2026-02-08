@@ -3,15 +3,13 @@
 Daily Gist Podcast Generator
 
 Pipeline:
-1. Podcastfy + Gemini 2.0 Flash → generates conversation transcript
-2. Gemini 2.5 Flash TTS API → synthesizes multi-speaker audio
+1. Podcastfy + Claude Sonnet → conversation transcript
+2. Gemini 2.5 Flash TTS API → multi-speaker audio
 
-This replaces the Google Cloud TTS (Chirp 3 HD) approach with the native
-Gemini TTS API, which is ~3x cheaper and has built-in multi-speaker support.
-
-Cost comparison:
-- Cloud TTS Chirp 3 HD: $30/1M characters (~$0.54/episode)
-- Gemini 2.5 Flash TTS: $0.50/1M input + $10/1M output tokens (~$0.20/episode)
+Cost per episode:
+- Claude Sonnet (transcript): ~$0.03-0.05
+- Gemini 2.5 Flash TTS (audio): ~$0.20
+- Total: ~$0.23-0.25/episode
 """
 
 import argparse
