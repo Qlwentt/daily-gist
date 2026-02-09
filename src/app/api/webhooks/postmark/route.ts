@@ -20,11 +20,28 @@ type PostmarkPayload = {
 };
 
 export async function POST(request: Request) {
-  // Verify webhook token
+  // Verify webhook via HTTP Basic auth
+  // Postmark webhook URL format: https://postmark:TOKEN@www.dailygist.fyi/api/webhooks/postmark
   const authHeader = request.headers.get("authorization");
   const expectedToken = process.env.POSTMARK_WEBHOOK_TOKEN;
 
-  if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
+  // TODO: Remove debug logging after confirming auth works
+  console.log("[postmark-webhook] auth header present:", !!authHeader);
+  console.log("[postmark-webhook] auth header starts with Basic:", authHeader?.startsWith("Basic "));
+  console.log("[postmark-webhook] expected token present:", !!expectedToken);
+  if (authHeader?.startsWith("Basic ")) {
+    const debugDecoded = atob(authHeader.slice(6));
+    console.log("[postmark-webhook] decoded credentials:", debugDecoded.replace(/:.+/, ":***"));
+  }
+
+  if (!expectedToken || !authHeader?.startsWith("Basic ")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const decoded = atob(authHeader.slice(6));
+  const password = decoded.split(":").slice(1).join(":");
+  if (password !== expectedToken) {
+    console.log("[postmark-webhook] password mismatch, lengths:", password.length, expectedToken.length);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
