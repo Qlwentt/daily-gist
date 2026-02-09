@@ -69,7 +69,7 @@ def generate_podcast(newsletter_text: str) -> tuple[bytes, str]:
 
 def _generate_transcript(newsletter_text: str) -> str:
     conversation_config = {
-        "word_count": 3000,
+        "word_count": 5000,
         "conversation_style": [
             "engaging",
             "fast-paced",
@@ -102,7 +102,8 @@ def _generate_transcript(newsletter_text: str) -> str:
             "Output ONLY dialogue in <Person1> and <Person2> tags. "
             "Do NOT include any scratchpad, thinking blocks, stage directions, "
             "meta-commentary, or prompt instructions in your output. "
-            "Start with a single greeting and never repeat it later in the conversation."
+            "Start with a single greeting and never repeat it later in the conversation. "
+            "Cover ALL major topics from the source material — do not skip or omit any."
         ),
     }
 
