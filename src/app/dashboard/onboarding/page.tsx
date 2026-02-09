@@ -28,7 +28,7 @@ export default async function OnboardingPage() {
     redirect("/dashboard");
   }
 
-  const feedUrl = `https://dailygist.fyi/api/feed/${userRecord.rss_token}`;
+  const feedUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi"}/api/feed/${userRecord.rss_token}`;
 
   return (
     <div className="max-w-2xl space-y-8">

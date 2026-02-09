@@ -36,18 +36,17 @@ export async function POST(request: Request) {
   }
 
   // Extract the forwarding address from To/ToFull
+  const inboundDomain = process.env.INBOUND_EMAIL_DOMAIN || "inbound.dailygist.fyi";
   let toAddress = "";
   if (body.ToFull && body.ToFull.length > 0) {
-    // Find the @dailygist.fyi recipient
     const dgRecipient = body.ToFull.find((r) =>
-      r.Email.toLowerCase().endsWith("@dailygist.fyi")
+      r.Email.toLowerCase().endsWith(`@${inboundDomain}`)
     );
     toAddress = dgRecipient?.Email || body.ToFull[0].Email;
   } else {
-    // Parse from To string — may contain multiple, find the dailygist one
     const addresses = body.To.split(",").map((a) => a.trim());
     toAddress =
-      addresses.find((a) => a.toLowerCase().includes("@dailygist.fyi")) ||
+      addresses.find((a) => a.toLowerCase().includes(`@${inboundDomain}`)) ||
       addresses[0];
   }
 

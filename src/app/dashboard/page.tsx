@@ -91,7 +91,7 @@ export default async function DashboardPage() {
       .returns<RawEmail[]>(),
   ]);
 
-  const feedUrl = `https://dailygist.fyi/api/feed/${userRecord.rss_token}`;
+  const feedUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi"}/api/feed/${userRecord.rss_token}`;
 
   return (
     <div className="space-y-8">

@@ -59,7 +59,7 @@ ${duration}
   <channel>
     <title>Daily Gist</title>
     <description>Your newsletters, as a daily podcast</description>
-    <link>https://dailygist.fyi</link>
+    <link>${escapeXml(process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi")}</link>
     <language>en-us</language>
     <itunes:author>Daily Gist</itunes:author>
     <itunes:summary>Your newsletters, as a daily podcast</itunes:summary>
