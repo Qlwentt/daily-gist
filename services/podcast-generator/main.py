@@ -1,16 +1,19 @@
 """
 Daily Gist Podcast Generator — FastAPI Service
 
-POST /generate  — generates a podcast from newsletter text
-GET  /health    — health check for Railway
+POST /generate            — generates a podcast from newsletter text
+POST /generate-and-store  — generates podcast, uploads to Supabase, updates DB
+GET  /health              — health check for Railway
 """
 
 import base64
 import logging
 import os
+from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel
+from supabase import create_client
 
 from pipeline import generate_podcast
 
@@ -56,6 +59,15 @@ class GenerateResponse(BaseModel):
     transcript: str
 
 
+class GenerateAndStoreRequest(BaseModel):
+    user_id: str
+    newsletter_text: str
+    episode_id: str
+    email_ids: list[str]
+    storage_path: str
+    date: str
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -94,3 +106,100 @@ def generate(body: GenerateRequest, _auth: None = Depends(verify_token)):
     )
 
     return GenerateResponse(audio_base64=audio_base64, transcript=transcript)
+
+
+def _get_supabase():
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if not url or not key:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    return create_client(url, key)
+
+
+def _generate_and_store(body: GenerateAndStoreRequest):
+    """Background task: generate podcast, upload to Supabase, update DB."""
+    supabase = _get_supabase()
+
+    try:
+        logger.info(
+            "generate-and-store: starting for user_id=%s, episode_id=%s",
+            body.user_id,
+            body.episode_id,
+        )
+
+        mp3_bytes, transcript = generate_podcast(body.newsletter_text)
+
+        logger.info(
+            "generate-and-store: uploading %d bytes to %s",
+            len(mp3_bytes),
+            body.storage_path,
+        )
+
+        # Upload MP3 to Supabase Storage
+        supabase.storage.from_("podcasts").upload(
+            body.storage_path,
+            mp3_bytes,
+            file_options={"content-type": "audio/mpeg", "upsert": "true"},
+        )
+
+        # Get public URL
+        public_url = supabase.storage.from_("podcasts").get_public_url(body.storage_path)
+
+        # Update episode record
+        supabase.table("episodes").update({
+            "audio_url": public_url,
+            "transcript": transcript or None,
+            "status": "ready",
+        }).eq("id", body.episode_id).execute()
+
+        # Create episode segment
+        supabase.table("episode_segments").insert({
+            "episode_id": body.episode_id,
+            "segment_type": "deep_dive",
+            "title": "Newsletter Digest",
+            "summary": f"Digest of {len(body.email_ids)} newsletter(s)",
+            "source_email_ids": body.email_ids,
+            "sort_order": 0,
+        }).execute()
+
+        # Mark emails as processed
+        now = datetime.now(timezone.utc).isoformat()
+        supabase.table("raw_emails").update({
+            "processed_at": now,
+        }).in_("id", body.email_ids).execute()
+
+        logger.info(
+            "generate-and-store: completed for episode_id=%s",
+            body.episode_id,
+        )
+    except Exception:
+        logger.exception(
+            "generate-and-store: failed for episode_id=%s",
+            body.episode_id,
+        )
+        try:
+            supabase.table("episodes").update({
+                "status": "failed",
+                "error_message": "Podcast generation failed",
+            }).eq("id", body.episode_id).execute()
+        except Exception:
+            logger.exception("Failed to update episode status to failed")
+
+
+@app.post("/generate-and-store", status_code=202)
+def generate_and_store(
+    body: GenerateAndStoreRequest,
+    background_tasks: BackgroundTasks,
+    _auth: None = Depends(verify_token),
+):
+    """Accept a generation request and process it in the background.
+
+    Returns 202 immediately — the actual work happens asynchronously.
+    """
+    logger.info(
+        "generate-and-store: accepted for user_id=%s, episode_id=%s",
+        body.user_id,
+        body.episode_id,
+    )
+    background_tasks.add_task(_generate_and_store, body)
+    return {"status": "accepted", "episode_id": body.episode_id}
