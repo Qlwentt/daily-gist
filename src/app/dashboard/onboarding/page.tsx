@@ -183,8 +183,9 @@ export default async function OnboardingPage() {
               5
             </span>
             <span>
-              Optionally check <strong>&quot;Skip the Inbox&quot;</strong> to
-              auto-archive (recommended)
+              Optionally check <strong>&quot;Apply the label&quot;</strong> and
+              choose or create a label (e.g. &quot;Newsletters&quot;) to keep
+              them organized in one place
             </span>
           </li>
           <li className="flex gap-3">
@@ -192,12 +193,21 @@ export default async function OnboardingPage() {
               6
             </span>
             <span>
-              Click <strong>&quot;Create filter&quot;</strong>
+              Optionally check <strong>&quot;Skip the Inbox&quot;</strong> to
+              keep your inbox clean (recommended)
             </span>
           </li>
           <li className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
               7
+            </span>
+            <span>
+              Click <strong>&quot;Create filter&quot;</strong>
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
+              8
             </span>
             <span>Repeat for each newsletter you want to include</span>
           </li>
