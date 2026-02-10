@@ -110,7 +110,13 @@ def _generate_transcript(newsletter_text: str) -> str:
             "sometimes debate a point, sometimes one host explains while the other "
             "reacts, sometimes they build on each other's ideas. Avoid repetitive "
             "transition patterns like 'Speaking of which' or 'Let's shift gears.' "
-            "Make transitions feel natural and varied."
+            "Make transitions feel natural and varied. "
+            "Balance coverage across all source newsletters — no single source "
+            "should dominate more than 30% of the conversation. Avoid repeating "
+            "the same concept or example multiple times. Skip sponsored content, "
+            "ads, and promotional sections from newsletters. When transitioning "
+            "between topics, only connect them if there's a genuine thematic "
+            "link — otherwise just move on naturally."
         ),
     }
 
