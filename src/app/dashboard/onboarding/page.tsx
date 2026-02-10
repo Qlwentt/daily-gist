@@ -130,8 +130,7 @@ export default async function OnboardingPage() {
           Step 3: Set Up Gmail Filters
         </h2>
         <p className="text-gray-600 text-sm mb-4">
-          Create a filter for each newsletter you want to include in your daily
-          podcast:
+          Create a single filter to forward all your newsletters:
         </p>
         <ol className="space-y-4 text-sm">
           <li className="flex gap-3">
@@ -139,9 +138,8 @@ export default async function OnboardingPage() {
               1
             </span>
             <span>
-              In Gmail, go to{" "}
-              <strong>Settings &rarr; Filters and Blocked Addresses</strong>{" "}
-              &rarr; Create a new filter
+              <strong>Refresh Gmail</strong> so the verified forwarding address
+              is available
             </span>
           </li>
           <li className="flex gap-3">
@@ -149,11 +147,9 @@ export default async function OnboardingPage() {
               2
             </span>
             <span>
-              In the <strong>&quot;From&quot;</strong> field, enter all your
-              newsletter addresses separated by commas, e.g.:<br />
-              <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded mt-1 inline-block">
-                news@example.com, digest@other.com, weekly@another.com
-              </code>
+              Go to{" "}
+              <strong>Settings &rarr; Filters and Blocked Addresses</strong>{" "}
+              &rarr; Create a new filter
             </span>
           </li>
           <li className="flex gap-3">
@@ -161,12 +157,25 @@ export default async function OnboardingPage() {
               3
             </span>
             <span>
-              Click <strong>&quot;Create filter&quot;</strong>
+              In the <strong>&quot;From&quot;</strong> field, enter all your
+              newsletter addresses separated by{" "}
+              <strong>OR</strong>, e.g.:<br />
+              <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded mt-1 inline-block">
+                news@example.com OR digest@other.com OR weekly@another.com
+              </code>
             </span>
           </li>
           <li className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
               4
+            </span>
+            <span>
+              Click <strong>&quot;Create filter&quot;</strong>
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
+              5
             </span>
             <span>
               Check <strong>&quot;Forward it to&quot;</strong> and select your
@@ -175,7 +184,7 @@ export default async function OnboardingPage() {
           </li>
           <li className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
-              5
+              6
             </span>
             <span>
               Optionally check <strong>&quot;Apply the label&quot;</strong> and
@@ -185,7 +194,7 @@ export default async function OnboardingPage() {
           </li>
           <li className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
-              6
+              7
             </span>
             <span>
               Optionally check <strong>&quot;Skip the Inbox&quot;</strong> to
@@ -194,7 +203,7 @@ export default async function OnboardingPage() {
           </li>
           <li className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
-              7
+              8
             </span>
             <span>
               Click <strong>&quot;Create filter&quot;</strong> &mdash; you can
@@ -202,6 +211,11 @@ export default async function OnboardingPage() {
             </span>
           </li>
         </ol>
+        <p className="text-gray-500 text-xs mt-4">
+          Want your first podcast today? Search Gmail for today&apos;s
+          newsletters and forward them to your Daily Gist address above.
+          The filter only applies to future emails.
+        </p>
       </div>
 
       {/* Step 4: RSS Feed */}
