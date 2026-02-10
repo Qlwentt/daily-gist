@@ -42,7 +42,7 @@ export default async function OnboardingPage() {
         <h1 className="text-2xl font-bold mt-2">Set Up Your Daily Gist</h1>
         <p className="text-gray-600 mt-1">
           Follow these steps to start receiving your newsletters as a daily
-          podcast.
+          podcast. Currently we only support Gmail.
         </p>
       </div>
 
