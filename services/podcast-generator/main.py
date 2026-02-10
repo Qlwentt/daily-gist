@@ -9,6 +9,7 @@ GET  /health              — health check for Railway
 import base64
 import logging
 import os
+import threading
 from datetime import datetime, timezone
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
@@ -26,6 +27,11 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Daily Gist Podcast Generator")
 
 GENERATOR_API_KEY = os.environ.get("GENERATOR_API_KEY")
+
+# Limit concurrent podcast generations to avoid API rate limits and memory issues.
+# Excess requests queue in-process and run when a slot opens.
+MAX_CONCURRENT_GENERATIONS = int(os.environ.get("MAX_CONCURRENT_GENERATIONS", "3"))
+_generation_semaphore = threading.Semaphore(MAX_CONCURRENT_GENERATIONS)
 
 
 # ---------------------------------------------------------------------------
@@ -118,6 +124,17 @@ def _get_supabase():
 
 def _generate_and_store(body: GenerateAndStoreRequest):
     """Background task: generate podcast, upload to Supabase, update DB."""
+    logger.info(
+        "generate-and-store: waiting for slot (max %d concurrent), episode_id=%s",
+        MAX_CONCURRENT_GENERATIONS,
+        body.episode_id,
+    )
+
+    with _generation_semaphore:
+        _do_generate_and_store(body)
+
+
+def _do_generate_and_store(body: GenerateAndStoreRequest):
     supabase = _get_supabase()
 
     try:
