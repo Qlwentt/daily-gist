@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Gist — System Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0e1a;
+    color: #e0e4f0;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .canvas {
+    position: relative;
+    width: 1440px;
+    height: 980px;
+    padding: 40px 60px 60px 90px;
+  }
+
+  .title-block {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .title-block h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .title-block h1 span { color: #a78bfa; }
+  .title-block p {
+    font-size: 13px;
+    color: #6b7194;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .node {
+    position: absolute;
+    border-radius: 14px;
+    padding: 16px 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: default;
+    z-index: 2;
+  }
+  .node:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+  .node-icon { font-size: 20px; margin-bottom: 6px; display: block; }
+  .node-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: #fff;
+  }
+  .node-subtitle { font-size: 11px; color: #8b90a8; line-height: 1.5; }
+  .node-tech {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    margin-top: 6px;
+    background: rgba(255,255,255,0.06);
+    color: #9ca0b8;
+  }
+
+  .node-user { background: linear-gradient(135deg, #1e2740, #172035); border: 1.5px solid #2d3555; }
+  .node-gmail { background: linear-gradient(135deg, #1f1a2e, #1a1530); border: 1.5px solid #3d2d5c; }
+  .node-postmark { background: linear-gradient(135deg, #1a2420, #152220); border: 1.5px solid #2d5540; }
+  .node-vercel { background: linear-gradient(135deg, #1c1c2e, #18182a); border: 1.5px solid #3a3a5c; }
+  .node-railway { background: linear-gradient(135deg, #2a1a1e, #251520); border: 1.5px solid #5c2d3d; }
+  .node-supabase { background: linear-gradient(135deg, #1a2a20, #152520); border: 1.5px solid #2d5c40; }
+  .node-claude { background: linear-gradient(135deg, #2a2218, #252018); border: 1.5px solid #5c4a2d; }
+  .node-gemini { background: linear-gradient(135deg, #1a1e2e, #151a2a); border: 1.5px solid #2d3d6c; }
+  .node-rss { background: linear-gradient(135deg, #2e2a1a, #2a2518); border: 1.5px solid #6c5c2d; }
+  .node-cron { background: linear-gradient(135deg, #1e2230, #1a1e2a); border: 1.5px solid #3a4060; }
+
+  svg.arrows {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .arrow-path { fill: none; stroke-width: 2; stroke-linecap: round; opacity: 0.45; }
+  .arrow-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: #6a6f8a;
+  }
+
+  .region {
+    position: absolute;
+    border: 1.5px dashed;
+    border-radius: 18px;
+    z-index: 0;
+  }
+  .region-label {
+    position: absolute;
+    top: -10px; left: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 0 8px;
+    background: #0a0e1a;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .node, .region {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+  }
+  .node:nth-child(1) { animation-delay: 0.08s; }
+  .node:nth-child(2) { animation-delay: 0.12s; }
+  .node:nth-child(3) { animation-delay: 0.16s; }
+  .node:nth-child(4) { animation-delay: 0.20s; }
+  .node:nth-child(5) { animation-delay: 0.24s; }
+  .node:nth-child(6) { animation-delay: 0.28s; }
+  .node:nth-child(7) { animation-delay: 0.32s; }
+  .node:nth-child(8) { animation-delay: 0.36s; }
+  .node:nth-child(9) { animation-delay: 0.40s; }
+  .node:nth-child(10) { animation-delay: 0.44s; }
+  .region { animation-delay: 0.04s; }
+
+  .legend {
+    position: absolute;
+    bottom: 16px; left: 90px;
+    display: flex; gap: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #4a4f6a;
+    z-index: 3;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-line { width: 24px; height: 2px; border-radius: 1px; }
+  .legend-dash { width: 24px; height: 0; border-top: 2px dashed; }
+
+  /* Step numbers */
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    color: #0a0e1a;
+    background: #6a6f8a;
+  }
+</style>
+</head>
+<body>
+
+<div class="canvas">
+
+  <div class="title-block">
+    <h1><span>Daily Gist</span> — System Architecture</h1>
+    <p>v4 · February 2026</p>
+  </div>
+
+  <!-- Region: Vercel -->
+  <div class="region" style="top: 370px; left: 410px; width: 360px; height: 200px; border-color: #2a2a4a;">
+    <span class="region-label" style="color: #4a4a7a;">Vercel Pro · $20/mo</span>
+  </div>
+
+  <!-- Region: Railway -->
+  <div class="region" style="top: 370px; left: 830px; width: 340px; height: 200px; border-color: #4a2a3a;">
+    <span class="region-label" style="color: #7a4a5a;">Railway · ~$20/mo</span>
+  </div>
+
+  <!-- SVG Arrows -->
+  <svg class="arrows" viewBox="0 0 1440 980" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="a-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,1 L7,4 L0,7" fill="none" stroke="#4a5080" stroke-width="1.5"/>
+      </marker>
+      <marker id="a-purple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,1 L7,4 L0,7" fill="none" stroke="#6b4a8a" stroke-width="1.5"/>
+      </marker>
+      <marker id="a-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,1 L7,4 L0,7" fill="none" stroke="#3a7a50" stroke-width="1.5"/>
+      </marker>
+      <marker id="a-red" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,1 L7,4 L0,7" fill="none" stroke="#aa5a6a" stroke-width="1.5"/>
+      </marker>
+      <marker id="a-orange" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,1 L7,4 L0,7" fill="none" stroke="#8a7a3a" stroke-width="1.5"/>
+      </marker>
+      <marker id="a-teal" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,1 L7,4 L0,7" fill="none" stroke="#3a5a8a" stroke-width="1.5"/>
+      </marker>
+    </defs>
+
+    <!-- 1. User → Gmail -->
+    <path class="arrow-path" stroke="#4a5080" d="M 200,200 L 200,260" marker-end="url(#a-blue)"/>
+    <text class="arrow-label" x="210" y="235">❶ subscribes</text>
+
+    <!-- 2. Gmail → Postmark -->
+    <path class="arrow-path" stroke="#6b4a8a" d="M 200,375 L 200,425" marker-end="url(#a-purple)"/>
+    <text class="arrow-label" x="210" y="406">❷ forwards</text>
+
+    <!-- 3. Postmark → Vercel -->
+    <path class="arrow-path" stroke="#3a7a50" d="M 340,470 L 410,470" marker-end="url(#a-green)"/>
+    <text class="arrow-label" x="345" y="462">❸ webhook</text>
+
+    <!-- 4. Vercel → Supabase (store) -->
+    <path class="arrow-path" stroke="#4a4a7a" d="M 590,570 L 590,680" marker-end="url(#a-blue)"/>
+    <text class="arrow-label" x="600" y="635">❹ store</text>
+
+    <!-- 5. Cron → Vercel -->
+    <path class="arrow-path" stroke="#4a5580" d="M 510,240 L 550,370" marker-end="url(#a-blue)"/>
+    <text class="arrow-label" x="505" y="310">❺ hourly</text>
+
+    <!-- 6. Vercel → Railway (fire and forget) -->
+    <path class="arrow-path" stroke="#aa5a6a" stroke-dasharray="6,4" d="M 770,460 L 830,460" marker-end="url(#a-red)"/>
+    <text class="arrow-label" x="770" y="448">❻ fire&forget</text>
+
+    <!-- 7. Railway → Claude -->
+    <path class="arrow-path" stroke="#8a7a3a" d="M 1060,390 L 1140,280" marker-end="url(#a-orange)"/>
+    <text class="arrow-label" x="1110" y="328">❼ transcript</text>
+
+    <!-- 8. Railway → Gemini -->
+    <path class="arrow-path" stroke="#3a5a8a" d="M 1060,570 L 1140,660" marker-end="url(#a-teal)"/>
+    <text class="arrow-label" x="1110" y="625">❽ TTS</text>
+
+    <!-- 9. Railway → Supabase (upload) -->
+    <path class="arrow-path" stroke="#3a7a50" d="M 900,570 L 740,720" marker-end="url(#a-green)"/>
+    <text class="arrow-label" x="830" y="642">❾ upload MP3</text>
+
+    <!-- 10. Vercel → RSS (build feed) -->
+    <path class="arrow-path" stroke="#4a4a7a" d="M 470,570 L 330,800" marker-end="url(#a-blue)"/>
+    <text class="arrow-label" x="365" y="700">❿ build feed</text>
+
+    <!-- 11. Supabase → RSS (audio URL) -->
+    <path class="arrow-path" stroke="#8a7a3a" d="M 490,770 L 380,830" marker-end="url(#a-orange)"/>
+
+    <!-- 12. RSS → User (auto-deliver via podcast app) -->
+    <path class="arrow-path" stroke="#7a4a8a" d="M 200,870 L 110,870 Q 90,870 90,850 L 90,195 Q 90,175 110,175 L 130,175" marker-end="url(#a-purple)"/>
+    <text class="arrow-label" x="68" y="540" writing-mode="tb">⓫ podcast app delivery</text>
+  </svg>
+
+  <!-- USER -->
+  <div class="node node-user" style="top: 110px; left: 100px; width: 200px;">
+    <span class="node-icon">👤</span>
+    <div class="node-title">User</div>
+    <div class="node-subtitle">Signs up, sets timezone & generation time, adds RSS to podcast app</div>
+  </div>
+
+  <!-- GMAIL -->
+  <div class="node node-gmail" style="top: 270px; left: 100px; width: 200px;">
+    <span class="node-icon">📧</span>
+    <div class="node-title">Gmail</div>
+    <div class="node-subtitle">Filters auto-forward newsletters to Daily Gist</div>
+    <span class="node-tech">Gmail only · MVP</span>
+  </div>
+
+  <!-- CRON -->
+  <div class="node node-cron" style="top: 130px; left: 430px; width: 190px;">
+    <span class="node-icon">⏰</span>
+    <div class="node-title">Vercel Cron</div>
+    <div class="node-subtitle">Hourly, matches user timezone & generation_hour</div>
+    <span class="node-tech">0 * * * *</span>
+  </div>
+
+  <!-- CLAUDE -->
+  <div class="node node-claude" style="top: 150px; left: 1100px; width: 230px;">
+    <span class="node-icon">🧠</span>
+    <div class="node-title">Claude Sonnet</div>
+    <div class="node-subtitle">Generates two-host conversational transcript from newsletters</div>
+    <span class="node-tech">16K max tokens · Podcastfy</span>
+  </div>
+
+  <!-- POSTMARK -->
+  <div class="node node-postmark" style="top: 420px; left: 100px; width: 230px;">
+    <span class="node-icon">📬</span>
+    <div class="node-title">Postmark Inbound</div>
+    <div class="node-subtitle">Receives at inbound.dailygist.fyi, POSTs webhook to Vercel</div>
+    <span class="node-tech">MX subdomain</span>
+  </div>
+
+  <!-- VERCEL -->
+  <div class="node node-vercel" style="top: 400px; left: 435px; width: 310px;">
+    <span class="node-icon">▲</span>
+    <div class="node-title">Vercel — Next.js</div>
+    <div class="node-subtitle">Web app · auth · dashboard · settings · webhook · RSS feed · cron endpoint</div>
+    <span class="node-tech">Node.js · fire-and-forget</span>
+  </div>
+
+  <!-- RAILWAY -->
+  <div class="node node-railway" style="top: 400px; left: 855px; width: 290px;">
+    <span class="node-icon">🚂</span>
+    <div class="node-title">Railway — FastAPI</div>
+    <div class="node-subtitle">Full pipeline: transcript → chunked TTS → upload MP3 → update episode</div>
+    <span class="node-tech">Python · Podcastfy · async</span>
+  </div>
+
+  <!-- SUPABASE -->
+  <div class="node node-supabase" style="top: 690px; left: 460px; width: 240px;">
+    <span class="node-icon">🗄️</span>
+    <div class="node-title">Supabase</div>
+    <div class="node-subtitle">Postgres DB (users, emails, episodes) + Storage bucket (MP3s)</div>
+    <span class="node-tech">Auth · RLS · Public bucket</span>
+  </div>
+
+  <!-- GEMINI TTS -->
+  <div class="node node-gemini" style="top: 670px; left: 1100px; width: 230px;">
+    <span class="node-icon">🔊</span>
+    <div class="node-title">Gemini 2.5 Flash TTS</div>
+    <div class="node-subtitle">Multi-speaker audio, Charon & Leda voices, chunked synthesis</div>
+    <span class="node-tech">3 chunks · 20 turns each</span>
+  </div>
+
+  <!-- RSS FEED -->
+  <div class="node node-rss" style="top: 820px; left: 180px; width: 210px;">
+    <span class="node-icon">📡</span>
+    <div class="node-title">RSS Feed</div>
+    <div class="node-subtitle">Private per-user feed with cover art & enclosure lengths</div>
+    <span class="node-tech">/api/feed/:token</span>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-line" style="background: #4a5080;"></div>
+      <span>sync request</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dash" style="border-color: #aa5a6a;"></div>
+      <span>fire & forget</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-line" style="background: #3a7a50;"></div>
+      <span>data flow</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-line" style="background: #8a7a3a;"></div>
+      <span>API call</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
