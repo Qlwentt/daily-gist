@@ -34,7 +34,7 @@ export function NotificationBanners({
           key={notification.id}
           className="flex items-start justify-between gap-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg px-4 py-3"
         >
-          <p className="text-sm">{notification.message}</p>
+          <p className="text-sm whitespace-pre-line">{notification.message}</p>
           <button
             onClick={() => dismiss(notification.id)}
             className="flex-shrink-0 text-yellow-600 hover:text-yellow-800 text-lg leading-none"

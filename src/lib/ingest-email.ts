@@ -36,25 +36,17 @@ export async function ingestEmail(
     return { status: 200, body: { message: "No matching user" } };
   }
 
-  // Gmail forwarding confirmation — extract code, notify user, skip storage
+  // Gmail forwarding confirmation — show full email body so user can find the code
   if (email.from.toLowerCase() === "forwarding-noreply@google.com") {
     const body = email.textBody || email.htmlBody || "";
-    const match = body.match(/Confirmation code:\s*(\d+)/);
 
-    if (match) {
-      await supabase.from("notifications").insert({
-        user_id: user.id,
-        type: "gmail_forwarding_confirmation",
-        message: `Your Gmail forwarding confirmation code is: ${match[1]}`,
-      });
-    } else {
-      await supabase.from("notifications").insert({
-        user_id: user.id,
-        type: "gmail_forwarding_confirmation",
-        message:
-          "We received a Gmail forwarding confirmation email but couldn't extract the code. Check your Gmail inbox for the confirmation.",
-      });
-    }
+    await supabase.from("notifications").insert({
+      user_id: user.id,
+      type: "gmail_forwarding_confirmation",
+      message: body
+        ? `Gmail forwarding confirmation:\n\n${body}`
+        : "We received a Gmail forwarding confirmation email but it was empty. Check your Gmail inbox for the confirmation.",
+    });
 
     return { status: 200, body: { message: "Gmail confirmation handled" } };
   }
