@@ -149,8 +149,11 @@ export default async function OnboardingPage() {
               2
             </span>
             <span>
-              In the <strong>&quot;From&quot;</strong> field, enter the email
-              address of the newsletter you want to forward
+              In the <strong>&quot;From&quot;</strong> field, enter all your
+              newsletter addresses separated by commas, e.g.:<br />
+              <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded mt-1 inline-block">
+                news@example.com, digest@other.com, weekly@another.com
+              </code>
             </span>
           </li>
           <li className="flex gap-3">
@@ -194,14 +197,9 @@ export default async function OnboardingPage() {
               7
             </span>
             <span>
-              Click <strong>&quot;Create filter&quot;</strong>
+              Click <strong>&quot;Create filter&quot;</strong> &mdash; you can
+              edit this filter later to add more newsletters
             </span>
-          </li>
-          <li className="flex gap-3">
-            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
-              8
-            </span>
-            <span>Repeat for each newsletter you want to include</span>
           </li>
         </ol>
       </div>
