@@ -110,19 +110,11 @@ export default async function OnboardingPage() {
               5
             </span>
             <span>
-              Gmail sends a confirmation code &mdash; check your{" "}
+              Gmail sends a confirmation email &mdash; go to your{" "}
               <Link href="/dashboard" className="text-blue-600 hover:underline">
                 Daily Gist dashboard
               </Link>{" "}
-              for a notification with the code
-            </span>
-          </li>
-          <li className="flex gap-3">
-            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
-              6
-            </span>
-            <span>
-              Enter the code in Gmail and click <strong>Verify</strong>
+              and click the confirmation link in the notification
             </span>
           </li>
         </ol>
