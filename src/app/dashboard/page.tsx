@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { NotificationBanners } from "@/components/notification-banner";
 import { EpisodeList } from "@/components/episode-list";
+import { CopyButton } from "@/components/copy-button";
 
 type Episode = {
   id: string;
@@ -110,15 +111,21 @@ export default async function DashboardPage() {
         <div className="space-y-4">
           <div>
             <p className="text-sm text-gray-500 mb-1">Forwarding Address</p>
-            <code className="bg-gray-100 px-3 py-1.5 rounded text-sm block">
-              {userRecord.forwarding_address}
-            </code>
+            <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded">
+              <code className="flex-1 text-sm break-all">
+                {userRecord.forwarding_address}
+              </code>
+              <CopyButton text={userRecord.forwarding_address} />
+            </div>
           </div>
           <div>
             <p className="text-sm text-gray-500 mb-1">RSS Feed URL</p>
-            <code className="bg-gray-100 px-3 py-1.5 rounded text-sm block break-all">
-              {feedUrl}
-            </code>
+            <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded">
+              <code className="flex-1 text-sm break-all">
+                {feedUrl}
+              </code>
+              <CopyButton text={feedUrl} />
+            </div>
           </div>
           <Link
             href="/dashboard/onboarding"
