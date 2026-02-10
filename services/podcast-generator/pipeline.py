@@ -260,14 +260,24 @@ def _synthesize_audio(turns: list[dict]) -> bytes:
     full_prompt = "\n".join(tts_prompt_lines)
 
     MAX_CHARS = 100_000
+    CHUNK_THRESHOLD = 10  # Always chunk if more than this many turns
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         mp3_path = os.path.join(tmp_dir, "episode.mp3")
 
-        if len(full_prompt) > MAX_CHARS:
-            logger.warning("Transcript is %d chars, chunking required", len(full_prompt))
+        logger.info(
+            "TTS input: %d turns, %d chars total",
+            len(turns), len(full_prompt),
+        )
+
+        if len(full_prompt) > MAX_CHARS or len(turns) > CHUNK_THRESHOLD:
+            logger.info(
+                "Chunking required — %d chars, %d turns (thresholds: %d chars, %d turns)",
+                len(full_prompt), len(turns), MAX_CHARS, CHUNK_THRESHOLD,
+            )
             _synthesize_chunked(client, turns, tmp_dir, mp3_path)
         else:
-            logger.info("Sending %d chars to Gemini TTS (%d turns)", len(full_prompt), len(turns))
+            logger.info("Single-shot TTS: %d chars, %d turns", len(full_prompt), len(turns))
             response = client.models.generate_content(
                 model="gemini-2.5-flash-preview-tts",
                 contents=full_prompt,
@@ -277,9 +287,13 @@ def _synthesize_audio(turns: list[dict]) -> bytes:
                 ),
             )
             audio_data = response.candidates[0].content.parts[0].inline_data.data
+            logger.info("Single-shot TTS returned %d bytes of audio", len(audio_data))
             wav_path = os.path.join(tmp_dir, "episode.wav")
             _save_wav(wav_path, audio_data)
             _convert_to_mp3(wav_path, mp3_path)
+
+        mp3_size = os.path.getsize(mp3_path)
+        logger.info("Final MP3: %d bytes (%.1f MB)", mp3_size, mp3_size / 1_048_576)
 
         with open(mp3_path, "rb") as f:
             return f.read()
@@ -290,10 +304,15 @@ def _synthesize_chunked(client, turns: list[dict], tmp_dir: str, mp3_path: str) 
     chunks = [turns[i : i + chunk_size] for i in range(0, len(turns), chunk_size)]
     wav_files = []
 
-    for i, chunk in enumerate(chunks):
-        logger.info("Synthesizing chunk %d/%d (%d turns)", i + 1, len(chunks), len(chunk))
+    logger.info("Splitting %d turns into %d chunks (chunk_size=%d)", len(turns), len(chunks), chunk_size)
 
+    for i, chunk in enumerate(chunks):
         prompt = "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk)
+        logger.info(
+            "Synthesizing chunk %d/%d: %d turns, %d chars",
+            i + 1, len(chunks), len(chunk), len(prompt),
+        )
+
         response = client.models.generate_content(
             model="gemini-2.5-flash-preview-tts",
             contents=prompt,
@@ -304,9 +323,12 @@ def _synthesize_chunked(client, turns: list[dict], tmp_dir: str, mp3_path: str) 
         )
 
         audio_data = response.candidates[0].content.parts[0].inline_data.data
+        logger.info("Chunk %d/%d: received %d bytes of audio", i + 1, len(chunks), len(audio_data))
         chunk_wav = os.path.join(tmp_dir, f"chunk{i}.wav")
         _save_wav(chunk_wav, audio_data)
         wav_files.append(chunk_wav)
+
+    logger.info("All %d chunks synthesized, concatenating into MP3...", len(wav_files))
 
     # Concatenate all chunks via ffmpeg
     concat_list = os.path.join(tmp_dir, "concat.txt")
