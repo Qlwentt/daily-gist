@@ -65,6 +65,12 @@ ${duration}
     <itunes:author>Daily Gist</itunes:author>
     <itunes:summary>Your newsletters, as a daily podcast</itunes:summary>
     <itunes:explicit>false</itunes:explicit>
+    <itunes:image href="https://www.dailygist.fyi/podcast-cover.png" />
+    <image>
+      <url>https://www.dailygist.fyi/podcast-cover.png</url>
+      <title>Daily Gist</title>
+      <link>https://www.dailygist.fyi</link>
+    </image>
     <itunes:category text="News" />
 ${items}
   </channel>
