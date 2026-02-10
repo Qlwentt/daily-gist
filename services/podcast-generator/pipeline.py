@@ -103,7 +103,13 @@ def _generate_transcript(newsletter_text: str) -> str:
             "Do NOT include any scratchpad, thinking blocks, stage directions, "
             "meta-commentary, or prompt instructions in your output. "
             "Start with a single greeting and never repeat it later in the conversation. "
-            "Cover ALL major topics from the source material — do not skip or omit any."
+            "Prioritize depth over breadth. Synthesize related topics into 3-4 major "
+            "themed segments for deeper discussion, then handle remaining unrelated "
+            "items as brief quick hits. Vary the conversational style throughout — "
+            "sometimes debate a point, sometimes one host explains while the other "
+            "reacts, sometimes they build on each other's ideas. Avoid repetitive "
+            "transition patterns like 'Speaking of which' or 'Let's shift gears.' "
+            "Make transitions feel natural and varied."
         ),
     }
 
