@@ -145,6 +145,7 @@ export default async function SettingsPage() {
         <form action={updateTimezone}>
           <div className="flex gap-3">
             <select
+              key={userRecord.timezone}
               name="timezone"
               defaultValue={userRecord.timezone}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -174,6 +175,7 @@ export default async function SettingsPage() {
         <form action={updateGenerationHour}>
           <div className="flex gap-3">
             <select
+              key={userRecord.generation_hour}
               name="generation_hour"
               defaultValue={userRecord.generation_hour}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
