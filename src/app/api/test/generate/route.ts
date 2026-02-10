@@ -79,8 +79,8 @@ export async function POST() {
   const emailIds = emails.map((e) => e.id);
   const storagePath = `${user.id}/${today}.mp3`;
 
-  // Fire-and-forget to Railway
-  fetch(`${serviceUrl}/generate-and-store`, {
+  // Await the 202 from Railway — it responds immediately before doing work
+  await fetch(`${serviceUrl}/generate-and-store`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -94,7 +94,7 @@ export async function POST() {
       storage_path: storagePath,
       date: today,
     }),
-  }).catch(() => {});
+  });
 
   return NextResponse.json({
     message: "Episode generation triggered",

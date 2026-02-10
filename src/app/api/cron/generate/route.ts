@@ -107,8 +107,8 @@ export async function GET(request: Request) {
       const emailIds = emails.map((e) => e.id);
       const storagePath = `${userId}/${today}.mp3`;
 
-      // Fire-and-forget: send to Railway without awaiting
-      fetch(`${serviceUrl}/generate-and-store`, {
+      // Await the 202 from Railway — it responds immediately before doing work
+      await fetch(`${serviceUrl}/generate-and-store`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,8 +122,6 @@ export async function GET(request: Request) {
           storage_path: storagePath,
           date: today,
         }),
-      }).catch(() => {
-        // Suppress unhandled rejection — Railway will update episode status on failure
       });
 
       triggered++;
