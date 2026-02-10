@@ -218,10 +218,27 @@ export default async function OnboardingPage() {
         </p>
       </div>
 
-      {/* Step 4: RSS Feed */}
+      {/* Step 4: Timezone */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h2 className="text-lg font-semibold mb-2">
-          Step 4: Add Your RSS Feed
+          Step 4: Set Your Timezone
+        </h2>
+        <p className="text-gray-600 text-sm">
+          Your daily podcast is generated based on your timezone. Head to{" "}
+          <Link
+            href="/dashboard/settings"
+            className="text-blue-600 hover:underline"
+          >
+            Settings
+          </Link>{" "}
+          to make sure it&apos;s correct.
+        </p>
+      </div>
+
+      {/* Step 5: RSS Feed */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold mb-2">
+          Step 5: Add Your RSS Feed
         </h2>
         <p className="text-gray-600 text-sm mb-4">
           Add this private RSS feed URL to your favorite podcast app:
