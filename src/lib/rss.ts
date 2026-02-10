@@ -4,6 +4,7 @@ type EpisodeItem = {
   description: string;
   pubDate: string;
   audioUrl: string | null;
+  audioSizeBytes: number | null;
   durationSeconds: number | null;
 };
 
@@ -32,7 +33,7 @@ export function generateFeedXml(episodes: EpisodeItem[]): string {
     .map((ep) => {
       let enclosure = "";
       if (ep.audioUrl) {
-        enclosure = `      <enclosure url="${escapeXml(ep.audioUrl)}" type="audio/mpeg" length="0" />`;
+        enclosure = `      <enclosure url="${escapeXml(ep.audioUrl)}" type="audio/mpeg" length="${ep.audioSizeBytes || 0}" />`;
       }
 
       let duration = "";

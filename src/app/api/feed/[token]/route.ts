@@ -12,6 +12,7 @@ type EpisodeRow = {
   transcript: string | null;
   audio_url: string | null;
   audio_duration_seconds: number | null;
+  audio_size_bytes: number | null;
   created_at: string;
 };
 
@@ -38,7 +39,7 @@ export async function GET(
   const { data: episodes } = await supabase
     .from("episodes")
     .select(
-      "id, title, date, transcript, audio_url, audio_duration_seconds, created_at"
+      "id, title, date, transcript, audio_url, audio_duration_seconds, audio_size_bytes, created_at"
     )
     .eq("user_id", user.id)
     .eq("status", "ready")
@@ -54,6 +55,7 @@ export async function GET(
       : "Daily Gist episode",
     pubDate: ep.created_at,
     audioUrl: ep.audio_url,
+    audioSizeBytes: ep.audio_size_bytes,
     durationSeconds: ep.audio_duration_seconds,
   }));
 

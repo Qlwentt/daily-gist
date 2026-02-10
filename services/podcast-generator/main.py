@@ -165,6 +165,7 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
         # Update episode record
         supabase.table("episodes").update({
             "audio_url": public_url,
+            "audio_size_bytes": len(mp3_bytes),
             "transcript": transcript or None,
             "status": "ready",
         }).eq("id", body.episode_id).execute()
