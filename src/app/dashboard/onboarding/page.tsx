@@ -62,10 +62,80 @@ export default async function OnboardingPage() {
         </div>
       </div>
 
-      {/* Step 2: Gmail Filter Setup */}
+      {/* Step 2: Verify Forwarding Address */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h2 className="text-lg font-semibold mb-2">
-          Step 2: Set Up Gmail Filters
+          Step 2: Verify Forwarding Address in Gmail
+        </h2>
+        <p className="text-gray-600 text-sm mb-4">
+          Gmail requires you to verify a forwarding address before you can use
+          it in filters:
+        </p>
+        <ol className="space-y-4 text-sm">
+          <li className="flex gap-3">
+            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
+              1
+            </span>
+            <span>
+              In Gmail, go to{" "}
+              <strong>Settings &rarr; Forwarding and POP/IMAP</strong>
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
+              2
+            </span>
+            <span>
+              Click <strong>&quot;Add a forwarding address&quot;</strong>
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
+              3
+            </span>
+            <span>
+              Paste your Daily Gist forwarding address from Step 1
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
+              4
+            </span>
+            <span>
+              Click <strong>Next &rarr; Proceed &rarr; OK</strong>
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
+              5
+            </span>
+            <span>
+              Gmail sends a confirmation code &mdash; check your{" "}
+              <Link href="/dashboard" className="text-blue-600 hover:underline">
+                Daily Gist dashboard
+              </Link>{" "}
+              for a notification with the code
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-medium">
+              6
+            </span>
+            <span>
+              Enter the code in Gmail and click <strong>Verify</strong>
+            </span>
+          </li>
+        </ol>
+        <p className="text-gray-500 text-xs mt-4">
+          You do NOT need to enable &quot;Forward a copy of incoming
+          mail&quot; &mdash; just verify the address so it appears in filters.
+        </p>
+      </div>
+
+      {/* Step 3: Gmail Filter Setup */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold mb-2">
+          Step 3: Set Up Gmail Filters
         </h2>
         <p className="text-gray-600 text-sm mb-4">
           Create a filter for each newsletter you want to include in your daily
@@ -104,7 +174,7 @@ export default async function OnboardingPage() {
               4
             </span>
             <span>
-              Check <strong>&quot;Forward it to&quot;</strong> and enter your
+              Check <strong>&quot;Forward it to&quot;</strong> and select your
               Daily Gist forwarding address
             </span>
           </li>
@@ -132,16 +202,12 @@ export default async function OnboardingPage() {
             <span>Repeat for each newsletter you want to include</span>
           </li>
         </ol>
-        <p className="text-gray-500 text-xs mt-4">
-          Note: The first time you set up forwarding, Gmail may send a
-          confirmation email. Check your inbox and confirm if prompted.
-        </p>
       </div>
 
-      {/* Step 3: RSS Feed */}
+      {/* Step 4: RSS Feed */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h2 className="text-lg font-semibold mb-2">
-          Step 3: Add Your RSS Feed
+          Step 4: Add Your RSS Feed
         </h2>
         <p className="text-gray-600 text-sm mb-4">
           Add this private RSS feed URL to your favorite podcast app:
