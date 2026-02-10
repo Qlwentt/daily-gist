@@ -96,6 +96,7 @@ def _generate_transcript(newsletter_text: str) -> str:
             "humor",
             "surprising facts",
         ],
+        "max_output_tokens": 16384,
         "creativity": 0.8,
         "output_language": "English",
         "user_instructions": (
@@ -125,7 +126,18 @@ def _generate_transcript(newsletter_text: str) -> str:
         raise RuntimeError("Transcript generation failed — no file produced")
 
     with open(transcript_path, "r") as f:
-        return f.read()
+        transcript = f.read()
+
+    # Detect likely truncation: no closing tag at the end
+    stripped = transcript.rstrip()
+    if not stripped.endswith("</Person1>") and not stripped.endswith("</Person2>"):
+        logger.warning(
+            "Transcript may be truncated — does not end with a closing Person tag. "
+            "Last 100 chars: %s",
+            stripped[-100:],
+        )
+
+    return transcript
 
 
 # ---------------------------------------------------------------------------
