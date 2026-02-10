@@ -9,6 +9,7 @@ type UserRecord = {
   rss_token: string;
   timezone: string;
   tier: string;
+  generation_hour: number;
 };
 
 const TIMEZONES = [
@@ -20,6 +21,15 @@ const TIMEZONES = [
   { value: "Pacific/Honolulu", label: "Hawaii Time (HT)" },
   { value: "UTC", label: "UTC" },
 ];
+
+const GENERATION_HOURS = Array.from({ length: 24 }, (_, i) => ({
+  value: i,
+  label: new Date(2000, 0, 1, i).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }),
+}));
 
 const TIER_LABELS: Record<string, string> = {
   free: "Free (DIY)",
@@ -45,6 +55,31 @@ async function updateTimezone(formData: FormData) {
   revalidatePath("/dashboard/settings");
 }
 
+async function updateGenerationHour(formData: FormData) {
+  "use server";
+
+  const hour = formData.get("generation_hour");
+  if (hour === null) return;
+
+  const generation_hour = parseInt(hour as string, 10);
+  if (isNaN(generation_hour) || generation_hour < 0 || generation_hour > 23)
+    return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  await supabase
+    .from("users")
+    .update({ generation_hour })
+    .eq("id", user.id);
+
+  revalidatePath("/dashboard/settings");
+}
+
 async function signOut() {
   "use server";
 
@@ -65,7 +100,7 @@ export default async function SettingsPage() {
 
   const { data: userRecord } = await supabase
     .from("users")
-    .select("email, forwarding_address, rss_token, timezone, tier")
+    .select("email, forwarding_address, rss_token, timezone, tier, generation_hour")
     .eq("id", user.id)
     .single<UserRecord>();
 
@@ -117,6 +152,35 @@ export default async function SettingsPage() {
               {TIMEZONES.map((tz) => (
                 <option key={tz.value} value={tz.value}>
                   {tz.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Generation Time */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold mb-4">Podcast Generation Time</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Your podcast will be generated at this time each day.
+        </p>
+        <form action={updateGenerationHour}>
+          <div className="flex gap-3">
+            <select
+              name="generation_hour"
+              defaultValue={userRecord.generation_hour}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {GENERATION_HOURS.map((h) => (
+                <option key={h.value} value={h.value}>
+                  {h.label}
                 </option>
               ))}
             </select>

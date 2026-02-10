@@ -9,6 +9,35 @@ type UserIdRow = {
   user_id: string;
 };
 
+type UserRow = {
+  id: string;
+  timezone: string;
+  generation_hour: number;
+};
+
+function getCurrentHourInTimezone(timezone: string): number {
+  const hourStr = new Date().toLocaleString("en-US", {
+    timeZone: timezone,
+    hour: "numeric",
+    hour12: false,
+  });
+  // toLocaleString with hour12:false returns "0"-"23" (or "24" at midnight in some locales)
+  return parseInt(hourStr, 10) % 24;
+}
+
+function getTodayInTimezone(timezone: string): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: timezone });
+}
+
+function getFormattedDateInTimezone(timezone: string): string {
+  return new Date().toLocaleDateString("en-US", {
+    timeZone: timezone,
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   const expectedToken = process.env.CRON_SECRET;
@@ -44,11 +73,42 @@ export async function GET(request: Request) {
   }
 
   // Deduplicate user IDs
-  const userIds = [...new Set((usersWithEmails || []).map((r) => r.user_id))];
+  const candidateUserIds = [
+    ...new Set((usersWithEmails || []).map((r) => r.user_id)),
+  ];
 
-  if (userIds.length === 0) {
+  if (candidateUserIds.length === 0) {
     return NextResponse.json({ message: "No users with pending emails" });
   }
+
+  // Fetch timezone and generation_hour for candidate users
+  const { data: users, error: usersError } = await supabase
+    .from("users")
+    .select("id, timezone, generation_hour")
+    .in("id", candidateUserIds)
+    .returns<UserRow[]>();
+
+  if (usersError || !users) {
+    return NextResponse.json(
+      { error: "Failed to query users" },
+      { status: 500 }
+    );
+  }
+
+  // Filter to users whose current hour matches their generation_hour
+  const eligibleUsers = users.filter((u) => {
+    const currentHour = getCurrentHourInTimezone(u.timezone);
+    return currentHour === u.generation_hour;
+  });
+
+  if (eligibleUsers.length === 0) {
+    return NextResponse.json({
+      message: "No users with pending emails at their generation hour",
+    });
+  }
+
+  const userIds = eligibleUsers.map((u) => u.id);
+  const userMap = new Map(eligibleUsers.map((u) => [u.id, u]));
 
   let triggered = 0;
   const errors: { userId: string; error: string }[] = [];
@@ -73,12 +133,9 @@ export async function GET(request: Request) {
         continue;
       }
 
-      const today = new Date().toISOString().split("T")[0];
-      const title = `Your Daily Gist — ${new Date().toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })}`;
+      const userTimezone = userMap.get(userId)!.timezone;
+      const today = getTodayInTimezone(userTimezone);
+      const title = `Your Daily Gist — ${getFormattedDateInTimezone(userTimezone)}`;
 
       // Create episode record in 'processing' state
       const { data: episode, error: insertError } = await supabase
