@@ -272,7 +272,8 @@ npm run dev
 npm run build
 
 # Run cron job manually (for testing)
-curl http://localhost:3000/api/cron/generate
+# NOTE: Production domain requires www. prefix
+curl -H "Authorization: Bearer $CRON_SECRET" https://www.dailygist.fyi/api/cron/generate
 
 # Test webhook locally (use Postmark's test mode)
 ```
