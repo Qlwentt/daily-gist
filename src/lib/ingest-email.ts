@@ -56,7 +56,7 @@ export async function ingestEmail(
       await supabase.from("notifications").insert({
         user_id: user.id,
         type: "newsletter_limit_reached",
-        message: `We received a newsletter from ${email.fromName || email.from} but couldn't process it — you've hit your ${user.newsletter_limit} newsletter limit. Upgrade to Power for unlimited newsletters.`,
+        message: `We received a newsletter from ${email.fromName || email.from} but couldn't process it — you've hit your ${user.newsletter_limit} newsletter limit. Upgrade your plan for more newsletters.`,
       });
 
       return { status: 200, body: { message: "Newsletter limit reached" } };

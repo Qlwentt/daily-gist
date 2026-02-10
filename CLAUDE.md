@@ -221,8 +221,8 @@ Prompt should instruct:
 | Tier  | Price  | Newsletters          | History   |
 | ----- | ------ | -------------------- | --------- |
 | DIY   | Free   | Unlimited (own APIs) | N/A       |
-| Pro   | $15/mo | 10                   | 90 days   |
-| Power | $25/mo | Unlimited            | Unlimited |
+| Pro   | $15/mo | 5                    | 90 days   |
+| Power | $25/mo | 15                   | Unlimited |
 
 Newsletter limits enforced at ingestion time - reject emails over limit with friendly bounce message.
 
