@@ -96,7 +96,7 @@ def _generate_transcript(newsletter_text: str) -> str:
             "humor",
             "surprising facts",
         ],
-        "max_output_tokens": 16384,
+        "max_output_tokens": 32768,
         "creativity": 0.8,
         "output_language": "English",
         "user_instructions": (
@@ -116,7 +116,8 @@ def _generate_transcript(newsletter_text: str) -> str:
             "the same concept or example multiple times. Skip sponsored content, "
             "ads, and promotional sections from newsletters. When transitioning "
             "between topics, only connect them if there's a genuine thematic "
-            "link — otherwise just move on naturally."
+            "link — otherwise just move on naturally. "
+            "Always end with a complete wrap-up and sign-off — never stop mid-sentence."
         ),
     }
 
@@ -134,13 +135,16 @@ def _generate_transcript(newsletter_text: str) -> str:
     with open(transcript_path, "r") as f:
         transcript = f.read()
 
+    word_count = len(transcript.split())
+    logger.info("Transcript word count: %d, char count: %d", word_count, len(transcript))
+
     # Detect likely truncation: no closing tag at the end
     stripped = transcript.rstrip()
     if not stripped.endswith("</Person1>") and not stripped.endswith("</Person2>"):
-        logger.warning(
-            "Transcript may be truncated — does not end with a closing Person tag. "
-            "Last 100 chars: %s",
-            stripped[-100:],
+        logger.error(
+            "TRANSCRIPT TRUNCATED — does not end with a closing Person tag. "
+            "Word count: %d, char count: %d. Last 200 chars: %s",
+            word_count, len(transcript), stripped[-200:],
         )
 
     return transcript
