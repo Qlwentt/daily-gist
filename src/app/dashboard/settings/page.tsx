@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { CopyButton } from "@/components/copy-button";
+import { SaveButton } from "@/components/save-button";
 
 type UserRecord = {
   email: string;
@@ -156,12 +157,7 @@ export default async function SettingsPage() {
                 </option>
               ))}
             </select>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Save
-            </button>
+            <SaveButton />
           </div>
         </form>
       </div>
@@ -186,12 +182,7 @@ export default async function SettingsPage() {
                 </option>
               ))}
             </select>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Save
-            </button>
+            <SaveButton />
           </div>
         </form>
       </div>
