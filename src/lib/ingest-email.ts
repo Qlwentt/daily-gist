@@ -25,16 +25,21 @@ export async function ingestEmail(
   const supabase = createAdminClient();
 
   // Look up user by forwarding address
-  const { data: user } = await supabase
+  console.log("[ingest] Looking up user for forwarding_address:", email.to.toLowerCase());
+
+  const { data: user, error: userError } = await supabase
     .from("users")
     .select("id, newsletter_limit")
     .eq("forwarding_address", email.to.toLowerCase())
     .single<UserRow>();
 
   if (!user) {
+    console.log("[ingest] No matching user found. Error:", userError?.message);
     // No matching user — return 200 so Postmark doesn't retry
     return { status: 200, body: { message: "No matching user" } };
   }
+
+  console.log("[ingest] Matched user:", user.id);
 
   // Gmail forwarding confirmation — show full email body so user can find the code
   if (email.from.toLowerCase() === "forwarding-noreply@google.com") {
@@ -96,7 +101,7 @@ export async function ingestEmail(
   }
 
   // Store the raw email
-  await supabase.from("raw_emails").insert({
+  const { error: insertError } = await supabase.from("raw_emails").insert({
     user_id: user.id,
     source_id: sourceId || null,
     from_email: email.from.toLowerCase(),
@@ -107,5 +112,11 @@ export async function ingestEmail(
     received_at: email.date || new Date().toISOString(),
   });
 
+  if (insertError) {
+    console.error("[ingest] Failed to insert raw_email:", insertError.message);
+    return { status: 200, body: { message: "Insert failed" } };
+  }
+
+  console.log("[ingest] Email stored for user:", user.id, "subject:", email.subject);
   return { status: 200, body: { message: "Email stored" } };
 }
