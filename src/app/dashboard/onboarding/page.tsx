@@ -148,7 +148,7 @@ export default async function OnboardingPage() {
             </span>
             <span>
               Go to{" "}
-              <strong>Settings &rarr; Filters and Blocked Addresses</strong>{" "}
+              <strong>Settings (Gear icon) &rarr; See all settings &rarr; Filters and Blocked Addresses</strong>{" "}
               &rarr; Create a new filter
             </span>
           </li>
