@@ -338,7 +338,7 @@ export default function Home() {
                   className="text-xs"
                   style={{ color: "rgba(250, 247, 242, 0.6)" }}
                 >
-                  Feb 11, 2026 &middot; 12 min
+                  Feb 10, 2026 &middot; 7 min
                 </p>
               </div>
             </div>
