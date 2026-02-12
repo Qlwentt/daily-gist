@@ -421,11 +421,11 @@ export default function Home() {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {[
-                  "xAI exodus",
-                  "AI disrupts finance",
-                  "Runway $5.3B",
-                  "Robotics funding",
-                  "Drug discovery",
+                  "ChatGPT ads & growth",
+                  "AI social network (Moltbook)",
+                  "SpaceX Moon pivot",
+                  "DC Lunar New Year",
+                  "AI coding",
                 ].map((topic) => (
                   <span
                     key={topic}
