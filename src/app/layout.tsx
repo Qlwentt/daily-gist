@@ -15,6 +15,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Daily Gist",
   description: "Your newsletters, as a daily podcast",
+  metadataBase: new URL("https://www.dailygist.fyi"),
+  openGraph: {
+    title: "Daily Gist",
+    description: "Your newsletters, as a daily podcast",
+    siteName: "Daily Gist",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Daily Gist",
+    description: "Your newsletters, as a daily podcast",
+  },
 };
 
 export default function RootLayout({
