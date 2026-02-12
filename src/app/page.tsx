@@ -270,7 +270,33 @@ export default function Home() {
             </div>
           </div>
 
-          {/* PLAYER MOCKUP */}
+          {/* PLAYER */}
+          <div>
+            <div className="flex items-center gap-3 justify-center mb-5">
+              <div
+                className="h-px flex-1"
+                style={{ background: "rgba(45, 27, 78, 0.12)" }}
+              />
+              <span
+                className="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase"
+                style={{
+                  letterSpacing: "0.1em",
+                  color: "#6b4c9a",
+                  background: "rgba(107, 76, 154, 0.08)",
+                  border: "1px solid rgba(107, 76, 154, 0.15)",
+                }}
+              >
+                <span
+                  className="w-2 h-2 rounded-full animate-pulse"
+                  style={{ background: "#6b4c9a" }}
+                />
+                Listen to a real episode
+              </span>
+              <div
+                className="h-px flex-1"
+                style={{ background: "rgba(45, 27, 78, 0.12)" }}
+              />
+            </div>
           <div
             className="rounded-2xl p-8 relative overflow-hidden"
             style={{
@@ -409,6 +435,7 @@ export default function Home() {
                 ))}
               </div>
             </div>
+          </div>
           </div>
         </div>
       </section>
