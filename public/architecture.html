@@ -14,93 +14,164 @@
     color: #e0e4f0;
     font-family: 'DM Sans', sans-serif;
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
+    overflow-x: hidden;
   }
 
   .canvas {
     position: relative;
-    width: 1440px;
-    height: 980px;
-    padding: 40px 60px 60px 90px;
+    width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
   }
 
+  /* Title */
   .title-block {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 48px;
   }
   .title-block h1 {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 700;
     color: #fff;
+    letter-spacing: -0.5px;
   }
   .title-block h1 span { color: #a78bfa; }
   .title-block p {
-    font-size: 13px;
+    font-size: 14px;
     color: #6b7194;
-    margin-top: 4px;
+    margin-top: 6px;
     font-family: 'JetBrains Mono', monospace;
   }
 
+  /* Nodes */
   .node {
     position: absolute;
     border-radius: 14px;
-    padding: 16px 20px;
+    padding: 18px 22px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: default;
-    z-index: 2;
   }
   .node:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 40px rgba(0,0,0,0.4);
   }
-  .node-icon { font-size: 20px; margin-bottom: 6px; display: block; }
+  .node-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+    display: block;
+  }
   .node-title {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 14px;
     margin-bottom: 4px;
     color: #fff;
   }
-  .node-subtitle { font-size: 11px; color: #8b90a8; line-height: 1.5; }
+  .node-subtitle {
+    font-size: 12px;
+    color: #8b90a8;
+    line-height: 1.5;
+  }
   .node-tech {
     display: inline-block;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    padding: 2px 7px;
-    border-radius: 5px;
-    margin-top: 6px;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-top: 8px;
     background: rgba(255,255,255,0.06);
     color: #9ca0b8;
   }
 
-  .node-user { background: linear-gradient(135deg, #1e2740, #172035); border: 1.5px solid #2d3555; }
-  .node-gmail { background: linear-gradient(135deg, #1f1a2e, #1a1530); border: 1.5px solid #3d2d5c; }
-  .node-postmark { background: linear-gradient(135deg, #1a2420, #152220); border: 1.5px solid #2d5540; }
-  .node-vercel { background: linear-gradient(135deg, #1c1c2e, #18182a); border: 1.5px solid #3a3a5c; }
-  .node-railway { background: linear-gradient(135deg, #2a1a1e, #251520); border: 1.5px solid #5c2d3d; }
-  .node-supabase { background: linear-gradient(135deg, #1a2a20, #152520); border: 1.5px solid #2d5c40; }
-  .node-claude { background: linear-gradient(135deg, #2a2218, #252018); border: 1.5px solid #5c4a2d; }
-  .node-gemini { background: linear-gradient(135deg, #1a1e2e, #151a2a); border: 1.5px solid #2d3d6c; }
-  .node-rss { background: linear-gradient(135deg, #2e2a1a, #2a2518); border: 1.5px solid #6c5c2d; }
-  .node-cron { background: linear-gradient(135deg, #1e2230, #1a1e2a); border: 1.5px solid #3a4060; }
+  /* Color themes */
+  .node-user {
+    background: linear-gradient(135deg, #1e2740 0%, #172035 100%);
+    border: 1.5px solid #2d3555;
+  }
+  .node-gmail {
+    background: linear-gradient(135deg, #1f1a2e 0%, #1a1530 100%);
+    border: 1.5px solid #3d2d5c;
+  }
+  .node-postmark {
+    background: linear-gradient(135deg, #1a2420 0%, #152220 100%);
+    border: 1.5px solid #2d5540;
+  }
+  .node-vercel {
+    background: linear-gradient(135deg, #1c1c2e 0%, #18182a 100%);
+    border: 1.5px solid #3a3a5c;
+  }
+  .node-railway {
+    background: linear-gradient(135deg, #2a1a1e 0%, #251520 100%);
+    border: 1.5px solid #5c2d3d;
+  }
+  .node-supabase {
+    background: linear-gradient(135deg, #1a2a20 0%, #152520 100%);
+    border: 1.5px solid #2d5c40;
+  }
+  .node-claude {
+    background: linear-gradient(135deg, #2a2218 0%, #252018 100%);
+    border: 1.5px solid #5c4a2d;
+  }
+  .node-gemini {
+    background: linear-gradient(135deg, #1a1e2e 0%, #151a2a 100%);
+    border: 1.5px solid #2d3d6c;
+  }
+  .node-podcast {
+    background: linear-gradient(135deg, #2a1a2e 0%, #25152a 100%);
+    border: 1.5px solid #5c2d6c;
+  }
+  .node-rss {
+    background: linear-gradient(135deg, #2e2a1a 0%, #2a2518 100%);
+    border: 1.5px solid #6c5c2d;
+  }
+  .node-resend {
+    background: linear-gradient(135deg, #1a2e2a 0%, #152a25 100%);
+    border: 1.5px solid #2d6c5c;
+  }
+  .node-cron {
+    background: linear-gradient(135deg, #1e2230 0%, #1a1e2a 100%);
+    border: 1.5px solid #3a4060;
+  }
 
+  /* SVG arrows */
   svg.arrows {
     position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
-    z-index: 1;
+    z-index: 0;
   }
+  .node { z-index: 1; }
 
-  .arrow-path { fill: none; stroke-width: 2; stroke-linecap: round; opacity: 0.45; }
+  .arrow-path {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    opacity: 0.5;
+  }
+  .arrow-path:hover { opacity: 1; }
+
   .arrow-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    fill: #6a6f8a;
+    font-size: 10px;
+    fill: #5a5f7a;
   }
 
+  /* Section labels */
+  .section-label {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #3a3f5a;
+  }
+
+  /* Dashed region boxes */
   .region {
     position: absolute;
     border: 1.5px dashed;
@@ -109,7 +180,8 @@
   }
   .region-label {
     position: absolute;
-    top: -10px; left: 20px;
+    top: -10px;
+    left: 20px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     font-weight: 600;
@@ -119,221 +191,243 @@
     background: #0a0e1a;
   }
 
+  /* Animation */
   @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .node, .region {
+  .node, .region, .section-label {
     animation: fadeInUp 0.5s ease forwards;
     opacity: 0;
   }
-  .node:nth-child(1) { animation-delay: 0.08s; }
-  .node:nth-child(2) { animation-delay: 0.12s; }
-  .node:nth-child(3) { animation-delay: 0.16s; }
-  .node:nth-child(4) { animation-delay: 0.20s; }
-  .node:nth-child(5) { animation-delay: 0.24s; }
-  .node:nth-child(6) { animation-delay: 0.28s; }
-  .node:nth-child(7) { animation-delay: 0.32s; }
-  .node:nth-child(8) { animation-delay: 0.36s; }
-  .node:nth-child(9) { animation-delay: 0.40s; }
-  .node:nth-child(10) { animation-delay: 0.44s; }
-  .region { animation-delay: 0.04s; }
+  .node:nth-child(1) { animation-delay: 0.1s; }
+  .node:nth-child(2) { animation-delay: 0.15s; }
+  .node:nth-child(3) { animation-delay: 0.2s; }
+  .node:nth-child(4) { animation-delay: 0.25s; }
+  .node:nth-child(5) { animation-delay: 0.3s; }
+  .node:nth-child(6) { animation-delay: 0.35s; }
+  .node:nth-child(7) { animation-delay: 0.4s; }
+  .node:nth-child(8) { animation-delay: 0.45s; }
+  .node:nth-child(9) { animation-delay: 0.5s; }
+  .node:nth-child(10) { animation-delay: 0.55s; }
+  .node:nth-child(11) { animation-delay: 0.6s; }
 
+  .region { animation-delay: 0.05s; }
+
+  /* Legend */
   .legend {
     position: absolute;
-    bottom: 16px; left: 90px;
-    display: flex; gap: 24px;
+    bottom: 10px;
+    left: 20px;
+    display: flex;
+    gap: 20px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     color: #4a4f6a;
-    z-index: 3;
+    z-index: 10;
   }
-  .legend-item { display: flex; align-items: center; gap: 6px; }
-  .legend-line { width: 24px; height: 2px; border-radius: 1px; }
-  .legend-dash { width: 24px; height: 0; border-top: 2px dashed; }
-
-  /* Step numbers */
-  .step-num {
-    display: inline-flex;
+  .legend-item {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
-    font-weight: 700;
-    color: #0a0e1a;
-    background: #6a6f8a;
+    gap: 6px;
+  }
+  .legend-line {
+    width: 24px;
+    height: 2px;
+    border-radius: 1px;
+  }
+  .legend-dash {
+    width: 24px;
+    height: 0;
+    border-top: 2px dashed;
   }
 </style>
 </head>
 <body>
 
-<div class="canvas">
+<div class="canvas" style="height: 940px;">
 
   <div class="title-block">
     <h1><span>Daily Gist</span> — System Architecture</h1>
-    <p>v4 · February 2026</p>
+    <p>v5 · February 2026</p>
   </div>
 
   <!-- Region: Vercel -->
-  <div class="region" style="top: 370px; left: 410px; width: 360px; height: 200px; border-color: #2a2a4a;">
-    <span class="region-label" style="color: #4a4a7a;">Vercel Pro · $20/mo</span>
+  <div class="region" style="top: 280px; left: 300px; width: 340px; height: 260px; border-color: #2a2a4a;">
+    <span class="region-label" style="color: #4a4a7a;">Vercel Pro</span>
   </div>
 
   <!-- Region: Railway -->
-  <div class="region" style="top: 370px; left: 830px; width: 340px; height: 200px; border-color: #4a2a3a;">
-    <span class="region-label" style="color: #7a4a5a;">Railway · ~$20/mo</span>
+  <div class="region" style="top: 280px; left: 700px; width: 320px; height: 260px; border-color: #4a2a3a;">
+    <span class="region-label" style="color: #7a4a5a;">Railway</span>
   </div>
 
   <!-- SVG Arrows -->
-  <svg class="arrows" viewBox="0 0 1440 980" xmlns="http://www.w3.org/2000/svg">
+  <svg class="arrows" viewBox="0 0 1200 940" xmlns="http://www.w3.org/2000/svg">
+    <!-- User \u2192 Gmail -->
+    <path class="arrow-path" stroke="#4a5080" d="M 180,140 L 180,195" marker-end="url(#arr-blue)"/>
+    <text class="arrow-label" x="188" y="172">subscribes</text>
+
+    <!-- Gmail \u2192 Postmark -->
+    <path class="arrow-path" stroke="#6b4a8a" d="M 180,280 L 180,340 Q 180,360 200,360 L 290,360" marker-end="url(#arr-purple)"/>
+    <text class="arrow-label" x="100" y="330">auto-forwards</text>
+
+    <!-- Postmark \u2192 Vercel webhook -->
+    <path class="arrow-path" stroke="#3a7a50" d="M 255,240 Q 320,240 360,280 L 380,310" marker-end="url(#arr-green)"/>
+    <text class="arrow-label" x="270" y="265">webhook POST</text>
+
+    <!-- Vercel \u2192 Supabase (store email) -->
+    <path class="arrow-path" stroke="#4a4a7a" d="M 470,380 L 470,600" marker-end="url(#arr-blue)"/>
+    <text class="arrow-label" x="478" y="500">store emails</text>
+
+    <!-- Cron \u2192 Vercel -->
+    <path class="arrow-path" stroke="#4a5580" d="M 340,165 L 400,280" marker-end="url(#arr-blue)"/>
+    <text class="arrow-label" x="340" y="218">hourly trigger</text>
+
+    <!-- Vercel \u2192 Railway (fire and forget) -->
+    <path class="arrow-path" stroke="#aa5a6a" stroke-dasharray="6,4" d="M 580,400 L 700,400" marker-end="url(#arr-red)"/>
+    <text class="arrow-label" x="600" y="392">fire & forget</text>
+
+    <!-- Railway \u2192 Claude -->
+    <path class="arrow-path" stroke="#8a7a3a" d="M 860,310 L 940,240 L 990,200" marker-end="url(#arr-orange)"/>
+    <text class="arrow-label" x="930" y="232">transcript</text>
+
+    <!-- Railway \u2192 Gemini -->
+    <path class="arrow-path" stroke="#3a5a8a" d="M 900,530 L 950,590" marker-end="url(#arr-teal)"/>
+    <text class="arrow-label" x="890" y="572">TTS audio</text>
+
+    <!-- Railway \u2192 Supabase (upload MP3) -->
+    <path class="arrow-path" stroke="#3a7a50" d="M 780,540 L 650,620 L 560,640" marker-end="url(#arr-green)"/>
+    <text class="arrow-label" x="640" y="595">upload MP3</text>
+
+    <!-- Supabase \u2192 RSS -->
+    <path class="arrow-path" stroke="#8a7a3a" d="M 370,660 L 240,740" marker-end="url(#arr-orange)"/>
+    <text class="arrow-label" x="270" y="700">serve audio</text>
+
+    <!-- Vercel \u2192 RSS feed -->
+    <path class="arrow-path" stroke="#4a4a7a" d="M 380,540 L 200,740" marker-end="url(#arr-blue)"/>
+    <text class="arrow-label" x="250" y="620">generate feed</text>
+
+    <!-- RSS \u2192 Podcast App -->
+    <path class="arrow-path" stroke="#7a4a8a" d="M 150,800 L 80,800 Q 60,800 60,780 L 60,180" marker-end="url(#arr-purple)"/>
+    <text class="arrow-label" x="30" y="500">auto-deliver</text>
+
+    <!-- Supabase Auth → Resend -->
+    <path class="arrow-path" stroke="#2d6c5c" d="M 560,660 L 640,750" marker-end="url(#arr-teal)"/>
+    <text class="arrow-label" x="565" y="715">SMTP</text>
+
+    <!-- Resend → User -->
+    <path class="arrow-path" stroke="#2d6c5c" d="M 620,750 Q 400,640 200,300 L 170,170" marker-end="url(#arr-teal)"/>
+    <text class="arrow-label" x="350" y="530">magic link email</text>
+
+    <!-- Arrowhead markers -->
     <defs>
-      <marker id="a-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
         <path d="M0,1 L7,4 L0,7" fill="none" stroke="#4a5080" stroke-width="1.5"/>
       </marker>
-      <marker id="a-purple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
         <path d="M0,1 L7,4 L0,7" fill="none" stroke="#6b4a8a" stroke-width="1.5"/>
       </marker>
-      <marker id="a-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <marker id="arr-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
         <path d="M0,1 L7,4 L0,7" fill="none" stroke="#3a7a50" stroke-width="1.5"/>
       </marker>
-      <marker id="a-red" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <marker id="arr-red" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
         <path d="M0,1 L7,4 L0,7" fill="none" stroke="#aa5a6a" stroke-width="1.5"/>
       </marker>
-      <marker id="a-orange" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
         <path d="M0,1 L7,4 L0,7" fill="none" stroke="#8a7a3a" stroke-width="1.5"/>
       </marker>
-      <marker id="a-teal" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <marker id="arr-teal" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
         <path d="M0,1 L7,4 L0,7" fill="none" stroke="#3a5a8a" stroke-width="1.5"/>
       </marker>
     </defs>
-
-    <!-- 1. User → Gmail -->
-    <path class="arrow-path" stroke="#4a5080" d="M 200,200 L 200,260" marker-end="url(#a-blue)"/>
-    <text class="arrow-label" x="210" y="235">❶ subscribes</text>
-
-    <!-- 2. Gmail → Postmark -->
-    <path class="arrow-path" stroke="#6b4a8a" d="M 200,375 L 200,425" marker-end="url(#a-purple)"/>
-    <text class="arrow-label" x="210" y="406">❷ forwards</text>
-
-    <!-- 3. Postmark → Vercel -->
-    <path class="arrow-path" stroke="#3a7a50" d="M 340,470 L 410,470" marker-end="url(#a-green)"/>
-    <text class="arrow-label" x="345" y="462">❸ webhook</text>
-
-    <!-- 4. Vercel → Supabase (store) -->
-    <path class="arrow-path" stroke="#4a4a7a" d="M 590,570 L 590,680" marker-end="url(#a-blue)"/>
-    <text class="arrow-label" x="600" y="635">❹ store</text>
-
-    <!-- 5. Cron → Vercel -->
-    <path class="arrow-path" stroke="#4a5580" d="M 510,240 L 550,370" marker-end="url(#a-blue)"/>
-    <text class="arrow-label" x="505" y="310">❺ hourly</text>
-
-    <!-- 6. Vercel → Railway (fire and forget) -->
-    <path class="arrow-path" stroke="#aa5a6a" stroke-dasharray="6,4" d="M 770,460 L 830,460" marker-end="url(#a-red)"/>
-    <text class="arrow-label" x="770" y="448">❻ fire&forget</text>
-
-    <!-- 7. Railway → Claude -->
-    <path class="arrow-path" stroke="#8a7a3a" d="M 1060,390 L 1140,280" marker-end="url(#a-orange)"/>
-    <text class="arrow-label" x="1110" y="328">❼ transcript</text>
-
-    <!-- 8. Railway → Gemini -->
-    <path class="arrow-path" stroke="#3a5a8a" d="M 1060,570 L 1140,660" marker-end="url(#a-teal)"/>
-    <text class="arrow-label" x="1110" y="625">❽ TTS</text>
-
-    <!-- 9. Railway → Supabase (upload) -->
-    <path class="arrow-path" stroke="#3a7a50" d="M 900,570 L 740,720" marker-end="url(#a-green)"/>
-    <text class="arrow-label" x="830" y="642">❾ upload MP3</text>
-
-    <!-- 10. Vercel → RSS (build feed) -->
-    <path class="arrow-path" stroke="#4a4a7a" d="M 470,570 L 330,800" marker-end="url(#a-blue)"/>
-    <text class="arrow-label" x="365" y="700">❿ build feed</text>
-
-    <!-- 11. Supabase → RSS (audio URL) -->
-    <path class="arrow-path" stroke="#8a7a3a" d="M 490,770 L 380,830" marker-end="url(#a-orange)"/>
-
-    <!-- 12. RSS → User (auto-deliver via podcast app) -->
-    <path class="arrow-path" stroke="#7a4a8a" d="M 200,870 L 110,870 Q 90,870 90,850 L 90,195 Q 90,175 110,175 L 130,175" marker-end="url(#a-purple)"/>
-    <text class="arrow-label" x="68" y="540" writing-mode="tb">⓫ podcast app delivery</text>
   </svg>
 
   <!-- USER -->
-  <div class="node node-user" style="top: 110px; left: 100px; width: 200px;">
+  <div class="node node-user" style="top: 80px; left: 80px; width: 200px;">
     <span class="node-icon">👤</span>
     <div class="node-title">User</div>
-    <div class="node-subtitle">Signs up, sets timezone & generation time, adds RSS to podcast app</div>
+    <div class="node-subtitle">Signs up, configures timezone & generation time, subscribes in podcast app</div>
   </div>
 
   <!-- GMAIL -->
-  <div class="node node-gmail" style="top: 270px; left: 100px; width: 200px;">
+  <div class="node node-gmail" style="top: 200px; left: 80px; width: 200px;">
     <span class="node-icon">📧</span>
     <div class="node-title">Gmail</div>
-    <div class="node-subtitle">Filters auto-forward newsletters to Daily Gist</div>
-    <span class="node-tech">Gmail only · MVP</span>
-  </div>
-
-  <!-- CRON -->
-  <div class="node node-cron" style="top: 130px; left: 430px; width: 190px;">
-    <span class="node-icon">⏰</span>
-    <div class="node-title">Vercel Cron</div>
-    <div class="node-subtitle">Hourly, matches user timezone & generation_hour</div>
-    <span class="node-tech">0 * * * *</span>
-  </div>
-
-  <!-- CLAUDE -->
-  <div class="node node-claude" style="top: 150px; left: 1100px; width: 230px;">
-    <span class="node-icon">🧠</span>
-    <div class="node-title">Claude Sonnet</div>
-    <div class="node-subtitle">Generates two-host conversational transcript from newsletters</div>
-    <span class="node-tech">16K max tokens · Podcastfy</span>
+    <div class="node-subtitle">Filters auto-forward newsletters to Daily Gist address</div>
+    <span class="node-tech">Gmail only (MVP)</span>
   </div>
 
   <!-- POSTMARK -->
-  <div class="node node-postmark" style="top: 420px; left: 100px; width: 230px;">
+  <div class="node node-postmark" style="top: 180px; left: 80px; width: 200px; top: 340px;">
     <span class="node-icon">📬</span>
     <div class="node-title">Postmark Inbound</div>
-    <div class="node-subtitle">Receives at inbound.dailygist.fyi, POSTs webhook to Vercel</div>
+    <div class="node-subtitle">Receives email at inbound.dailygist.fyi, sends webhook</div>
     <span class="node-tech">MX subdomain</span>
   </div>
 
-  <!-- VERCEL -->
-  <div class="node node-vercel" style="top: 400px; left: 435px; width: 310px;">
+  <!-- CRON -->
+  <div class="node node-cron" style="top: 110px; left: 310px; width: 180px;">
+    <span class="node-icon">⏰</span>
+    <div class="node-title">Vercel Cron</div>
+    <div class="node-subtitle">Runs hourly, matches user timezone & generation_hour</div>
+    <span class="node-tech">0 * * * *</span>
+  </div>
+
+  <!-- VERCEL: Web App -->
+  <div class="node node-vercel" style="top: 300px; left: 320px; width: 300px;">
     <span class="node-icon">▲</span>
     <div class="node-title">Vercel — Next.js</div>
-    <div class="node-subtitle">Web app · auth · dashboard · settings · webhook · RSS feed · cron endpoint</div>
+    <div class="node-subtitle">Web app, auth, dashboard, settings, Postmark webhook, RSS feed, cron trigger</div>
     <span class="node-tech">Node.js · fire-and-forget</span>
   </div>
 
-  <!-- RAILWAY -->
-  <div class="node node-railway" style="top: 400px; left: 855px; width: 290px;">
+  <!-- RAILWAY: Podcast Service -->
+  <div class="node node-railway" style="top: 300px; left: 720px; width: 280px;">
     <span class="node-icon">🚂</span>
     <div class="node-title">Railway — FastAPI</div>
-    <div class="node-subtitle">Full pipeline: transcript → chunked TTS → upload MP3 → update episode</div>
-    <span class="node-tech">Python · Podcastfy · async</span>
+    <div class="node-subtitle">Full generation pipeline: transcript \u2192 TTS \u2192 upload MP3 \u2192 update episode</div>
+    <span class="node-tech">Python · Podcastfy</span>
   </div>
 
-  <!-- SUPABASE -->
-  <div class="node node-supabase" style="top: 690px; left: 460px; width: 240px;">
-    <span class="node-icon">🗄️</span>
-    <div class="node-title">Supabase</div>
-    <div class="node-subtitle">Postgres DB (users, emails, episodes) + Storage bucket (MP3s)</div>
-    <span class="node-tech">Auth · RLS · Public bucket</span>
+  <!-- CLAUDE SONNET -->
+  <div class="node node-claude" style="top: 130px; left: 900px; width: 220px;">
+    <span class="node-icon">🧠</span>
+    <div class="node-title">Claude Sonnet</div>
+    <div class="node-subtitle">Generates conversational transcript from newsletter content</div>
+    <span class="node-tech">32K max tokens · via Podcastfy</span>
   </div>
 
   <!-- GEMINI TTS -->
-  <div class="node node-gemini" style="top: 670px; left: 1100px; width: 230px;">
+  <div class="node node-gemini" style="top: 580px; left: 870px; width: 220px;">
     <span class="node-icon">🔊</span>
     <div class="node-title">Gemini 2.5 Flash TTS</div>
-    <div class="node-subtitle">Multi-speaker audio, Charon & Leda voices, chunked synthesis</div>
+    <div class="node-subtitle">Multi-speaker audio with Charon & Leda voices, chunked</div>
     <span class="node-tech">3 chunks · 20 turns each</span>
   </div>
 
+  <!-- SUPABASE -->
+  <div class="node node-supabase" style="top: 600px; left: 370px; width: 220px;">
+    <span class="node-icon">🗄️</span>
+    <div class="node-title">Supabase</div>
+    <div class="node-subtitle">Postgres DB (users, emails, episodes) + Storage (MP3 files)</div>
+    <span class="node-tech">Auth · RLS · Storage</span>
+  </div>
+
   <!-- RSS FEED -->
-  <div class="node node-rss" style="top: 820px; left: 180px; width: 210px;">
+  <div class="node node-rss" style="top: 750px; left: 120px; width: 200px;">
     <span class="node-icon">📡</span>
     <div class="node-title">RSS Feed</div>
-    <div class="node-subtitle">Private per-user feed with cover art & enclosure lengths</div>
+    <div class="node-subtitle">Private per-user feed with enclosure lengths & cover art</div>
     <span class="node-tech">/api/feed/:token</span>
+  </div>
+
+  <!-- RESEND -->
+  <div class="node node-resend" style="top: 750px; left: 620px; width: 200px;">
+    <span class="node-icon">✉️</span>
+    <div class="node-title">Resend</div>
+    <div class="node-subtitle">Custom SMTP for magic link auth emails, branded from Daily Gist</div>
+    <span class="node-tech">Free · 3,000/mo</span>
   </div>
 
   <!-- Legend -->
@@ -350,12 +444,9 @@
       <div class="legend-line" style="background: #3a7a50;"></div>
       <span>data flow</span>
     </div>
-    <div class="legend-item">
-      <div class="legend-line" style="background: #8a7a3a;"></div>
-      <span>API call</span>
-    </div>
   </div>
 
 </div>
+
 </body>
 </html>
