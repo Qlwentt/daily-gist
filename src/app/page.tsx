@@ -17,13 +17,26 @@ const dmSans = DM_Sans({
 });
 
 const BAR_COUNT = 60;
-const ACTIVE_COUNT = Math.floor(BAR_COUNT * 0.35);
 const BAR_HEIGHTS = Array.from({ length: BAR_COUNT }, (_, i) => {
   return 15 + ((i * 37 + 13) % 71);
 });
 
+const DEMO_URL =
+  "https://sonfybfifxikagevctzn.supabase.co/storage/v1/object/public/podcasts/10799ef4-1de8-4686-a26d-ec12e697fd6f/2026-02-10.mp3";
+
+function formatTime(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 export default function Home() {
   const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const progressBarRef = useRef<HTMLDivElement | null>(null);
   const revealRefs = useRef<HTMLElement[]>([]);
 
   useEffect(() => {
@@ -42,6 +55,54 @@ export default function Home() {
     revealRefs.current.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const audio = new Audio(DEMO_URL);
+    audio.preload = "metadata";
+    audioRef.current = audio;
+
+    const onLoadedMetadata = () => setDuration(audio.duration);
+    const onTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+      if (audio.duration) setProgress(audio.currentTime / audio.duration);
+    };
+    const onEnded = () => {
+      setPlaying(false);
+      setProgress(0);
+      setCurrentTime(0);
+    };
+
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("timeupdate", onTimeUpdate);
+    audio.addEventListener("ended", onEnded);
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("ended", onEnded);
+      audio.pause();
+    };
+  }, []);
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    setPlaying(!playing);
+  };
+
+  const seekAudio = (e: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioRef.current;
+    const bar = progressBarRef.current;
+    if (!audio || !bar || !audio.duration) return;
+    const rect = bar.getBoundingClientRect();
+    const fraction = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    audio.currentTime = fraction * audio.duration;
+  };
 
   const revealRef = useCallback((el: HTMLElement | null) => {
     if (el && !revealRefs.current.includes(el)) {
@@ -252,7 +313,8 @@ export default function Home() {
 
             <div className="flex items-end gap-[2px] h-12 mb-4 relative px-1">
               {BAR_HEIGHTS.map((height, i) => {
-                const isActive = i < ACTIVE_COUNT;
+                const activeCount = Math.max(1, Math.floor(BAR_COUNT * progress));
+                const isActive = i < activeCount;
                 return (
                   <div
                     key={i}
@@ -262,14 +324,13 @@ export default function Home() {
                       background: isActive
                         ? "#9d7cd8"
                         : "rgba(157, 124, 216, 0.3)",
-                      animation:
-                        playing && isActive
-                          ? "waveAnim 0.8s ease-in-out infinite alternate"
-                          : "none",
-                      animationDelay:
-                        playing && isActive
-                          ? `${(i * 0.03) % 0.5}s`
-                          : "0s",
+                      animationName:
+                        playing && isActive ? "waveAnim" : "none",
+                      animationDuration: "0.8s",
+                      animationTimingFunction: "ease-in-out",
+                      animationIterationCount: "infinite",
+                      animationDirection: "alternate",
+                      animationDelay: `${(i * 0.03) % 0.5}s`,
                     }}
                   />
                 );
@@ -278,7 +339,7 @@ export default function Home() {
 
             <div className="flex items-center gap-4 relative">
               <button
-                onClick={() => setPlaying(!playing)}
+                onClick={togglePlay}
                 className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 border-none cursor-pointer transition-transform hover:scale-110"
                 style={{ background: "#faf7f2" }}
               >
@@ -294,12 +355,14 @@ export default function Home() {
                 )}
               </button>
               <div
-                className="flex-1 h-[3px] rounded-sm relative overflow-hidden"
+                ref={progressBarRef}
+                onClick={seekAudio}
+                className="flex-1 h-[3px] rounded-sm relative overflow-hidden cursor-pointer"
                 style={{ background: "rgba(250, 247, 242, 0.15)" }}
               >
                 <div
-                  className="absolute left-0 top-0 bottom-0 w-[35%] rounded-sm"
-                  style={{ background: "#9d7cd8" }}
+                  className="absolute left-0 top-0 bottom-0 rounded-sm transition-[width] duration-200"
+                  style={{ width: `${progress * 100}%`, background: "#9d7cd8" }}
                 />
               </div>
               <div
@@ -309,8 +372,8 @@ export default function Home() {
                   fontVariantNumeric: "tabular-nums",
                 }}
               >
-                <span>4:12</span>
-                <span>12:04</span>
+                <span>{formatTime(currentTime)}</span>
+                <span>{duration ? formatTime(duration) : "--:--"}</span>
               </div>
             </div>
 
