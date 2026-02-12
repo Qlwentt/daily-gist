@@ -268,6 +268,12 @@ export default function Home() {
                 See how it works
               </a>
             </div>
+            <p
+              className="mt-4 text-xs"
+              style={{ color: "#8a7f96" }}
+            >
+              Currently supports Gmail only. More providers coming soon.
+            </p>
           </div>
 
           {/* PLAYER */}
