@@ -45,24 +45,35 @@ def generate_podcast(newsletter_text: str) -> tuple[bytes, str]:
     if not newsletter_text.strip():
         raise ValueError("Empty newsletter text")
 
-    logger.info("Step 1: Generating transcript (3-call pipeline)...")
+    logger.info("Step 1/4: Generating outline...")
     outline = _generate_outline(newsletter_text)
+    logger.info("Step 1/4 complete: outline has %d segments", len(outline.get("segments", [])))
+
+    logger.info("Step 2/4: Generating first half...")
     first_half = _generate_section(outline, newsletter_text, "first")
+    logger.info("Step 2/4 complete: first half %d chars", len(first_half))
+
+    logger.info("Step 3/4: Generating second half...")
     second_half = _generate_section(outline, newsletter_text, "second", previous_turns=first_half)
+    logger.info("Step 3/4 complete: second half %d chars", len(second_half))
+
+    logger.info("Step 4/4: Stitching transcript...")
     transcript = _stitch_transcript(first_half, second_half)
-    logger.info("Transcript generated: %d characters", len(transcript))
+    logger.info("Step 4/4 complete: stitched transcript %d chars", len(transcript))
 
-    logger.info("Step 1.5: Cleaning transcript...")
+    logger.info("Cleaning transcript...")
     transcript = _clean_transcript(transcript)
-    logger.info("Transcript after cleaning: %d characters", len(transcript))
+    logger.info("Cleaning complete: %d chars", len(transcript))
 
-    logger.info("Step 2: Parsing transcript into speaker turns...")
+    logger.info("Parsing transcript into speaker turns...")
     turns = _parse_transcript(transcript)
     if not turns:
-        raise RuntimeError("Transcript produced no dialogue turns")
+        raise RuntimeError("Transcript produced no dialogue turns — cleaned transcript may be empty")
+    logger.info("Parsing complete: %d turns", len(turns))
 
-    logger.info("Step 3: Synthesizing audio with Gemini 2.5 Flash TTS...")
+    logger.info("Synthesizing audio with Gemini TTS (%d turns)...", len(turns))
     mp3_bytes = _synthesize_audio(turns)
+    logger.info("Synthesis complete: %d bytes MP3", len(mp3_bytes))
 
     return mp3_bytes, transcript
 

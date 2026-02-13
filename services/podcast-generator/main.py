@@ -145,6 +145,11 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
         )
 
         mp3_bytes, transcript = generate_podcast(body.newsletter_text)
+        logger.info(
+            "generate-and-store: pipeline complete for episode_id=%s, %d bytes MP3",
+            body.episode_id,
+            len(mp3_bytes),
+        )
 
         logger.info(
             "generate-and-store: uploading %d bytes to %s",

@@ -65,7 +65,7 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": "application/rss+xml; charset=utf-8",
-      "Cache-Control": "public, max-age=900",
+      "Cache-Control": "public, max-age=60, s-maxage=60",
     },
   });
 }
