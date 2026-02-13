@@ -110,7 +110,8 @@ conversation rather than stating them explicitly.
 - BANNED phrases (never use these): "great point", "exactly!", "that's so true", \
 "you're not kidding", "absolutely!", "I'm buzzing", "I'm so excited", "what a day"
 - Balance coverage — no single source > 30% of the conversation.
-- No repeated concepts or examples.
+- NEVER restate the same insight, stat, or example — even in different words. If a point was \
+made once, it's done. Listeners notice repetition immediately and it kills momentum.
 - Skip sponsored content, ads, and promotional/referral sections.
 - Weave cross-source connections into the dialogue naturally — let them emerge through \
 conversation rather than listing them.
@@ -243,6 +244,8 @@ def _generate_section(
             f"{json.dumps(segment_slice, indent=2)}\n\n"
             f"Continue naturally from where the first half left off.\n"
             f"Tie stories together rather than covering remaining segments in isolation.\n"
+            f"IMPORTANT: Do NOT repeat any insight, stat, or example that was already covered "
+            f"in the first half. If a point was made, move on — find a new angle or skip it.\n"
             f"You MUST end with a complete outro: Person1 signs off the show with a line like "
             f"\"That's your Daily Gist for today\" and a friendly farewell. "
             f"Thematic thread for the outro: \"{outline.get('outro_theme', '')}\""
