@@ -211,8 +211,9 @@ def _generate_section(
         section_instruction = (
             f"Write dialogue covering the INTRO and these segments:\n"
             f"{json.dumps(segment_slice, indent=2)}\n\n"
-            f"Start with a natural opening — Person1 greets the listener and hooks them with: "
-            f"\"{outline.get('intro_hook', '')}\"\n"
+            f"The episode MUST begin with Person1 saying 'Welcome to Daily Gist' as the very "
+            f"first line. This is branding, not filler — never skip it. "
+            f"Then hook the listener with: \"{outline.get('intro_hook', '')}\"\n"
             f"Do NOT write an outro or sign-off. End mid-conversation, ready to continue."
         )
     else:
