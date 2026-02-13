@@ -45,7 +45,6 @@ function ReadyEpisodeCard({ episode }: { episode: Episode }) {
       try {
         await navigator.share({
           title: episode.title,
-          text: `Listen to my Daily Gist: ${episode.title}`,
           url,
         });
         return;
