@@ -2,18 +2,19 @@
 Daily Gist Podcast Generator — Pipeline
 
 Pipeline:
-1. Podcastfy + Claude Sonnet → conversation transcript
+1. Claude Sonnet (3 calls: Outline → First Half → Second Half) → transcript
 2. Gemini 2.5 Flash TTS → multi-speaker audio
 3. ffmpeg → WAV-to-MP3 encoding
 
 Cost per episode:
-- Claude Sonnet (transcript): ~$0.03-0.05
+- Claude Sonnet (transcript): ~$0.05
 - Gemini 2.5 Flash TTS (audio): ~$0.20
-- Total: ~$0.23-0.25/episode
+- Total: ~$0.25/episode
 
 Entry point: generate_podcast(newsletter_text) -> (mp3_bytes, transcript)
 """
 
+import json
 import logging
 import os
 import re
@@ -21,9 +22,9 @@ import subprocess
 import tempfile
 import wave
 
+import anthropic
 from google import genai
 from google.genai import types
-from podcastfy.client import generate_podcast as podcastfy_generate
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,8 +45,11 @@ def generate_podcast(newsletter_text: str) -> tuple[bytes, str]:
     if not newsletter_text.strip():
         raise ValueError("Empty newsletter text")
 
-    logger.info("Step 1: Generating transcript with Podcastfy + Claude...")
-    transcript = _generate_transcript(newsletter_text)
+    logger.info("Step 1: Generating transcript (3-call pipeline)...")
+    outline = _generate_outline(newsletter_text)
+    first_half = _generate_section(outline, newsletter_text, "first")
+    second_half = _generate_section(outline, newsletter_text, "second", previous_turns=first_half)
+    transcript = _stitch_transcript(first_half, second_half)
     logger.info("Transcript generated: %d characters", len(transcript))
 
     logger.info("Step 1.5: Cleaning transcript...")
@@ -64,87 +68,182 @@ def generate_podcast(newsletter_text: str) -> tuple[bytes, str]:
 
 
 # ---------------------------------------------------------------------------
-# Step 1: Generate transcript using Podcastfy
+# Step 1: Generate transcript using 3-call Claude pipeline
 # ---------------------------------------------------------------------------
 
-def _generate_transcript(newsletter_text: str) -> str:
-    conversation_config = {
-        "word_count": 5000,
-        "conversation_style": [
-            "engaging",
-            "fast-paced",
-            "enthusiastic",
-            "informative",
-        ],
-        "roles_person1": "main summarizer",
-        "roles_person2": "curious questioner",
-        "dialogue_structure": [
-            "Topic Introduction",
-            "Deep Dive",
-            "Key Takeaways",
-            "Casual Banter",
-            "Wrap-up",
-        ],
-        "podcast_name": "Daily Gist",
-        "podcast_tagline": "Your newsletters, distilled into conversation",
-        "engagement_techniques": [
-            "rhetorical questions",
-            "analogies",
-            "real-world examples",
-            "expressing genuine curiosity",
-            "anecdotes",
-            "humor",
-            "surprising facts",
-        ],
-        "max_output_tokens": 32768,
-        "creativity": 0.8,
-        "output_language": "English",
-        "user_instructions": (
-            "Output ONLY dialogue in <Person1> and <Person2> tags. "
-            "Do NOT include any scratchpad, thinking blocks, stage directions, "
-            "meta-commentary, or prompt instructions in your output. "
-            "Start with a single greeting and never repeat it later in the conversation. "
-            "Prioritize depth over breadth. Synthesize related topics into 3-4 major "
-            "themed segments for deeper discussion, then handle remaining unrelated "
-            "items as brief quick hits. Vary the conversational style throughout — "
-            "sometimes debate a point, sometimes one host explains while the other "
-            "reacts, sometimes they build on each other's ideas. Avoid repetitive "
-            "transition patterns like 'Speaking of which' or 'Let's shift gears.' "
-            "Make transitions feel natural and varied. "
-            "Balance coverage across all source newsletters — no single source "
-            "should dominate more than 30% of the conversation. Avoid repeating "
-            "the same concept or example multiple times. Skip sponsored content, "
-            "ads, and promotional sections from newsletters. When transitioning "
-            "between topics, only connect them if there's a genuine thematic "
-            "link — otherwise just move on naturally. "
-            "Always end with a complete wrap-up and sign-off — never stop mid-sentence."
-        ),
-    }
+_CLAUDE_MODEL = "claude-sonnet-4-20250514"
 
-    transcript_path = podcastfy_generate(
-        text=newsletter_text,
-        conversation_config=conversation_config,
-        llm_model_name="claude-sonnet-4-20250514",
-        api_key_label="ANTHROPIC_API_KEY",
-        transcript_only=True,
+_DIALOGUE_SYSTEM_PROMPT = """\
+You are writing dialogue for Daily Gist, a two-host podcast that summarizes newsletters.
+
+Rules:
+- Output ONLY dialogue in <Person1> and <Person2> tags. Nothing else.
+- No scratchpad, thinking blocks, stage directions, or meta-commentary.
+- Person1 is the main summarizer. Person2 is the curious questioner.
+- Vary conversational style: sometimes debate, sometimes one explains while the other \
+reacts, sometimes they build on each other's ideas.
+- Avoid repetitive transitions like "Speaking of which" or "Let's shift gears."
+- Balance coverage — no single source > 30% of the conversation.
+- No repeated concepts or examples.
+- Skip sponsored content, ads, and promotional/referral sections.
+- Only connect topics if there's a genuine thematic link — otherwise just move on naturally.
+- Use engagement techniques: rhetorical questions, analogies, real-world examples, humor, \
+surprising facts."""
+
+
+def _get_claude_client() -> anthropic.Anthropic:
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise ValueError("ANTHROPIC_API_KEY environment variable is required")
+    return anthropic.Anthropic(api_key=api_key)
+
+
+def _generate_outline(newsletter_text: str) -> dict:
+    """Call 1: Generate a structured outline from newsletter content."""
+    client = _get_claude_client()
+
+    response = client.messages.create(
+        model=_CLAUDE_MODEL,
+        max_tokens=2048,
+        system="You are a podcast producer planning an episode of Daily Gist, a two-host podcast that summarizes newsletters.",
+        messages=[
+            {
+                "role": "user",
+                "content": f"""\
+Analyze these newsletters and produce a JSON outline for a podcast episode.
+
+<newsletters>
+{newsletter_text}
+</newsletters>
+
+Requirements:
+- 6-8 segments, ordered by importance/interest
+- Merge overlapping stories across newsletters into single segments
+- Target 35-45 total estimated turns across all segments
+- Skip ads, sponsor mentions, and referral/promotional content
+- Each segment should have enough substance for a meaningful discussion
+
+Return ONLY valid JSON (no markdown fencing) in this exact format:
+{{
+  "intro_hook": "One compelling sentence to open the show",
+  "segments": [
+    {{
+      "title": "Segment title",
+      "sources": ["Newsletter names that cover this topic"],
+      "key_points": ["Point 1", "Point 2", "Point 3"],
+      "estimated_turns": 6
+    }}
+  ],
+  "outro_theme": "Brief thematic thread connecting today's stories"
+}}""",
+            }
+        ],
     )
 
-    if not transcript_path or not os.path.exists(transcript_path):
-        raise RuntimeError("Transcript generation failed — no file produced")
+    raw = response.content[0].text.strip()
+    # Strip markdown fencing if present
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\s*", "", raw)
+        raw = re.sub(r"\s*```$", "", raw)
 
-    with open(transcript_path, "r") as f:
-        transcript = f.read()
+    outline = json.loads(raw)
 
+    segment_count = len(outline.get("segments", []))
+    total_turns = sum(s.get("estimated_turns", 0) for s in outline.get("segments", []))
+    logger.info(
+        "Outline generated: %d segments, %d estimated turns",
+        segment_count, total_turns,
+    )
+
+    return outline
+
+
+def _generate_section(
+    outline: dict,
+    newsletter_text: str,
+    section: str,
+    previous_turns: str | None = None,
+) -> str:
+    """Call 2 or 3: Generate dialogue for the first or second half."""
+    client = _get_claude_client()
+
+    segments = outline.get("segments", [])
+    midpoint = len(segments) // 2
+
+    if section == "first":
+        segment_slice = segments[:midpoint]
+        section_instruction = (
+            f"Write dialogue covering the INTRO and these segments:\n"
+            f"{json.dumps(segment_slice, indent=2)}\n\n"
+            f"Start with a natural opening — Person1 greets the listener and hooks them with: "
+            f"\"{outline.get('intro_hook', '')}\"\n"
+            f"Do NOT write an outro or sign-off. End mid-conversation, ready to continue."
+        )
+    else:
+        segment_slice = segments[midpoint:]
+        continuity_context = ""
+        if previous_turns:
+            # Extract last 3-4 turns for tone continuity
+            tags = re.findall(r"<Person[12]>.*?</Person[12]>", previous_turns, re.DOTALL)
+            last_turns = tags[-4:] if len(tags) >= 4 else tags
+            continuity_context = (
+                "Here are the last few turns from the first half — continue naturally from this tone:\n"
+                + "\n".join(last_turns)
+                + "\n\n"
+            )
+        section_instruction = (
+            f"{continuity_context}"
+            f"Write dialogue covering these remaining segments:\n"
+            f"{json.dumps(segment_slice, indent=2)}\n\n"
+            f"Continue naturally from where the first half left off.\n"
+            f"You MUST end with a complete outro: Person1 signs off the show with a line like "
+            f"\"That's your Daily Gist for today\" and a friendly farewell. "
+            f"Thematic thread for the outro: \"{outline.get('outro_theme', '')}\""
+        )
+
+    response = client.messages.create(
+        model=_CLAUDE_MODEL,
+        max_tokens=16384,
+        system=_DIALOGUE_SYSTEM_PROMPT,
+        messages=[
+            {
+                "role": "user",
+                "content": f"""\
+Here is the episode outline:
+{json.dumps(outline, indent=2)}
+
+Here are the source newsletters:
+<newsletters>
+{newsletter_text}
+</newsletters>
+
+{section_instruction}
+
+Target: 2000-2500 words of dialogue. Output ONLY <Person1> and <Person2> tagged dialogue.""",
+            }
+        ],
+    )
+
+    result = response.content[0].text.strip()
+    word_count = len(result.split())
+    logger.info("Section '%s' generated: %d words", section, word_count)
+
+    return result
+
+
+def _stitch_transcript(first_half: str, second_half: str) -> str:
+    """Combine the two halves into a single transcript."""
+    transcript = first_half.rstrip() + "\n\n" + second_half.lstrip()
     word_count = len(transcript.split())
-    logger.info("Transcript word count: %d, char count: %d", word_count, len(transcript))
+    logger.info("Stitched transcript: %d words total", word_count)
 
-    # Detect likely truncation: no closing tag at the end
+    # Safety net: detect truncation
     stripped = transcript.rstrip()
     if not stripped.endswith("</Person1>") and not stripped.endswith("</Person2>"):
         logger.error(
             "TRANSCRIPT TRUNCATED — does not end with a closing Person tag. "
-            "Word count: %d, char count: %d. Last 200 chars: %s",
-            word_count, len(transcript), stripped[-200:],
+            "Last 200 chars: %s",
+            stripped[-200:],
         )
 
     return transcript

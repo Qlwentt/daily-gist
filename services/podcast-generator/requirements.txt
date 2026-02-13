@@ -1,6 +1,5 @@
 fastapi
 uvicorn[standard]
-podcastfy
-playwright
 google-genai
+anthropic
 supabase
