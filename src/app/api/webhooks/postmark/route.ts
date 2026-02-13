@@ -14,6 +14,8 @@ type PostmarkPayload = {
   ToFull?: PostmarkRecipient[];
   Cc?: string;
   CcFull?: PostmarkRecipient[];
+  Bcc?: string;
+  BccFull?: PostmarkRecipient[];
   OriginalRecipient?: string;
   Subject?: string;
   TextBody?: string;
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
   console.log("[postmark] OriginalRecipient:", body.OriginalRecipient);
   console.log("[postmark] ToFull:", JSON.stringify(body.ToFull));
   console.log("[postmark] CcFull:", JSON.stringify(body.CcFull));
+  console.log("[postmark] BccFull:", JSON.stringify(body.BccFull));
   console.log("[postmark] From:", body.From);
   console.log("[postmark] Subject:", body.Subject);
 
@@ -78,7 +81,15 @@ export async function POST(request: Request) {
     if (dgRecipient) toAddress = dgRecipient.Email;
   }
 
-  // 4. Fallback: parse the To string
+  // 4. Check BccFull (Gmail forwarding + some ESPs like ConvertKit/SendGrid put the address in Bcc)
+  if (!toAddress && body.BccFull && body.BccFull.length > 0) {
+    const dgRecipient = body.BccFull.find((r) =>
+      r.Email.toLowerCase().endsWith(`@${inboundDomain}`)
+    );
+    if (dgRecipient) toAddress = dgRecipient.Email;
+  }
+
+  // 5. Fallback: parse the To string
   if (!toAddress) {
     const addresses = body.To.split(",").map((a) => a.trim());
     toAddress =
