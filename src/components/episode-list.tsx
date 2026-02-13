@@ -10,95 +10,202 @@ type Episode = {
   transcript: string | null;
   error_message: string | null;
   share_code: string | null;
+  audio_url: string | null;
 };
 
 export function EpisodeList({ episodes }: { episodes: Episode[] }) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  return (
+    <div className="space-y-4">
+      {episodes.map((episode) =>
+        episode.status === "ready" && episode.audio_url ? (
+          <ReadyEpisodeCard key={episode.id} episode={episode} />
+        ) : (
+          <PendingEpisodeCard key={episode.id} episode={episode} />
+        )
+      )}
+    </div>
+  );
+}
 
-  const handleShare = async (e: React.MouseEvent, episode: Episode) => {
-    e.stopPropagation();
+function ReadyEpisodeCard({ episode }: { episode: Episode }) {
+  const [shared, setShared] = useState(false);
+  const [showTranscript, setShowTranscript] = useState(false);
+
+  const date = new Date(episode.date).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+  const handleShare = async () => {
     if (!episode.share_code) return;
     const url = `${window.location.origin}/s/${episode.share_code}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: episode.title,
+          text: `Listen to my Daily Gist: ${episode.title}`,
+          url,
+        });
+        return;
+      } catch {
+        // User cancelled or share failed — fall through to clipboard
+      }
+    }
+
     await navigator.clipboard.writeText(url);
-    setCopiedId(episode.id);
-    setTimeout(() => setCopiedId(null), 2000);
+    setShared(true);
+    setTimeout(() => setShared(false), 2000);
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
-      {episodes.map((episode) => (
-        <div key={episode.id}>
-          <button
-            onClick={() =>
-              setExpandedId(expandedId === episode.id ? null : episode.id)
-            }
-            className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50"
+    <div
+      className="rounded-2xl p-5 sm:p-6 relative overflow-hidden"
+      style={{
+        background: "#1a0e2e",
+        color: "#faf7f2",
+        boxShadow: "0 8px 32px rgba(26, 14, 46, 0.2)",
+      }}
+    >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle at 20% 20%, rgba(157, 124, 216, 0.12) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(232, 164, 74, 0.08) 0%, transparent 50%)",
+        }}
+      />
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-4 relative">
+        <div
+          className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
+          style={{
+            background: "linear-gradient(135deg, #6b4c9a, #e8a44a)",
+          }}
+        >
+          DG
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-sm truncate">{episode.title}</p>
+          <p
+            className="text-xs"
+            style={{ color: "rgba(250, 247, 242, 0.5)" }}
           >
-            <div>
-              <p className="font-medium">{episode.title}</p>
-              <p className="text-sm text-gray-500">
-                {new Date(episode.date).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {episode.status === "ready" && episode.share_code && (
-                <button
-                  onClick={(e) => handleShare(e, episode)}
-                  className="px-2.5 py-1 rounded text-xs font-medium bg-gray-100 hover:bg-gray-200 transition-colors"
-                  title="Copy share link"
+            {date}
+          </p>
+        </div>
+      </div>
+
+      {/* Audio player */}
+      <div className="relative mb-4">
+        <audio
+          controls
+          preload="metadata"
+          src={episode.audio_url!}
+          className="w-full"
+          style={{ borderRadius: "8px", height: "44px" }}
+        />
+      </div>
+
+      {/* Share button */}
+      {episode.share_code && (
+        <div className="relative">
+          <button
+            onClick={handleShare}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-colors"
+            style={{
+              background: "rgba(250, 247, 242, 0.1)",
+              color: "rgba(250, 247, 242, 0.8)",
+              border: "1px solid rgba(250, 247, 242, 0.08)",
+            }}
+          >
+            {shared ? (
+              "Link copied!"
+            ) : (
+              <>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  {copiedId === episode.id ? "Copied!" : "Share"}
-                </button>
-              )}
-              <StatusBadge status={episode.status} />
-              <span className="text-gray-400 text-sm">
-                {expandedId === episode.id ? "▲" : "▼"}
-              </span>
-            </div>
+                  <path d="M4 8V13a1 1 0 001 1h6a1 1 0 001-1V8" />
+                  <polyline points="11,4 8,1 5,4" />
+                  <line x1="8" y1="1" x2="8" y2="10" />
+                </svg>
+                Share episode
+              </>
+            )}
           </button>
-          {expandedId === episode.id && (
-            <div className="px-4 pb-4 border-t border-gray-100">
-              {episode.status === "failed" && episode.error_message && (
-                <div className="mt-3 bg-red-50 border border-red-200 rounded p-3">
-                  <p className="text-sm text-red-800">
-                    <span className="font-medium">Error:</span>{" "}
-                    {episode.error_message}
-                  </p>
-                </div>
-              )}
-              {episode.status === "processing" && (
-                <p className="mt-3 text-sm text-gray-500">
-                  This episode is currently being generated...
-                </p>
-              )}
-              {episode.status === "pending" && (
-                <p className="mt-3 text-sm text-gray-500">
-                  This episode is queued for generation.
-                </p>
-              )}
-              {episode.status === "ready" && (
-                <div className="mt-3">
-                  {episode.transcript ? (
-                    <pre className="whitespace-pre-wrap text-sm text-gray-700 bg-gray-50 rounded p-3 max-h-96 overflow-y-auto">
-                      {episode.transcript}
-                    </pre>
-                  ) : (
-                    <p className="text-sm text-gray-500">
-                      No transcript available.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+        </div>
+      )}
+
+      {/* Transcript toggle */}
+      {episode.transcript && (
+        <div className="relative mt-3">
+          <button
+            onClick={() => setShowTranscript(!showTranscript)}
+            className="text-xs font-medium transition-colors"
+            style={{ color: "rgba(250, 247, 242, 0.4)" }}
+          >
+            {showTranscript ? "Hide transcript" : "Show transcript"}
+          </button>
+          {showTranscript && (
+            <pre
+              className="mt-3 whitespace-pre-wrap text-xs rounded-xl p-4 max-h-80 overflow-y-auto"
+              style={{
+                background: "rgba(250, 247, 242, 0.06)",
+                color: "rgba(250, 247, 242, 0.6)",
+                border: "1px solid rgba(250, 247, 242, 0.06)",
+              }}
+            >
+              {episode.transcript}
+            </pre>
           )}
         </div>
-      ))}
+      )}
+    </div>
+  );
+}
+
+function PendingEpisodeCard({ episode }: { episode: Episode }) {
+  const date = new Date(episode.date).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-medium text-sm">{episode.title}</p>
+          <p className="text-xs text-gray-500">{date}</p>
+        </div>
+        <StatusBadge status={episode.status} />
+      </div>
+      {episode.status === "failed" && episode.error_message && (
+        <div className="mt-3 bg-red-50 border border-red-200 rounded p-3">
+          <p className="text-sm text-red-800">
+            <span className="font-medium">Error:</span> {episode.error_message}
+          </p>
+        </div>
+      )}
+      {episode.status === "processing" && (
+        <p className="mt-2 text-sm text-gray-500">
+          Currently being generated...
+        </p>
+      )}
+      {episode.status === "pending" && (
+        <p className="mt-2 text-sm text-gray-500">
+          Queued for generation.
+        </p>
+      )}
     </div>
   );
 }
