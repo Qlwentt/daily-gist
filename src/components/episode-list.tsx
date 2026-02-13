@@ -31,7 +31,8 @@ function ReadyEpisodeCard({ episode }: { episode: Episode }) {
   const [shared, setShared] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
 
-  const date = new Date(episode.date).toLocaleDateString("en-US", {
+  const [year, month, day] = episode.date.split("-").map(Number);
+  const date = new Date(year, month - 1, day).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -173,7 +174,8 @@ function ReadyEpisodeCard({ episode }: { episode: Episode }) {
 }
 
 function PendingEpisodeCard({ episode }: { episode: Episode }) {
-  const date = new Date(episode.date).toLocaleDateString("en-US", {
+  const [year, month, day] = episode.date.split("-").map(Number);
+  const date = new Date(year, month - 1, day).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
