@@ -150,7 +150,7 @@ Requirements:
 - Skip ads, sponsor mentions, and referral/promotional content
 - Each segment should have enough substance for a meaningful discussion
 - Prioritize stories with unique insights or provocative angles over stories that are just big numbers or straightforward announcements
-- Ensure smaller/indie newsletters get representation, not just the big headline newsletters
+- Ensure every source newsletter gets at least a mention, but weight coverage by story impact and broad relevance
 
 Return ONLY valid JSON (no markdown fencing) in this exact format:
 {{
