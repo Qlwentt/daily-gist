@@ -81,13 +81,6 @@ async function updateGenerationHour(formData: FormData) {
   revalidatePath("/dashboard/settings");
 }
 
-async function signOut() {
-  "use server";
-
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
-}
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -219,10 +212,10 @@ export default async function SettingsPage() {
         <p className="text-sm text-gray-600 mb-4">
           Sign out of your Daily Gist account.
         </p>
-        <form action={signOut}>
+        <form action="/auth/signout" method="POST">
           <button
             type="submit"
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
           >
             Sign out
           </button>

@@ -1,13 +1,4 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-
-async function signOut() {
-  "use server";
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
-}
 
 export default function DashboardLayout({
   children,
@@ -37,10 +28,10 @@ export default function DashboardLayout({
               </div>
             </div>
             <div className="flex items-center">
-              <form action={signOut}>
+              <form action="/auth/signout" method="POST">
                 <button
                   type="submit"
-                  className="text-gray-600 hover:text-gray-900"
+                  className="text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-md transition-colors cursor-pointer"
                 >
                   Sign out
                 </button>
