@@ -20,6 +20,7 @@ import os
 import re
 import subprocess
 import tempfile
+import time
 import wave
 
 import anthropic
@@ -397,6 +398,36 @@ _TTS_VOICE_CONFIG = types.SpeechConfig(
 )
 
 
+_TTS_MAX_RETRIES = 3
+_TTS_RETRY_DELAYS = [5, 15, 30]  # seconds
+
+
+def _tts_generate(client, prompt: str, label: str = "TTS") -> bytes:
+    """Call Gemini TTS with retries on server errors. Returns raw PCM bytes."""
+    for attempt in range(_TTS_MAX_RETRIES):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash-preview-tts",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=_TTS_VOICE_CONFIG,
+                ),
+            )
+            return response.candidates[0].content.parts[0].inline_data.data
+        except Exception as e:
+            is_server_error = "500" in str(e) or "INTERNAL" in str(e) or "503" in str(e)
+            if not is_server_error or attempt == _TTS_MAX_RETRIES - 1:
+                raise
+            delay = _TTS_RETRY_DELAYS[attempt]
+            logger.warning(
+                "%s attempt %d/%d failed (server error), retrying in %ds: %s",
+                label, attempt + 1, _TTS_MAX_RETRIES, delay, e,
+            )
+            time.sleep(delay)
+    raise RuntimeError("Unreachable")  # satisfies type checker
+
+
 def _synthesize_audio(turns: list[dict]) -> bytes:
     """Synthesize multi-speaker audio, returning MP3 bytes."""
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -427,15 +458,7 @@ def _synthesize_audio(turns: list[dict]) -> bytes:
             _synthesize_chunked(client, turns, tmp_dir, mp3_path)
         else:
             logger.info("Single-shot TTS: %d chars, %d turns", len(full_prompt), len(turns))
-            response = client.models.generate_content(
-                model="gemini-2.5-flash-preview-tts",
-                contents=full_prompt,
-                config=types.GenerateContentConfig(
-                    response_modalities=["AUDIO"],
-                    speech_config=_TTS_VOICE_CONFIG,
-                ),
-            )
-            audio_data = response.candidates[0].content.parts[0].inline_data.data
+            audio_data = _tts_generate(client, full_prompt, label="Single-shot TTS")
             logger.info("Single-shot TTS returned %d bytes of audio", len(audio_data))
             wav_path = os.path.join(tmp_dir, "episode.wav")
             _save_wav(wav_path, audio_data)
@@ -462,16 +485,7 @@ def _synthesize_chunked(client, turns: list[dict], tmp_dir: str, mp3_path: str) 
             i + 1, len(chunks), len(chunk), len(prompt),
         )
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash-preview-tts",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_modalities=["AUDIO"],
-                speech_config=_TTS_VOICE_CONFIG,
-            ),
-        )
-
-        audio_data = response.candidates[0].content.parts[0].inline_data.data
+        audio_data = _tts_generate(client, prompt, label=f"Chunk {i + 1}/{len(chunks)}")
         logger.info("Chunk %d/%d: received %d bytes of audio", i + 1, len(chunks), len(audio_data))
         chunk_wav = os.path.join(tmp_dir, f"chunk{i}.wav")
         _save_wav(chunk_wav, audio_data)
