@@ -100,11 +100,19 @@ Rules:
 - Person1 is the main summarizer. Person2 is the curious questioner.
 - Vary conversational style: sometimes debate, sometimes one explains while the other \
 reacts, sometimes they build on each other's ideas.
+- Hosts should occasionally disagree or push back on each other's takes, not just agree. \
+Real conversations have friction.
+- Draw unexpected connections between seemingly unrelated stories — discover them in \
+conversation rather than stating them explicitly.
+- Include at least one hot take that challenges conventional wisdom.
 - Avoid repetitive transitions like "Speaking of which" or "Let's shift gears."
+- BANNED phrases (never use these): "great point", "exactly!", "that's so true", \
+"you're not kidding", "absolutely!", "I'm buzzing", "I'm so excited", "what a day"
 - Balance coverage — no single source > 30% of the conversation.
 - No repeated concepts or examples.
 - Skip sponsored content, ads, and promotional/referral sections.
-- Only connect topics if there's a genuine thematic link — otherwise just move on naturally.
+- Weave cross-source connections into the dialogue naturally — let them emerge through \
+conversation rather than listing them.
 - Use engagement techniques: rhetorical questions, analogies, real-world examples, humor, \
 surprising facts."""
 
@@ -140,6 +148,8 @@ Requirements:
 - Target 35-45 total estimated turns across all segments
 - Skip ads, sponsor mentions, and referral/promotional content
 - Each segment should have enough substance for a meaningful discussion
+- Prioritize stories with unique insights or provocative angles over stories that are just big numbers or straightforward announcements
+- Ensure smaller/indie newsletters get representation, not just the big headline newsletters
 
 Return ONLY valid JSON (no markdown fencing) in this exact format:
 {{
@@ -151,6 +161,12 @@ Return ONLY valid JSON (no markdown fencing) in this exact format:
       "key_points": ["Point 1", "Point 2", "Point 3"],
       "estimated_turns": 6
     }}
+  ],
+  "cross_source_connections": [
+    "Tension, contradiction, or surprising link between stories from different newsletters"
+  ],
+  "provocative_angles": [
+    "Hot take or counterintuitive observation the hosts could explore"
   ],
   "outro_theme": "Brief thematic thread connecting today's stories"
 }}""",
@@ -209,11 +225,23 @@ def _generate_section(
                 + "\n".join(last_turns)
                 + "\n\n"
             )
+        connections = outline.get("cross_source_connections", [])
+        connections_context = ""
+        if connections:
+            connections_context = (
+                "Cross-source connections to weave into the dialogue naturally "
+                "(don't list these — let them emerge through conversation):\n"
+                + json.dumps(connections, indent=2)
+                + "\n\n"
+            )
+
         section_instruction = (
             f"{continuity_context}"
+            f"{connections_context}"
             f"Write dialogue covering these remaining segments:\n"
             f"{json.dumps(segment_slice, indent=2)}\n\n"
             f"Continue naturally from where the first half left off.\n"
+            f"Tie stories together rather than covering remaining segments in isolation.\n"
             f"You MUST end with a complete outro: Person1 signs off the show with a line like "
             f"\"That's your Daily Gist for today\" and a friendly farewell. "
             f"Thematic thread for the outro: \"{outline.get('outro_theme', '')}\""
