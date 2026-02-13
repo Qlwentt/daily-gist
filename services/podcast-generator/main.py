@@ -161,9 +161,14 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
         if user_resp.data and user_resp.data.get("email"):
             user_email = user_resp.data["email"].lower()
             user_name = user_email.split("@")[0]
+            # Normalize by stripping dots/underscores/hyphens so
+            # "quai.wentt" matches "Quai Wentt", "quai_wentt", etc.
+            import re
+            user_name_normalized = re.sub(r"[.\-_]", "", user_name)
             source_newsletters = [
                 s for s in source_newsletters
-                if user_email not in s.lower() and s.lower() != user_name
+                if user_email not in s.lower()
+                and re.sub(r"[.\-_\s]", "", s.lower()) != user_name_normalized
             ]
 
         logger.info(
