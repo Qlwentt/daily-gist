@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Instrument_Serif, DM_Sans } from "next/font/google";
@@ -20,6 +20,21 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace("#", "?"));
+    const errorCode = hash.get("error_code") || params.get("error");
+
+    if (errorCode === "otp_expired") {
+      setError("Your magic link has expired. Please request a new one.");
+    } else if (errorCode === "access_denied" || errorCode === "auth_failed") {
+      setError("That link is no longer valid. Please request a new one.");
+    } else if (errorCode) {
+      setError("Something went wrong. Please try signing in again.");
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +108,19 @@ export default function LoginPage() {
           >
             Sign in with a magic link — no password needed
           </p>
+
+          {error && (
+            <div
+              className="mb-6 px-4 py-3 rounded-xl text-sm text-center"
+              style={{
+                background: "rgba(220, 38, 38, 0.06)",
+                color: "#b91c1c",
+                border: "1px solid rgba(220, 38, 38, 0.12)",
+              }}
+            >
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
