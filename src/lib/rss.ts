@@ -6,6 +6,7 @@ type EpisodeItem = {
   audioUrl: string | null;
   audioSizeBytes: number | null;
   durationSeconds: number | null;
+  shareUrl: string | null;
 };
 
 function escapeXml(str: string): string {
@@ -41,11 +42,17 @@ export function generateFeedXml(episodes: EpisodeItem[]): string {
         duration = `      <itunes:duration>${formatDuration(ep.durationSeconds)}</itunes:duration>`;
       }
 
+      let link = "";
+      if (ep.shareUrl) {
+        link = `      <link>${escapeXml(ep.shareUrl)}</link>`;
+      }
+
       return `    <item>
       <title>${escapeXml(ep.title)}</title>
       <description>${escapeXml(ep.description)}</description>
       <pubDate>${toRfc2822(ep.pubDate)}</pubDate>
       <guid isPermaLink="false">${escapeXml(ep.id)}</guid>
+${link}
 ${enclosure}
 ${duration}
     </item>`;

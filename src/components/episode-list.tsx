@@ -9,10 +9,21 @@ type Episode = {
   status: string;
   transcript: string | null;
   error_message: string | null;
+  share_code: string | null;
 };
 
 export function EpisodeList({ episodes }: { episodes: Episode[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleShare = async (e: React.MouseEvent, episode: Episode) => {
+    e.stopPropagation();
+    if (!episode.share_code) return;
+    const url = `${window.location.origin}/s/${episode.share_code}`;
+    await navigator.clipboard.writeText(url);
+    setCopiedId(episode.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
@@ -36,6 +47,15 @@ export function EpisodeList({ episodes }: { episodes: Episode[] }) {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              {episode.status === "ready" && episode.share_code && (
+                <button
+                  onClick={(e) => handleShare(e, episode)}
+                  className="px-2.5 py-1 rounded text-xs font-medium bg-gray-100 hover:bg-gray-200 transition-colors"
+                  title="Copy share link"
+                >
+                  {copiedId === episode.id ? "Copied!" : "Share"}
+                </button>
+              )}
               <StatusBadge status={episode.status} />
               <span className="text-gray-400 text-sm">
                 {expandedId === episode.id ? "▲" : "▼"}

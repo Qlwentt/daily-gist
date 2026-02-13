@@ -13,6 +13,7 @@ type EpisodeRow = {
   audio_url: string | null;
   audio_duration_seconds: number | null;
   audio_size_bytes: number | null;
+  share_code: string | null;
   created_at: string;
 };
 
@@ -39,7 +40,7 @@ export async function GET(
   const { data: episodes } = await supabase
     .from("episodes")
     .select(
-      "id, title, date, transcript, audio_url, audio_duration_seconds, audio_size_bytes, created_at"
+      "id, title, date, transcript, audio_url, audio_duration_seconds, audio_size_bytes, share_code, created_at"
     )
     .eq("user_id", user.id)
     .eq("status", "ready")
@@ -47,6 +48,7 @@ export async function GET(
     .limit(50)
     .returns<EpisodeRow[]>();
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi";
   const items = (episodes || []).map((ep) => ({
     id: ep.id,
     title: ep.title,
@@ -57,6 +59,7 @@ export async function GET(
     audioUrl: ep.audio_url,
     audioSizeBytes: ep.audio_size_bytes,
     durationSeconds: ep.audio_duration_seconds,
+    shareUrl: ep.share_code ? `${appUrl}/s/${ep.share_code}` : null,
   }));
 
   const xml = generateFeedXml(items);

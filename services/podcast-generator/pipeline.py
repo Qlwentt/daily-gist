@@ -11,7 +11,7 @@ Cost per episode:
 - Gemini 2.5 Flash TTS (audio): ~$0.20
 - Total: ~$0.25/episode
 
-Entry point: generate_podcast(newsletter_text) -> (mp3_bytes, transcript)
+Entry point: generate_podcast(newsletter_text) -> (mp3_bytes, transcript, source_newsletters)
 """
 
 import json
@@ -37,10 +37,10 @@ logger = logging.getLogger(__name__)
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def generate_podcast(newsletter_text: str) -> tuple[bytes, str]:
+def generate_podcast(newsletter_text: str) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
-    Returns (mp3_bytes, transcript).
+    Returns (mp3_bytes, transcript, source_newsletters).
     """
     if not newsletter_text.strip():
         raise ValueError("Empty newsletter text")
@@ -75,7 +75,14 @@ def generate_podcast(newsletter_text: str) -> tuple[bytes, str]:
     mp3_bytes = _synthesize_audio(turns)
     logger.info("Synthesis complete: %d bytes MP3", len(mp3_bytes))
 
-    return mp3_bytes, transcript
+    # Extract unique source newsletter names from the outline
+    sources = []
+    for seg in outline.get("segments", []):
+        sources.extend(seg.get("sources", []))
+    source_newsletters = list(dict.fromkeys(sources))  # dedupe, preserve order
+    logger.info("Source newsletters: %s", source_newsletters)
+
+    return mp3_bytes, transcript, source_newsletters
 
 
 # ---------------------------------------------------------------------------

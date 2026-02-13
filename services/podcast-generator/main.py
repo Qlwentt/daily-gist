@@ -63,6 +63,7 @@ class GenerateRequest(BaseModel):
 class GenerateResponse(BaseModel):
     audio_base64: str
     transcript: str
+    source_newsletters: list[str]
 
 
 class GenerateAndStoreRequest(BaseModel):
@@ -97,7 +98,7 @@ def generate(body: GenerateRequest, _auth: None = Depends(verify_token)):
     )
 
     try:
-        mp3_bytes, transcript = generate_podcast(body.newsletter_text)
+        mp3_bytes, transcript, source_newsletters = generate_podcast(body.newsletter_text)
     except Exception:
         logger.exception("Podcast generation failed for user_id=%s", body.user_id)
         raise HTTPException(status_code=500, detail="Podcast generation failed")
@@ -111,7 +112,11 @@ def generate(body: GenerateRequest, _auth: None = Depends(verify_token)):
         len(transcript),
     )
 
-    return GenerateResponse(audio_base64=audio_base64, transcript=transcript)
+    return GenerateResponse(
+        audio_base64=audio_base64,
+        transcript=transcript,
+        source_newsletters=source_newsletters,
+    )
 
 
 def _get_supabase():
@@ -144,7 +149,7 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
             body.episode_id,
         )
 
-        mp3_bytes, transcript = generate_podcast(body.newsletter_text)
+        mp3_bytes, transcript, source_newsletters = generate_podcast(body.newsletter_text)
         logger.info(
             "generate-and-store: pipeline complete for episode_id=%s, %d bytes MP3",
             body.episode_id,
@@ -172,6 +177,7 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
             "audio_url": public_url,
             "audio_size_bytes": len(mp3_bytes),
             "transcript": transcript or None,
+            "source_newsletters": source_newsletters,
             "status": "ready",
         }).eq("id", body.episode_id).execute()
 
