@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 
-export function CopyButton({ text }: { text: string }) {
+export function CopyButton({
+  text,
+  variant = "light",
+}: {
+  text: string;
+  variant?: "light" | "dark";
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -14,7 +20,18 @@ export function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+      className="px-3 py-1.5 text-sm rounded-lg transition-colors cursor-pointer"
+      style={
+        variant === "dark"
+          ? {
+              background: "rgba(250, 247, 242, 0.1)",
+              color: "rgba(250, 247, 242, 0.8)",
+            }
+          : {
+              background: "rgba(45, 27, 78, 0.06)",
+              color: "#1a0e2e",
+            }
+      }
     >
       {copied ? "Copied!" : "Copy"}
     </button>

@@ -54,12 +54,18 @@ export function NotificationBanners({
       {visibleNotifications.map((notification) => (
         <div
           key={notification.id}
-          className="flex items-start justify-between gap-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg px-4 py-3"
+          className="flex items-start justify-between gap-4 rounded-xl px-4 py-3"
+          style={{
+            background: "rgba(232, 164, 74, 0.08)",
+            border: "1px solid rgba(232, 164, 74, 0.15)",
+            color: "#1a0e2e",
+          }}
         >
           <p className="text-sm whitespace-pre-line">{linkify(notification.message, () => dismiss(notification.id))}</p>
           <button
             onClick={() => dismiss(notification.id)}
-            className="flex-shrink-0 text-yellow-600 hover:text-yellow-800 text-lg leading-none"
+            className="flex-shrink-0 text-lg leading-none transition-colors cursor-pointer"
+            style={{ color: "#e8a44a" }}
             aria-label="Dismiss notification"
           >
             &times;

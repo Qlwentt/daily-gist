@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { NotificationBanners } from "@/components/notification-banner";
 import { EpisodeList } from "@/components/episode-list";
-import { CopyButton } from "@/components/copy-button";
 
 type Episode = {
   id: string;
@@ -30,15 +29,6 @@ type Notification = {
   message: string;
 };
 
-type RawEmail = {
-  id: string;
-  from_name: string | null;
-  from_email: string;
-  subject: string | null;
-  received_at: string;
-  processed_at: string | null;
-};
-
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
@@ -59,16 +49,15 @@ export default async function DashboardPage() {
   if (!userRecord) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">Setting up your account...</p>
+        <p style={{ color: "#5a4d6b" }}>Setting up your account...</p>
       </div>
     );
   }
 
-  // Fetch all data in parallel
+  // Fetch notifications and episodes in parallel
   const [
     { data: notifications },
     { data: episodes },
-    { data: recentEmails },
   ] = await Promise.all([
     supabase
       .from("notifications")
@@ -85,16 +74,9 @@ export default async function DashboardPage() {
       .order("date", { ascending: false })
       .limit(20)
       .returns<Episode[]>(),
-    supabase
-      .from("raw_emails")
-      .select("id, from_name, from_email, subject, received_at, processed_at")
-      .eq("user_id", user.id)
-      .order("received_at", { ascending: false })
-      .limit(10)
-      .returns<RawEmail[]>(),
   ]);
 
-  const feedUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi"}/api/feed/${userRecord.rss_token}`;
+  const hasEpisodes = episodes && episodes.length > 0;
 
   return (
     <div className="space-y-8">
@@ -104,103 +86,62 @@ export default async function DashboardPage() {
       )}
 
       <div>
-        <h1 className="text-2xl font-bold mb-2">Welcome to Daily Gist</h1>
-        <p className="text-gray-600">Signed in as: {user.email}</p>
+        <h1
+          className="text-2xl mb-1"
+          style={{
+            fontFamily: "var(--font-instrument-serif), serif",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Your Episodes
+        </h1>
+        <p className="text-sm" style={{ color: "#8a7f96" }}>
+          Signed in as {user.email}
+        </p>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold mb-4">Your Setup</h2>
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Forwarding Address</p>
-            <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded">
-              <code className="flex-1 text-sm break-all">
-                {userRecord.forwarding_address}
-              </code>
-              <CopyButton text={userRecord.forwarding_address} />
-            </div>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">RSS Feed URL</p>
-            <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded">
-              <code className="flex-1 text-sm break-all">
-                {feedUrl}
-              </code>
-              <CopyButton text={feedUrl} />
-            </div>
-          </div>
+      {/* Onboarding banner — only when no episodes */}
+      {!hasEpisodes && (
+        <div
+          className="rounded-2xl p-5 bg-white"
+          style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
+        >
+          <p className="text-sm mb-3" style={{ color: "#5a4d6b" }}>
+            New here? Set up your newsletter forwarding to start getting episodes.
+          </p>
           <Link
             href="/dashboard/onboarding"
-            className="inline-block text-blue-600 hover:text-blue-700 text-sm"
+            className="inline-block px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            style={{ background: "#6b4c9a", color: "#faf7f2" }}
           >
-            View setup instructions
+            Get started
           </Link>
         </div>
-      </div>
+      )}
 
       {/* Episodes */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Your Episodes</h2>
-        {!episodes || episodes.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-600 mb-2">No episodes yet.</p>
-            <p className="text-gray-500 text-sm">
-              Forward your first newsletter to{" "}
-              <code className="bg-gray-200 px-1.5 py-0.5 rounded text-xs">
-                {userRecord.forwarding_address}
-              </code>{" "}
-              to get started!
-            </p>
-          </div>
-        ) : (
-          <EpisodeList episodes={episodes} />
-        )}
-      </div>
-
-      {/* Recent Emails */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Recent Emails</h2>
-        {!recentEmails || recentEmails.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-600">No emails received yet.</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
-            {recentEmails.map((email) => (
-              <div
-                key={email.id}
-                className="p-4 flex items-center justify-between"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">
-                    {email.from_name || email.from_email}
-                  </p>
-                  <p className="text-sm text-gray-600 truncate">
-                    {email.subject || "(no subject)"}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(email.received_at).toLocaleString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-                <span
-                  className={`ml-4 flex-shrink-0 px-2 py-1 rounded text-xs font-medium ${
-                    email.processed_at
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {email.processed_at ? "Processed" : "Pending"}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {!hasEpisodes ? (
+        <div
+          className="rounded-2xl p-8 text-center"
+          style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
+        >
+          <p className="mb-2" style={{ color: "#5a4d6b" }}>
+            No episodes yet.
+          </p>
+          <p className="text-sm" style={{ color: "#8a7f96" }}>
+            Forward your first newsletter to{" "}
+            <code
+              className="px-1.5 py-0.5 rounded text-xs"
+              style={{ background: "rgba(45, 27, 78, 0.06)" }}
+            >
+              {userRecord.forwarding_address}
+            </code>{" "}
+            to get started!
+          </p>
+        </div>
+      ) : (
+        <EpisodeList episodes={episodes} />
+      )}
     </div>
   );
 }

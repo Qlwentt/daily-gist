@@ -24,11 +24,18 @@ export function SaveButton() {
     <button
       type="submit"
       disabled={pending}
-      className={`px-4 py-2 rounded-md min-w-[5rem] text-sm font-medium ${
+      className="px-4 py-2 rounded-xl min-w-[5rem] text-sm font-medium transition-colors cursor-pointer disabled:opacity-50"
+      style={
         saved
-          ? "bg-green-100 text-green-700"
-          : "bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-      }`}
+          ? {
+              background: "rgba(74, 157, 107, 0.1)",
+              color: "#4a9d6b",
+            }
+          : {
+              background: "#6b4c9a",
+              color: "#faf7f2",
+            }
+      }
     >
       {pending ? "Saving..." : saved ? "Saved \u2713" : "Save"}
     </button>
