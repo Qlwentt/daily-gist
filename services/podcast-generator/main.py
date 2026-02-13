@@ -156,6 +156,16 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
             len(mp3_bytes),
         )
 
+        # Filter out the user's own name/email from source_newsletters
+        user_resp = supabase.table("users").select("email").eq("id", body.user_id).single().execute()
+        if user_resp.data and user_resp.data.get("email"):
+            user_email = user_resp.data["email"].lower()
+            user_name = user_email.split("@")[0]
+            source_newsletters = [
+                s for s in source_newsletters
+                if user_email not in s.lower() and s.lower() != user_name
+            ]
+
         logger.info(
             "generate-and-store: uploading %d bytes to %s",
             len(mp3_bytes),
