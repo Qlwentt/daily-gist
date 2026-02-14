@@ -21,6 +21,7 @@ type UserRecord = {
   forwarding_address: string;
   rss_token: string;
   tier: string;
+  onboarding_completed_at: string | null;
 };
 
 type Notification = {
@@ -42,7 +43,7 @@ export default async function DashboardPage() {
   // Fetch user record
   const { data: userRecord } = await supabase
     .from("users")
-    .select("id, email, forwarding_address, rss_token, tier")
+    .select("id, email, forwarding_address, rss_token, tier, onboarding_completed_at")
     .eq("id", user.id)
     .single<UserRecord>();
 
@@ -77,6 +78,11 @@ export default async function DashboardPage() {
   ]);
 
   const hasEpisodes = episodes && episodes.length > 0;
+
+  // Redirect to onboarding if not completed and no episodes
+  if (!hasEpisodes && !userRecord.onboarding_completed_at) {
+    redirect("/dashboard/onboarding");
+  }
 
   return (
     <div className="space-y-8">
