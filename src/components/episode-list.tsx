@@ -207,12 +207,34 @@ function ReadyEpisodeCard({ episode }: { episode: Episode }) {
 }
 
 function PendingEpisodeCard({ episode }: { episode: Episode }) {
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+
   const [year, month, day] = episode.date.split("-").map(Number);
   const date = new Date(year, month - 1, day).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
   });
+
+  const handleRetry = async () => {
+    setRetrying(true);
+    setRetryError(null);
+    try {
+      const res = await fetch("/api/episodes/generate-now", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setRetryError(data.error || "Retry failed");
+        setRetrying(false);
+        return;
+      }
+      // Reload to pick up the new episode status
+      window.location.reload();
+    } catch {
+      setRetryError("Failed to connect to server");
+      setRetrying(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -223,11 +245,30 @@ function PendingEpisodeCard({ episode }: { episode: Episode }) {
         </div>
         <StatusBadge status={episode.status} />
       </div>
-      {episode.status === "failed" && episode.error_message && (
+      {episode.status === "failed" && (
         <div className="mt-3 bg-red-50 border border-red-200 rounded p-3">
-          <p className="text-sm text-red-800">
-            <span className="font-medium">Error:</span> {episode.error_message}
-          </p>
+          {episode.error_message && (
+            <p className="text-sm text-red-800">
+              <span className="font-medium">Error:</span> {episode.error_message}
+            </p>
+          )}
+          {retryError && (
+            <p className="text-sm text-red-800 mt-1">
+              <span className="font-medium">Retry failed:</span> {retryError}
+            </p>
+          )}
+          <button
+            onClick={handleRetry}
+            disabled={retrying}
+            className="mt-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            style={{
+              background: retrying ? "rgba(45, 27, 78, 0.08)" : "#6b4c9a",
+              color: retrying ? "#8a7f96" : "#faf7f2",
+              cursor: retrying ? "not-allowed" : "pointer",
+            }}
+          >
+            {retrying ? "Retrying..." : "Retry"}
+          </button>
         </div>
       )}
       {episode.status === "processing" && (
