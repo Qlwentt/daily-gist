@@ -24,18 +24,40 @@ type EpisodeRow = {
   audio_duration_seconds: number | null;
   source_newsletters: string[] | null;
   status: string;
+  user_id: string;
 };
 
-async function getEpisode(code: string): Promise<EpisodeRow | null> {
+type UserRow = {
+  email: string;
+};
+
+async function getEpisode(
+  code: string
+): Promise<{ episode: EpisodeRow; ownerName: string } | null> {
   const supabase = createAdminClient();
-  const { data } = await supabase
+  const { data: episode } = await supabase
     .from("episodes")
     .select(
-      "id, title, date, audio_url, audio_duration_seconds, source_newsletters, status"
+      "id, title, date, audio_url, audio_duration_seconds, source_newsletters, status, user_id"
     )
     .eq("share_code", code)
     .single<EpisodeRow>();
-  return data;
+  if (!episode) return null;
+
+  let ownerName = "";
+  const { data: user } = await supabase
+    .from("users")
+    .select("email")
+    .eq("id", episode.user_id)
+    .single<UserRow>();
+  if (user?.email) {
+    // "quai.wentt@gmail.com" → "Quai"
+    const local = user.email.split("@")[0];
+    const first = local.split(/[.\-_]/)[0];
+    ownerName = first.charAt(0).toUpperCase() + first.slice(1);
+  }
+
+  return { episode, ownerName };
 }
 
 export async function generateMetadata({
@@ -44,11 +66,13 @@ export async function generateMetadata({
   params: Promise<{ code: string }>;
 }): Promise<Metadata> {
   const { code } = await params;
-  const episode = await getEpisode(code);
+  const result = await getEpisode(code);
 
-  if (!episode || episode.status !== "ready") {
+  if (!result || result.episode.status !== "ready") {
     return { title: "Episode not found — Daily Gist" };
   }
+
+  const { episode, ownerName } = result;
 
   const date = new Date(episode.date).toLocaleDateString("en-US", {
     month: "long",
@@ -56,16 +80,17 @@ export async function generateMetadata({
     year: "numeric",
   });
 
+  const titlePrefix = ownerName ? `${ownerName}'s Daily Gist` : "Daily Gist";
   const description = episode.source_newsletters?.length
     ? `Brought to you by ${episode.source_newsletters.join(", ")}`
     : "Your newsletters, as a daily podcast";
 
   return {
-    title: `${episode.title} — Daily Gist`,
+    title: `${episode.title} — ${titlePrefix}`,
     description,
     openGraph: {
       title: episode.title,
-      description: `Daily Gist for ${date}. ${description}`,
+      description: `${titlePrefix} for ${date}. ${description}`,
       siteName: "Daily Gist",
       type: "music.song",
       ...(episode.audio_url ? { audio: episode.audio_url } : {}),
@@ -89,11 +114,13 @@ export default async function SharePage({
   params: Promise<{ code: string }>;
 }) {
   const { code } = await params;
-  const episode = await getEpisode(code);
+  const result = await getEpisode(code);
 
-  if (!episode || episode.status !== "ready") {
+  if (!result || result.episode.status !== "ready") {
     notFound();
   }
+
+  const { episode, ownerName } = result;
 
   const date = new Date(episode.date).toLocaleDateString("en-US", {
     weekday: "long",
@@ -170,7 +197,9 @@ export default async function SharePage({
             </div>
             <div>
               <h1 className="text-base font-semibold mb-0.5">
-                {episode.title}
+                {ownerName
+                  ? `${ownerName}\u2019s Daily Gist`
+                  : episode.title}
               </h1>
               <p
                 className="text-xs"
@@ -241,6 +270,14 @@ export default async function SharePage({
             border: "1px solid rgba(45, 27, 78, 0.08)",
           }}
         >
+          {ownerName && (
+            <p
+              className="text-sm font-medium mb-4"
+              style={{ color: "#6b4c9a" }}
+            >
+              {ownerName} sent this to you
+            </p>
+          )}
           <h2
             className="text-xl mb-2"
             style={{
