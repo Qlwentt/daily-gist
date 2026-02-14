@@ -34,9 +34,9 @@ export async function POST() {
   // Fetch user record for timezone
   const { data: userRecord, error: userError } = await admin
     .from("users")
-    .select("id, timezone")
+    .select("id, email, timezone")
     .eq("id", user.id)
-    .single<{ id: string; timezone: string }>();
+    .single<{ id: string; email: string; timezone: string }>();
 
   if (userError || !userRecord) {
     console.error("Failed to fetch user record:", userError?.message);
@@ -116,6 +116,7 @@ export async function POST() {
         email_ids: emailIds,
         storage_path: storagePath,
         date: today,
+        user_email: userRecord.email,
       }),
     });
   } catch (err) {

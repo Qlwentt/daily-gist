@@ -11,7 +11,7 @@ Cost per episode:
 - Gemini 2.5 Flash TTS (audio): ~$0.20
 - Total: ~$0.25/episode
 
-Entry point: generate_podcast(newsletter_text) -> (mp3_bytes, transcript, source_newsletters)
+Entry point: generate_podcast(newsletter_text, user_email=None) -> (mp3_bytes, transcript, source_newsletters)
 """
 
 import json
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def generate_podcast(newsletter_text: str) -> tuple[bytes, str, list[str]]:
+def generate_podcast(newsletter_text: str, user_email: str | None = None) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
     Returns (mp3_bytes, transcript, source_newsletters).
@@ -49,6 +49,9 @@ def generate_podcast(newsletter_text: str) -> tuple[bytes, str, list[str]]:
     logger.info("Step 1/4: Generating outline...")
     outline = _generate_outline(newsletter_text)
     logger.info("Step 1/4 complete: outline has %d segments", len(outline.get("segments", [])))
+
+    if user_email:
+        _filter_user_from_sources(outline, user_email)
 
     logger.info("Step 2/4: Generating first half...")
     first_half = _generate_section(outline, newsletter_text, "first")
@@ -87,6 +90,31 @@ def generate_podcast(newsletter_text: str) -> tuple[bytes, str, list[str]]:
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _filter_user_from_sources(outline: dict, user_email: str) -> None:
+    """Remove the user's own name/email from segment sources in-place.
+
+    Gmail forwarding replaces the From field with the forwarder's name, so
+    Claude's outline may list the user as a "source newsletter".  We strip
+    those entries so the outro and returned source list are accurate.
+    """
+    user_name = user_email.lower().split("@")[0]
+    user_name_normalized = re.sub(r"[.\-_]", "", user_name)
+    email_lower = user_email.lower()
+
+    for seg in outline.get("segments", []):
+        seg["sources"] = [
+            s for s in seg.get("sources", [])
+            if email_lower not in s.lower()
+            and re.sub(r"[.\-_\s]", "", s.lower()) != user_name_normalized
+        ]
+
+    logger.info("Filtered user '%s' from outline sources", user_email)
+
+
+# ---------------------------------------------------------------------------
 # Step 1: Generate transcript using 3-call Claude pipeline
 # ---------------------------------------------------------------------------
 
@@ -120,7 +148,7 @@ surprising facts."""
 
 
 _CLAUDE_MAX_RETRIES = 3
-_CLAUDE_RETRY_DELAY = 60  # seconds — wait for TPM window to reset
+_CLAUDE_RETRY_DELAY = 15  # seconds — Tier 2 rate limits are more generous
 
 
 def _get_claude_client() -> anthropic.Anthropic:

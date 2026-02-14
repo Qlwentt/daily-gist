@@ -16,6 +16,7 @@ type UserIdRow = {
 
 type UserRow = {
   id: string;
+  email: string;
   timezone: string;
   generation_hour: number;
 };
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
   // Fetch timezone and generation_hour for candidate users
   const { data: users, error: usersError } = await supabase
     .from("users")
-    .select("id, timezone, generation_hour")
+    .select("id, email, timezone, generation_hour")
     .in("id", candidateUserIds)
     .returns<UserRow[]>();
 
@@ -145,6 +146,7 @@ export async function GET(request: Request) {
       const newsletterText = formatEmailsForPodcast(emails);
       const emailIds = emails.map((e) => e.id);
       const storagePath = `${userId}/${today}.mp3`;
+      const userEmail = userMap.get(userId)!.email;
 
       // Await the 202 from Railway — it responds immediately before doing work
       await fetch(`${serviceUrl}/generate-and-store`, {
@@ -160,6 +162,7 @@ export async function GET(request: Request) {
           email_ids: emailIds,
           storage_path: storagePath,
           date: today,
+          user_email: userEmail,
         }),
       });
 

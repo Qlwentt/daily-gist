@@ -93,6 +93,7 @@ export async function POST() {
       email_ids: emailIds,
       storage_path: storagePath,
       date: today,
+      user_email: user.email,
     }),
   });
 

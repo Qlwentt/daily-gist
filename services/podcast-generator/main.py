@@ -73,6 +73,7 @@ class GenerateAndStoreRequest(BaseModel):
     email_ids: list[str]
     storage_path: str
     date: str
+    user_email: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -149,27 +150,21 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
             body.episode_id,
         )
 
-        mp3_bytes, transcript, source_newsletters = generate_podcast(body.newsletter_text)
+        # Resolve user_email: prefer the value from the request, fall back to DB lookup
+        user_email = body.user_email
+        if not user_email:
+            user_resp = supabase.table("users").select("email").eq("id", body.user_id).single().execute()
+            if user_resp.data and user_resp.data.get("email"):
+                user_email = user_resp.data["email"]
+
+        mp3_bytes, transcript, source_newsletters = generate_podcast(
+            body.newsletter_text, user_email=user_email,
+        )
         logger.info(
             "generate-and-store: pipeline complete for episode_id=%s, %d bytes MP3",
             body.episode_id,
             len(mp3_bytes),
         )
-
-        # Filter out the user's own name/email from source_newsletters
-        user_resp = supabase.table("users").select("email").eq("id", body.user_id).single().execute()
-        if user_resp.data and user_resp.data.get("email"):
-            user_email = user_resp.data["email"].lower()
-            user_name = user_email.split("@")[0]
-            # Normalize by stripping dots/underscores/hyphens so
-            # "quai.wentt" matches "Quai Wentt", "quai_wentt", etc.
-            import re
-            user_name_normalized = re.sub(r"[.\-_]", "", user_name)
-            source_newsletters = [
-                s for s in source_newsletters
-                if user_email not in s.lower()
-                and re.sub(r"[.\-_\s]", "", s.lower()) != user_name_normalized
-            ]
 
         logger.info(
             "generate-and-store: uploading %d bytes to %s",
