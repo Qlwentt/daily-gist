@@ -119,18 +119,39 @@ conversation rather than listing them.
 surprising facts."""
 
 
+_CLAUDE_MAX_RETRIES = 3
+_CLAUDE_RETRY_DELAY = 60  # seconds — wait for TPM window to reset
+
+
 def _get_claude_client() -> anthropic.Anthropic:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ValueError("ANTHROPIC_API_KEY environment variable is required")
-    return anthropic.Anthropic(api_key=api_key)
+    return anthropic.Anthropic(api_key=api_key, max_retries=0)  # we handle retries ourselves
+
+
+def _claude_create_with_retry(client: anthropic.Anthropic, **kwargs) -> anthropic.types.Message:
+    """Call client.messages.create with retry on 429 rate limit errors."""
+    for attempt in range(_CLAUDE_MAX_RETRIES):
+        try:
+            return client.messages.create(**kwargs)
+        except anthropic.RateLimitError:
+            if attempt == _CLAUDE_MAX_RETRIES - 1:
+                raise
+            logger.warning(
+                "Claude 429 rate limit hit, waiting %ds before retry %d/%d",
+                _CLAUDE_RETRY_DELAY, attempt + 1, _CLAUDE_MAX_RETRIES,
+            )
+            time.sleep(_CLAUDE_RETRY_DELAY)
+    raise RuntimeError("Unreachable")
 
 
 def _generate_outline(newsletter_text: str) -> dict:
     """Call 1: Generate a structured outline from newsletter content."""
     client = _get_claude_client()
 
-    response = client.messages.create(
+    response = _claude_create_with_retry(
+        client,
         model=_CLAUDE_MODEL,
         max_tokens=2048,
         system="You are a podcast producer planning an episode of Daily Gist, a two-host podcast that summarizes newsletters.",
@@ -256,7 +277,8 @@ def _generate_section(
             f"Thematic thread for the outro: \"{outline.get('outro_theme', '')}\""
         )
 
-    response = client.messages.create(
+    response = _claude_create_with_retry(
+        client,
         model=_CLAUDE_MODEL,
         max_tokens=16384,
         system=_DIALOGUE_SYSTEM_PROMPT,

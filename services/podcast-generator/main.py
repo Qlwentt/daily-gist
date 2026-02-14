@@ -30,7 +30,7 @@ GENERATOR_API_KEY = os.environ.get("GENERATOR_API_KEY")
 
 # Limit concurrent podcast generations to avoid API rate limits and memory issues.
 # Excess requests queue in-process and run when a slot opens.
-MAX_CONCURRENT_GENERATIONS = int(os.environ.get("MAX_CONCURRENT_GENERATIONS", "3"))
+MAX_CONCURRENT_GENERATIONS = int(os.environ.get("MAX_CONCURRENT_GENERATIONS", "1"))
 _generation_semaphore = threading.Semaphore(MAX_CONCURRENT_GENERATIONS)
 
 
