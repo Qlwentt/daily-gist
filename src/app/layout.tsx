@@ -37,6 +37,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var h=location.hash;if(h&&(h.indexOf("access_token")!==-1||h.indexOf("error=")!==-1)){var s=document.createElement("style");s.id="__auth_hide";s.textContent="body{visibility:hidden}";document.head.appendChild(s)}})()`,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

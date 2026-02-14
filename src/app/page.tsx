@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import { Instrument_Serif, DM_Sans } from "next/font/google";
 
 const instrumentSerif = Instrument_Serif({
@@ -31,13 +33,48 @@ function formatTime(seconds: number) {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [handlingAuth, setHandlingAuth] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const revealRefs = useRef<HTMLElement[]>([]);
+
+  // Detect auth hash fragments before paint. The blocking <script> in layout.tsx
+  // hides the page via visibility:hidden; we restore it once React takes over.
+  useLayoutEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes("access_token") || hash.includes("error=")) {
+      setHandlingAuth(true);
+    } else {
+      document.getElementById("__auth_hide")?.remove();
+    }
+  }, []);
+
+  // Handle magic link redirect: Supabase redirects here with #access_token=...
+  // or #error=... on failure. The SDK won't auto-detect hash fragments because
+  // @supabase/ssr forces PKCE mode, so we handle them manually.
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const params = new URLSearchParams(hash.replace("#", ""));
+
+    if (params.get("access_token")) {
+      const accessToken = params.get("access_token")!;
+      const refreshToken = params.get("refresh_token")!;
+      const supabase = createClient();
+      supabase.auth
+        .setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(() => router.replace("/dashboard"));
+    } else if (params.get("error")) {
+      // Expired/invalid magic link — send to login with error context
+      const errorCode = params.get("error_code") || params.get("error") || "";
+      router.replace(`/login?error=${encodeURIComponent(errorCode)}`);
+    }
+  }, [router]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -112,6 +149,25 @@ export default function Home() {
       revealRefs.current.push(el);
     }
   }, []);
+
+  if (handlingAuth) {
+    // Restore visibility (hidden by the blocking script in layout.tsx)
+    if (typeof document !== "undefined") {
+      document.getElementById("__auth_hide")?.remove();
+    }
+    return (
+      <div
+        className={`${instrumentSerif.variable} ${dmSans.variable} min-h-screen flex items-center justify-center`}
+        style={{
+          fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif",
+          background: "#faf7f2",
+          color: "#1a0e2e",
+        }}
+      >
+        <p className="text-sm" style={{ color: "#5a4d6b" }}>Signing you in...</p>
+      </div>
+    );
+  }
 
   return (
     <div
