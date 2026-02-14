@@ -249,8 +249,10 @@ def _generate_section(
             f"Tie stories together rather than covering remaining segments in isolation.\n"
             f"IMPORTANT: Do NOT repeat any insight, stat, or example that was already covered "
             f"in the first half. If a point was made, move on — find a new angle or skip it.\n"
-            f"You MUST end with a complete outro: Person1 signs off the show with a line like "
-            f"\"That's your Daily Gist for today\" and a friendly farewell. "
+            f"You MUST end with a complete outro in this exact order:\n"
+            f"1. Person2 credits the sources conversationally: \"Today's episode was brought to "
+            f"you by {', '.join(dict.fromkeys(s for seg in segments for s in seg.get('sources', [])))}.\"\n"
+            f"2. Then Person1 signs off: \"with something like :That's your Daily Gist for today\" and a friendly farewell.\n"
             f"Thematic thread for the outro: \"{outline.get('outro_theme', '')}\""
         )
 
