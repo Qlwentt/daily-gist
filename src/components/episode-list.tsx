@@ -11,6 +11,7 @@ type Episode = {
   error_message: string | null;
   share_code: string | null;
   audio_url: string | null;
+  source_newsletters: string[] | null;
 };
 
 export function EpisodeList({ episodes }: { episodes: Episode[] }) {
@@ -107,6 +108,38 @@ function ReadyEpisodeCard({ episode }: { episode: Episode }) {
           style={{ borderRadius: "8px", height: "44px" }}
         />
       </div>
+
+      {/* Source newsletters */}
+      {episode.source_newsletters && episode.source_newsletters.length > 0 && (
+        <div
+          className="relative mb-4 pt-4"
+          style={{
+            borderTop: "1px solid rgba(250, 247, 242, 0.08)",
+          }}
+        >
+          <div
+            className="text-[0.7rem] uppercase tracking-widest mb-2"
+            style={{ color: "rgba(250, 247, 242, 0.4)" }}
+          >
+            Brought to you by
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {episode.source_newsletters.map((source) => (
+              <span
+                key={source}
+                className="px-2.5 py-1 rounded-md text-xs"
+                style={{
+                  background: "rgba(250, 247, 242, 0.08)",
+                  color: "rgba(250, 247, 242, 0.7)",
+                  border: "1px solid rgba(250, 247, 242, 0.06)",
+                }}
+              >
+                {source}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Share button */}
       {episode.share_code && (

@@ -121,13 +121,9 @@ export function OnboardingFlow({
   }, []);
 
   const handleComplete = useCallback(async () => {
-    await supabase
-      .from("users")
-      .update({ onboarding_completed_at: new Date().toISOString() })
-      .eq("id", (await supabase.auth.getUser()).data.user?.id);
-
+    await fetch("/api/onboarding/complete", { method: "POST" });
     window.location.href = "/dashboard";
-  }, [supabase]);
+  }, []);
 
   return (
     <div className="max-w-2xl space-y-6">

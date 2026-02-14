@@ -57,7 +57,7 @@ export async function generateMetadata({
   });
 
   const description = episode.source_newsletters?.length
-    ? `Synthesized from ${episode.source_newsletters.join(", ")}`
+    ? `Brought to you by ${episode.source_newsletters.join(", ")}`
     : "Your newsletters, as a daily podcast";
 
   return {
@@ -212,7 +212,7 @@ export default async function SharePage({
                 className="text-[0.7rem] uppercase tracking-widest mb-3"
                 style={{ color: "rgba(250, 247, 242, 0.4)" }}
               >
-                Synthesized from
+                Brought to you by
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {sources.map((source) => (
