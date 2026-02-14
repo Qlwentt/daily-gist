@@ -252,7 +252,7 @@ def _generate_section(
             f"You MUST end with a complete outro in this exact order:\n"
             f"1. Person2 credits the sources conversationally: \"Today's episode was brought to "
             f"you by {', '.join(dict.fromkeys(s for seg in segments for s in seg.get('sources', [])))}.\"\n"
-            f"2. Then Person1 signs off: \"with something like :That's your Daily Gist for today\" and a friendly farewell.\n"
+            f"2. Then Person1 signs off: \"with something like: That's your Daily Gist for today\" and a friendly farewell.\n"
             f"Thematic thread for the outro: \"{outline.get('outro_theme', '')}\""
         )
 
