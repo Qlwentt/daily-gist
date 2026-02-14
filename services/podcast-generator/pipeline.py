@@ -211,10 +211,11 @@ def _generate_section(
         section_instruction = (
             f"Write dialogue covering the INTRO and these segments:\n"
             f"{json.dumps(segment_slice, indent=2)}\n\n"
-            f"Person1's first line MUST naturally incorporate a welcome to Daily Gist, flowing "
-            f"straight into the episode's hook in one breath — e.g. 'Welcome to Daily Gist! "
-            f"Today we're diving into...' Never say 'Welcome to Daily Gist.' as a standalone "
-            f"sentence. Hook to weave in: \"{outline.get('intro_hook', '')}\"\n"
+            f"Person1's first line MUST begin with exactly: \"Welcome to Daily Gist — your "
+            f"newsletters, distilled into conversation!\" then flow naturally into the episode's "
+            f"hook. Example: 'Welcome to Daily Gist — your newsletters, distilled into "
+            f"conversation! Today we're diving into...' "
+            f"Hook to weave in: \"{outline.get('intro_hook', '')}\"\n"
             f"Do NOT write an outro or sign-off. End mid-conversation, ready to continue."
         )
     else:
