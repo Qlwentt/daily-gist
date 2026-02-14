@@ -275,7 +275,7 @@ export default async function SharePage({
               className="text-sm font-medium mb-4"
               style={{ color: "#6b4c9a" }}
             >
-              {ownerName} sent this to you
+              {ownerName} shared this with you
             </p>
           )}
           <h2
