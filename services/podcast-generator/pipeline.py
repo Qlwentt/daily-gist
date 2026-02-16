@@ -38,14 +38,27 @@ logger = logging.getLogger(__name__)
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def generate_podcast(newsletter_text: str, user_email: str | None = None) -> tuple[bytes, str, list[str]]:
+def generate_podcast(
+    newsletter_text: str,
+    user_email: str | None = None,
+    on_progress: "callable | None" = None,
+) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
     Returns (mp3_bytes, transcript, source_newsletters).
+    on_progress is called with a stage name string at each pipeline step.
     """
     if not newsletter_text.strip():
         raise ValueError("Empty newsletter text")
 
+    def _report(stage: str):
+        if on_progress:
+            try:
+                on_progress(stage)
+            except Exception:
+                logger.warning("on_progress callback failed for stage=%s", stage, exc_info=True)
+
+    _report("outline")
     logger.info("Step 1/4: Generating outline...")
     outline = _generate_outline(newsletter_text)
     logger.info("Step 1/4 complete: outline has %d segments", len(outline.get("segments", [])))
@@ -53,10 +66,12 @@ def generate_podcast(newsletter_text: str, user_email: str | None = None) -> tup
     if user_email:
         _filter_user_from_sources(outline, user_email)
 
+    _report("first_half")
     logger.info("Step 2/4: Generating first half...")
     first_half = _generate_section(outline, newsletter_text, "first")
     logger.info("Step 2/4 complete: first half %d chars", len(first_half))
 
+    _report("second_half")
     logger.info("Step 3/4: Generating second half...")
     second_half = _generate_section(outline, newsletter_text, "second", previous_turns=first_half)
     logger.info("Step 3/4 complete: second half %d chars", len(second_half))
@@ -75,6 +90,7 @@ def generate_podcast(newsletter_text: str, user_email: str | None = None) -> tup
         raise RuntimeError("Transcript produced no dialogue turns — cleaned transcript may be empty")
     logger.info("Parsing complete: %d turns", len(turns))
 
+    _report("audio")
     logger.info("Synthesizing audio with Gemini TTS (%d turns)...", len(turns))
     mp3_bytes = _synthesize_audio(turns)
     logger.info("Synthesis complete: %d bytes MP3", len(mp3_bytes))

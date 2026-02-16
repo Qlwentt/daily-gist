@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { OnboardingFlow } from "@/components/onboarding-flow";
 
@@ -34,10 +35,29 @@ export default async function OnboardingPage() {
 
   const feedUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi"}/api/feed/${userRecord.rss_token}`;
 
+  // Determine initial step based on user's progress
+  const admin = createAdminClient();
+  const { data: latestEpisode } = await admin
+    .from("episodes")
+    .select("id, status, audio_url, title, error_message, progress_stage")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let initialStep: 1 | 2 | 3 | 4 = 1;
+  if (latestEpisode?.status === "processing") {
+    initialStep = 2;
+  } else if (latestEpisode?.status === "ready" && latestEpisode.audio_url) {
+    initialStep = 3;
+  }
+
   return (
     <OnboardingFlow
       forwardingAddress={userRecord.forwarding_address}
       feedUrl={feedUrl}
+      initialStep={initialStep}
+      initialEpisode={latestEpisode}
     />
   );
 }

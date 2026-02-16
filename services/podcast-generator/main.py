@@ -10,6 +10,7 @@ import base64
 import logging
 import os
 import threading
+import time
 from datetime import datetime, timezone
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
@@ -157,8 +158,13 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
             if user_resp.data and user_resp.data.get("email"):
                 user_email = user_resp.data["email"]
 
+        def _update_progress(stage: str):
+            supabase.table("episodes").update({
+                "progress_stage": stage,
+            }).eq("id", body.episode_id).execute()
+
         mp3_bytes, transcript, source_newsletters = generate_podcast(
-            body.newsletter_text, user_email=user_email,
+            body.newsletter_text, user_email=user_email, on_progress=_update_progress,
         )
         logger.info(
             "generate-and-store: pipeline complete for episode_id=%s, %d bytes MP3",
@@ -166,6 +172,7 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
             len(mp3_bytes),
         )
 
+        _update_progress("uploading")
         logger.info(
             "generate-and-store: uploading %d bytes to %s",
             len(mp3_bytes),
@@ -183,13 +190,35 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
         public_url = supabase.storage.from_("podcasts").get_public_url(body.storage_path)
 
         # Update episode record
-        supabase.table("episodes").update({
+        update_resp = supabase.table("episodes").update({
             "audio_url": public_url,
             "audio_size_bytes": len(mp3_bytes),
             "transcript": transcript or None,
             "source_newsletters": source_newsletters,
             "status": "ready",
         }).eq("id", body.episode_id).execute()
+
+        logger.info(
+            "generate-and-store: episode update for %s returned %d row(s)",
+            body.episode_id,
+            len(update_resp.data) if update_resp.data else 0,
+        )
+
+        # Verify the episode is visible before inserting segments — guards
+        # against transient connection-pooler visibility issues between
+        # back-to-back requests.
+        for attempt in range(3):
+            check = supabase.table("episodes").select("id").eq("id", body.episode_id).execute()
+            if check.data:
+                break
+            logger.warning(
+                "generate-and-store: episode %s not visible (attempt %d/3), waiting",
+                body.episode_id,
+                attempt + 1,
+            )
+            time.sleep(1)
+        else:
+            raise RuntimeError(f"Episode {body.episode_id} not visible after 3 attempts")
 
         # Create episode segment
         supabase.table("episode_segments").insert({
@@ -217,10 +246,23 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
             body.episode_id,
         )
         try:
-            supabase.table("episodes").update({
+            fail_resp = supabase.table("episodes").update({
                 "status": "failed",
                 "error_message": "Podcast generation failed",
             }).eq("id", body.episode_id).execute()
+
+            if not fail_resp.data:
+                logger.warning(
+                    "generate-and-store: update to 'failed' matched 0 rows for episode_id=%s, trying upsert",
+                    body.episode_id,
+                )
+                supabase.table("episodes").upsert({
+                    "id": body.episode_id,
+                    "user_id": body.user_id,
+                    "date": body.date,
+                    "status": "failed",
+                    "error_message": "Podcast generation failed",
+                }).execute()
         except Exception:
             logger.exception("Failed to update episode status to failed")
 
