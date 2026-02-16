@@ -49,10 +49,12 @@ supabase/.temp/
 
 # python venv
 .venv/
+__pycache__/
 
 # generated podcast data (Podcastfy output)
 data/
 
 # test fixtures
 test-email*.json
+test-gmail-confirmation.json
 scripts/test_*

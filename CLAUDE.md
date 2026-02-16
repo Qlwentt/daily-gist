@@ -1,5 +1,9 @@
 # CLAUDE.md - Daily Gist
 
+## Workflow Rules
+
+- **Always discuss the approach for solving a problem/bug before writing code.** Do not make code changes without explicit user approval. Use plan mode for non-trivial problem resolution. When the user describes a problem, talk through the solution first — only start editing files after the user says to go ahead.
+
 ## Project Overview
 
 Daily Gist is a newsletter-to-podcast SaaS. Users forward their newsletters to a unique email address, and we generate a daily AI podcast that synthesizes the content. The podcast is delivered via private RSS feed to their preferred podcast app.
