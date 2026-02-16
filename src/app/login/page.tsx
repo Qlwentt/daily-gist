@@ -17,7 +17,41 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 });
 
-type Step = "email" | "code" | "verify";
+const DOMAIN_TYPOS: Record<string, string> = {
+  "gmial.com": "gmail.com",
+  "gmal.com": "gmail.com",
+  "gmai.com": "gmail.com",
+  "gamil.com": "gmail.com",
+  "gnail.com": "gmail.com",
+  "gmali.com": "gmail.com",
+  "gmail.co": "gmail.com",
+  "gmaill.com": "gmail.com",
+  "gmail.con": "gmail.com",
+  "yahooo.com": "yahoo.com",
+  "yaho.com": "yahoo.com",
+  "yaoo.com": "yahoo.com",
+  "yahoo.con": "yahoo.com",
+  "hotmal.com": "hotmail.com",
+  "hotmial.com": "hotmail.com",
+  "hotmail.con": "hotmail.com",
+  "outlok.com": "outlook.com",
+  "outloo.com": "outlook.com",
+  "outlook.con": "outlook.com",
+};
+
+function validateEmail(raw: string): { email: string; error?: string; suggestion?: string } {
+  const email = raw.trim();
+  if (email.split("@").length > 2) return { email, error: "That email has an extra @ sign." };
+  const atIdx = email.lastIndexOf("@");
+  if (atIdx === -1) return { email, error: "Missing @ in email address." };
+  const domain = email.slice(atIdx + 1).toLowerCase();
+  if (!domain.includes(".")) return { email, error: "That domain looks incomplete — missing .com or similar." };
+  const fix = DOMAIN_TYPOS[domain];
+  if (fix) return { email, suggestion: email.slice(0, atIdx + 1) + fix };
+  return { email };
+}
+
+type Step = "email" | "code" | "confirm" | "verify";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,6 +63,7 @@ export default function LoginPage() {
   const [code, setCode] = useState(["", "", "", "", "", "", "", ""]);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [codeSendPending, setCodeSendPending] = useState(0); // countdown before auto-sending OTP
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const supabase = createClient();
@@ -116,7 +151,7 @@ export default function LoginPage() {
         setStep("code");
       }
     } else if (errorCode === "otp_expired") {
-      setError("Your sign-in code has expired. Please request a new one.");
+      setError("Your sign-in link or code has expired. Please request a new one.");
     } else if (errorCode === "access_denied") {
       setError("That code is no longer valid. Please request a new one.");
     } else if (errorCode) {
@@ -161,14 +196,27 @@ export default function LoginPage() {
   const handleSendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
-    const result = await sendOtpCode(email);
-    if (result === "sent" || result === "rate_limited") {
-      setStep("verify");
-    }
+    const { email: cleaned, error: valError, suggestion } = validateEmail(email);
+    setEmail(cleaned);
+    if (valError) { setError(valError); return; }
+    if (suggestion) { setEmailSuggestion(suggestion); return; }
+    setEmailSuggestion(null);
+    setError(null);
+    setStep("confirm");
   };
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    const { email: cleaned, error: valError, suggestion } = validateEmail(email);
+    setEmail(cleaned);
+    if (valError) { setError(valError); return; }
+    if (suggestion) { setEmailSuggestion(suggestion); return; }
+    setEmailSuggestion(null);
+    setError(null);
+    setStep("confirm");
+  };
+
+  const handleConfirmSend = async () => {
     const result = await sendOtpCode(email);
     if (result === "sent" || result === "rate_limited") setStep("verify");
   };
@@ -262,6 +310,7 @@ export default function LoginPage() {
     setError(null);
     setMessage(null);
     setCode(["", "", "", "", "", "", "", ""]);
+    setEmailSuggestion(null);
   };
 
   const inputStyle = {
@@ -350,14 +399,48 @@ export default function LoginPage() {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); setEmailSuggestion(null); }}
+                    onBlur={(e) => {
+                      handleInputBlur(e);
+                      const { suggestion } = validateEmail(e.target.value);
+                      if (suggestion) setEmailSuggestion(suggestion);
+                    }}
                     placeholder="you@example.com"
                     required
                     className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all"
                     style={inputStyle}
                     onFocus={handleInputFocus}
-                    onBlur={handleInputBlur}
                   />
+                  {emailSuggestion && (
+                    <div
+                      className="mt-2 px-4 py-3 rounded-xl text-sm"
+                      style={{
+                        background: "rgba(217, 119, 6, 0.06)",
+                        border: "1px solid rgba(217, 119, 6, 0.15)",
+                        color: "#92400e",
+                      }}
+                    >
+                      Did you mean{" "}
+                      <button
+                        type="button"
+                        onClick={() => { setEmail(emailSuggestion); setEmailSuggestion(null); }}
+                        className="font-semibold underline"
+                        style={{ color: "#92400e", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                      >
+                        {emailSuggestion}
+                      </button>
+                      ?
+                      <span style={{ margin: "0 6px", color: "rgba(146, 64, 14, 0.3)" }}>|</span>
+                      <button
+                        type="button"
+                        onClick={() => { setEmailSuggestion(null); setStep("confirm"); }}
+                        className="underline"
+                        style={{ color: "#92400e", background: "none", border: "none", padding: 0, cursor: "pointer", opacity: 0.8 }}
+                      >
+                        No, it&apos;s correct
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <button
                   type="submit"
@@ -365,7 +448,7 @@ export default function LoginPage() {
                   className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ background: "#6b4c9a", color: "#faf7f2" }}
                 >
-                  {loading ? "Sending..." : "Send magic link"}
+                  {loading ? "Sending..." : "Continue"}
                 </button>
               </form>
             </>
@@ -408,14 +491,48 @@ export default function LoginPage() {
                     id="code-email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); setEmailSuggestion(null); }}
+                    onBlur={(e) => {
+                      handleInputBlur(e);
+                      const { suggestion } = validateEmail(e.target.value);
+                      if (suggestion) setEmailSuggestion(suggestion);
+                    }}
                     placeholder="you@example.com"
                     required
                     className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all"
                     style={inputStyle}
                     onFocus={handleInputFocus}
-                    onBlur={handleInputBlur}
                   />
+                  {emailSuggestion && (
+                    <div
+                      className="mt-2 px-4 py-3 rounded-xl text-sm"
+                      style={{
+                        background: "rgba(217, 119, 6, 0.06)",
+                        border: "1px solid rgba(217, 119, 6, 0.15)",
+                        color: "#92400e",
+                      }}
+                    >
+                      Did you mean{" "}
+                      <button
+                        type="button"
+                        onClick={() => { setEmail(emailSuggestion); setEmailSuggestion(null); }}
+                        className="font-semibold underline"
+                        style={{ color: "#92400e", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                      >
+                        {emailSuggestion}
+                      </button>
+                      ?
+                      <span style={{ margin: "0 6px", color: "rgba(146, 64, 14, 0.3)" }}>|</span>
+                      <button
+                        type="button"
+                        onClick={() => { setEmailSuggestion(null); setStep("confirm"); }}
+                        className="underline"
+                        style={{ color: "#92400e", background: "none", border: "none", padding: 0, cursor: "pointer", opacity: 0.8 }}
+                      >
+                        No, it&apos;s correct
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <button
                   type="submit"
@@ -434,6 +551,60 @@ export default function LoginPage() {
               >
                 Use a different email
               </button>
+            </>
+          )}
+
+          {/* Step: confirm — confirm email before sending OTP */}
+          {step === "confirm" && (
+            <>
+              <h1
+                className="text-center mb-2"
+                style={{
+                  fontFamily:
+                    "var(--font-instrument-serif), 'Instrument Serif', serif",
+                  fontSize: "1.75rem",
+                  color: "#1a0e2e",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Confirm your email
+              </h1>
+              <p
+                className="text-center text-sm mb-4"
+                style={{ color: "#5a4d6b" }}
+              >
+                We&apos;ll send a login code (and magic link) to:
+              </p>
+              <p
+                className="text-center text-lg font-semibold mb-8"
+                style={{ color: "#1a0e2e", wordBreak: "break-all" }}
+              >
+                {email}
+              </p>
+
+              {error && <ErrorBanner message={error} />}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setStep("email")}
+                  className="flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-px"
+                  style={{
+                    background: "transparent",
+                    color: "#6b4c9a",
+                    border: "1px solid rgba(107, 76, 154, 0.3)",
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleConfirmSend}
+                  disabled={loading}
+                  className="flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: "#6b4c9a", color: "#faf7f2" }}
+                >
+                  {loading ? "Sending..." : "Send Code"}
+                </button>
+              </div>
             </>
           )}
 
