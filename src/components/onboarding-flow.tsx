@@ -714,21 +714,12 @@ function FilterSetupStep({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [subState, setSubState] = useState<
-    "select-senders" | "waiting-for-confirmation" | "done"
+    "select-senders" | "setup-guide" | "waiting-for-confirmation" | "done"
   >("select-senders");
   const [confirmationBody, setConfirmationBody] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const supabase = createClient();
-  const gasUrl = process.env.NEXT_PUBLIC_GOOGLE_FILTER_SCRIPT_URL;
-
-  // Check if we returned from GAS
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("filter_created") === "true") {
-      setSubState("waiting-for-confirmation");
-      window.history.replaceState({}, "", window.location.pathname);
-    }
-  }, []);
 
   // Fetch newsletter sources
   useEffect(() => {
@@ -741,7 +732,7 @@ function FilterSetupStep({
           setSelected(new Set(data.sources.map((s: NewsletterSource) => s.id)));
         }
       } catch {
-        // Silently fail — user can still use manual fallback
+        // Silently fail
       } finally {
         setLoading(false);
       }
@@ -752,7 +743,7 @@ function FilterSetupStep({
 
   // Poll for Gmail forwarding confirmation
   useEffect(() => {
-    if (subState !== "waiting-for-confirmation") return;
+    if (subState !== "setup-guide" && subState !== "waiting-for-confirmation") return;
 
     const poll = async () => {
       const { data } = await supabase
@@ -786,21 +777,15 @@ function FilterSetupStep({
   };
 
   const selectedSources = sources.filter((s) => selected.has(s.id));
+  const filterString = selectedSources.length > 0
+    ? selectedSources.map((s) => s.sender_email).join(" OR ")
+    : "";
 
-  const handleSetupFilter = () => {
-    if (selectedSources.length === 0) return;
-
-    if (gasUrl) {
-      const params = new URLSearchParams({
-        forwarding_address: forwardingAddress,
-        sender_emails: selectedSources.map((s) => s.sender_email).join(","),
-        return_url: `${window.location.origin}/dashboard/onboarding?filter_created=true`,
-      });
-
-      window.open(`${gasUrl}?${params.toString()}`, "_blank");
-    }
-
-    setSubState("waiting-for-confirmation");
+  const copyText = (text: string, field: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    });
   };
 
   if (subState === "done") {
@@ -840,7 +825,10 @@ function FilterSetupStep({
           Your newsletters will be automatically forwarded. New episodes will appear in your podcast app.
         </p>
         <button
-          onClick={onComplete}
+          onClick={async () => {
+            await fetch("/api/onboarding/forwarding-complete", { method: "POST" });
+            onComplete();
+          }}
           className="w-full py-3 rounded-xl text-sm font-medium transition-colors"
           style={{ background: "#1a0e2e", color: "#faf7f2" }}
         >
@@ -850,7 +838,33 @@ function FilterSetupStep({
     );
   }
 
-  if (subState === "waiting-for-confirmation") {
+  if (subState === "setup-guide") {
+    const stepStyle = {
+      background: "rgba(107, 76, 154, 0.15)",
+      color: "#6b4c9a",
+    };
+
+    const addressCopyBlock = (
+      <div
+        className="flex items-center gap-2 p-3 rounded-lg"
+        style={{ background: "rgba(45, 27, 78, 0.03)" }}
+      >
+        <code className="text-xs flex-1 break-all" style={{ color: "#1a0e2e" }}>
+          {forwardingAddress}
+        </code>
+        <button
+          onClick={() => copyText(forwardingAddress, "address")}
+          className="px-3 py-1 rounded-lg text-xs font-medium flex-shrink-0"
+          style={{
+            background: copiedField === "address" ? "rgba(74, 157, 107, 0.15)" : "rgba(45, 27, 78, 0.08)",
+            color: copiedField === "address" ? "#4a9d6b" : "#1a0e2e",
+          }}
+        >
+          {copiedField === "address" ? "Copied!" : "Copy"}
+        </button>
+      </div>
+    );
+
     return (
       <>
         <div>
@@ -861,63 +875,286 @@ function FilterSetupStep({
               letterSpacing: "-0.02em",
             }}
           >
-            Confirm Gmail Forwarding
+            Set Up Gmail Forwarding
           </h1>
           <p className="text-sm mt-1" style={{ color: "#5a4d6b" }}>
-            Gmail needs to verify your forwarding address before the filter takes effect.
+            Follow these steps to auto-forward your newsletters. Takes about 5 minutes.
           </p>
         </div>
 
+        {/* Step 1: Add forwarding address */}
         <div
-          className="bg-white rounded-2xl p-6"
+          className="bg-white rounded-2xl p-6 space-y-4"
           style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
         >
-          {confirmationBody ? (
-            <>
-              <p className="text-sm font-medium mb-3" style={{ color: "#1a0e2e" }}>
-                Gmail sent a confirmation email. Click the link below to verify:
-              </p>
-              <div
-                className="rounded-xl p-4 text-sm whitespace-pre-line break-words"
-                style={{
-                  background: "rgba(232, 164, 74, 0.06)",
-                  border: "1px solid rgba(232, 164, 74, 0.15)",
-                  color: "#1a0e2e",
-                }}
+          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "#8a7f96" }}>
+            Step 1 &mdash; Add forwarding address
+          </p>
+
+          <p className="text-sm" style={{ color: "#1a0e2e" }}>
+            First, register your Daily Gist address with Gmail so it can forward emails there.
+          </p>
+
+          <div className="space-y-2 text-sm">
+            <details className="group">
+              <summary
+                className="cursor-pointer font-medium"
+                style={{ color: "#1a0e2e" }}
               >
-                {linkify(confirmationBody)}
+                I don&apos;t have any forwarding addresses in Gmail yet
+              </summary>
+              <div className="mt-3 pl-4 space-y-3" style={{ color: "#5a4d6b" }}>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>1</span>
+                  <p>
+                    In Gmail, click the <strong>gear icon</strong> &rarr; <strong>&ldquo;See all settings&rdquo;</strong> &rarr; <strong>&ldquo;Forwarding and POP/IMAP&rdquo;</strong> tab
+                  </p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>2</span>
+                  <p>Click <strong>&ldquo;Add a forwarding address&rdquo;</strong></p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>3</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="mb-2">Paste your Daily Gist address:</p>
+                    {addressCopyBlock}
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>4</span>
+                  <p>Click <strong>Next &rarr; Proceed &rarr; OK</strong></p>
+                </div>
               </div>
-            </>
-          ) : (
-            <div className="text-center py-4">
-              <div
-                className="inline-block w-6 h-6 border-2 rounded-full animate-spin mb-3"
-                style={{
-                  borderColor: "rgba(107, 76, 154, 0.2)",
-                  borderTopColor: "#6b4c9a",
-                }}
-              />
-              <p className="text-sm" style={{ color: "#5a4d6b" }}>
-                Waiting for Gmail to send a confirmation email...
-              </p>
-              <p className="text-xs mt-2" style={{ color: "#8a7f96" }}>
-                This can take a minute. The confirmation will appear here automatically.
+            </details>
+
+            <details className="group">
+              <summary
+                className="cursor-pointer font-medium"
+                style={{ color: "#1a0e2e" }}
+              >
+                I already have a forwarding address in Gmail
+              </summary>
+              <div className="mt-3 pl-4 space-y-3" style={{ color: "#5a4d6b" }}>
+                <p>
+                  Gmail hides the &ldquo;Add a forwarding address&rdquo; button once you have one. You&apos;ll add it during filter creation instead:
+                </p>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>1</span>
+                  <p>
+                    Open{" "}
+                    <a
+                      href="https://mail.google.com/mail/u/0/#settings/filters"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline font-medium"
+                      style={{ color: "#6b4c9a" }}
+                    >
+                      Gmail Filters Settings
+                    </a>
+                    {" "}&rarr; <strong>&ldquo;Create a new filter&rdquo;</strong>
+                  </p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>2</span>
+                  <p>Type anything in the <strong>From</strong> field and click <strong>&ldquo;Create filter&rdquo;</strong></p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>3</span>
+                  <p>Click <strong>&ldquo;Add forwarding address&rdquo;</strong> next to &ldquo;Forward it to&rdquo;</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>4</span>
+                  <p>Gmail takes you to the Forwarding settings page. Click <strong>&ldquo;Add a forwarding address&rdquo;</strong> again</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>5</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="mb-2">Paste your Daily Gist address:</p>
+                    {addressCopyBlock}
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>6</span>
+                  <p>Click <strong>Next &rarr; Proceed &rarr; OK</strong></p>
+                </div>
+                <p className="text-xs" style={{ color: "#8a7f96" }}>
+                  Note: The filter you started is gone &mdash; that&apos;s OK. You&apos;ll create it in Step 3 below.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        {/* Step 2: Confirm */}
+        <div
+          className="bg-white rounded-2xl p-6 space-y-4"
+          style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
+        >
+          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "#8a7f96" }}>
+            Step 2 &mdash; Confirm forwarding
+          </p>
+
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <p className="text-sm" style={{ color: "#1a0e2e" }}>
+                  Gmail sends a confirmation email to your Daily Gist address. We&apos;ll detect it automatically:
+                </p>
+                <div className="mt-3">
+                  {confirmationBody ? (
+                    <div
+                      className="rounded-xl p-4 text-sm whitespace-pre-line break-words"
+                      style={{
+                        background: "rgba(74, 157, 107, 0.06)",
+                        border: "1px solid rgba(74, 157, 107, 0.2)",
+                        color: "#1a0e2e",
+                      }}
+                    >
+                      <p className="text-xs font-medium mb-2" style={{ color: "#4a9d6b" }}>
+                        Confirmation received! Click the link below:
+                      </p>
+                      {linkify(confirmationBody)}
+                    </div>
+                  ) : (
+                    <div
+                      className="rounded-xl p-4 text-center"
+                      style={{ background: "rgba(45, 27, 78, 0.03)" }}
+                    >
+                      <div
+                        className="inline-block w-5 h-5 border-2 rounded-full animate-spin mb-2"
+                        style={{
+                          borderColor: "rgba(107, 76, 154, 0.2)",
+                          borderTopColor: "#6b4c9a",
+                        }}
+                      />
+                      <p className="text-xs" style={{ color: "#8a7f96" }}>
+                        Waiting for confirmation email...
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Step 3: Create filter */}
+        <div
+          className="bg-white rounded-2xl p-6 space-y-4"
+          style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
+        >
+          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "#8a7f96" }}>
+            Step 3 &mdash; Create filter
+          </p>
+
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>1</span>
+              <p className="text-sm" style={{ color: "#1a0e2e" }}>
+                Open{" "}
+                <a
+                  href="https://mail.google.com/mail/u/0/#settings/filters"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline font-medium"
+                  style={{ color: "#6b4c9a" }}
+                >
+                  Gmail Filters Settings
+                </a>
+                {" "}&rarr; <strong>&ldquo;Create a new filter&rdquo;</strong>
               </p>
             </div>
-          )}
+
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>2</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm mb-2" style={{ color: "#1a0e2e" }}>
+                  In the <strong>From</strong> field, paste this:
+                </p>
+                <div
+                  className="flex items-center gap-2 p-3 rounded-lg"
+                  style={{ background: "rgba(45, 27, 78, 0.03)" }}
+                >
+                  <code className="text-xs flex-1 break-all" style={{ color: "#1a0e2e" }}>
+                    {filterString}
+                  </code>
+                  <button
+                    onClick={() => copyText(filterString, "filter")}
+                    className="px-3 py-1 rounded-lg text-xs font-medium flex-shrink-0"
+                    style={{
+                      background: copiedField === "filter" ? "rgba(74, 157, 107, 0.15)" : "rgba(45, 27, 78, 0.08)",
+                      color: copiedField === "filter" ? "#4a9d6b" : "#1a0e2e",
+                    }}
+                  >
+                    {copiedField === "filter" ? "Copied!" : "Copy"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>3</span>
+              <p className="text-sm" style={{ color: "#1a0e2e" }}>
+                Click <strong>&ldquo;Create filter&rdquo;</strong> (bottom right of the search box)
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>4</span>
+              <p className="text-sm" style={{ color: "#1a0e2e" }}>
+                Check <strong>&ldquo;Forward it to&rdquo;</strong> and select your Daily Gist address
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>5</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm" style={{ color: "#1a0e2e" }}>
+                  Check <strong>&ldquo;Skip the Inbox (Archive it)&rdquo;</strong>
+                </p>
+                <p className="text-xs mt-1" style={{ color: "#8a7f96" }}>
+                  Recommended &mdash; newsletters go straight to Daily Gist instead of cluttering your inbox. You can still find them under your label.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>6</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm" style={{ color: "#1a0e2e" }}>
+                  Check <strong>&ldquo;Apply the label&rdquo;</strong> &rarr; <strong>&ldquo;New label...&rdquo;</strong> &rarr; name it <strong>&ldquo;Daily Gist&rdquo;</strong>
+                </p>
+                <p className="text-xs mt-1" style={{ color: "#8a7f96" }}>
+                  This labels the emails so you can still browse them in Gmail anytime &mdash; look for the &ldquo;Daily Gist&rdquo; label in your sidebar.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={stepStyle}>7</span>
+              <p className="text-sm" style={{ color: "#1a0e2e" }}>
+                Click <strong>&ldquo;Create filter&rdquo;</strong> &mdash; you&apos;re done!
+              </p>
+            </div>
+          </div>
         </div>
 
         <button
           onClick={() => setSubState("done")}
           className="w-full py-3 rounded-xl text-sm font-medium transition-colors"
-          style={{
-            background: confirmationBody ? "#6b4c9a" : "rgba(45, 27, 78, 0.08)",
-            color: confirmationBody ? "#faf7f2" : "#5a4d6b",
-          }}
+          style={{ background: "#6b4c9a", color: "#faf7f2" }}
         >
-          I&apos;ve confirmed the forwarding
+          I&apos;ve created my filter
         </button>
 
+        <button
+          onClick={() => setSubState("select-senders")}
+          className="w-full py-2 text-xs font-medium"
+          style={{ color: "#8a7f96", background: "none", border: "none" }}
+        >
+          &larr; Go back
+        </button>
       </>
     );
   }
@@ -981,7 +1218,9 @@ function FilterSetupStep({
               }}
             >
               <p className="text-sm" style={{ color: "#1a0e2e" }}>
-                Only showing newsletters you forwarded earlier. Have more? Forward one from each to:
+                Only showing newsletters you forwarded earlier.
+                <br />
+                Have more you want in your podcast each day? Forward one from each to:
               </p>
               <div
                 className="flex items-center gap-2 mt-2 p-2 rounded-lg"
@@ -1040,54 +1279,30 @@ function FilterSetupStep({
         )}
       </div>
 
-      {/* Set up filter button */}
+      {/* Continue button */}
       {sources.length > 0 && (
-        <>
-          <button
-            onClick={handleSetupFilter}
-            disabled={selected.size === 0}
-            className="w-full py-3 rounded-xl text-sm font-medium transition-all"
-            style={{
-              background: selected.size > 0 ? "#6b4c9a" : "rgba(45, 27, 78, 0.1)",
-              color: selected.size > 0 ? "#faf7f2" : "#8a7f96",
-              cursor: selected.size > 0 ? "pointer" : "not-allowed",
-            }}
-          >
-            Set up automatic forwarding
-          </button>
-
-          <p className="text-xs text-center" style={{ color: "#8a7f96" }}>
-            You&apos;ll authorize a Google Apps Script that only creates one Gmail filter
-            &mdash; it doesn&apos;t read, send, or modify your emails.
-          </p>
-        </>
+        <button
+          onClick={() => { if (selectedSources.length > 0) setSubState("setup-guide"); }}
+          disabled={selected.size === 0}
+          className="w-full py-3 rounded-xl text-sm font-medium transition-all"
+          style={{
+            background: selected.size > 0 ? "#6b4c9a" : "rgba(45, 27, 78, 0.1)",
+            color: selected.size > 0 ? "#faf7f2" : "#8a7f96",
+            cursor: selected.size > 0 ? "pointer" : "not-allowed",
+          }}
+        >
+          Continue
+        </button>
       )}
 
-      {/* Manual fallback */}
-      <Link
-        href="/dashboard/onboarding/manual-setup"
-        className="block bg-white rounded-2xl p-6 text-sm font-medium transition-colors hover:opacity-80"
-        style={{ border: "1px solid rgba(45, 27, 78, 0.08)", color: "#1a0e2e" }}
+      {/* Skip option */}
+      <button
+        onClick={onComplete}
+        className="w-full py-2 text-xs font-medium"
+        style={{ color: "#8a7f96", background: "none", border: "none" }}
       >
-        <span className="flex items-center gap-2">
-          Prefer to set it up yourself?
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="4,2 8,6 4,10" />
-          </svg>
-        </span>
-        <span className="text-xs font-normal block mt-1" style={{ color: "#8a7f96" }}>
-          Don&apos;t want to authorize a Google script? Follow our step-by-step Gmail guide instead.
-        </span>
-      </Link>
+        Skip for now &mdash; I&apos;ll set this up later
+      </button>
 
     </>
   );

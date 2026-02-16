@@ -139,7 +139,7 @@ export default async function SettingsPage() {
           Manage your Daily Gist account
           {" \u00b7 "}
           <Link
-            href="/dashboard/onboarding"
+            href="/dashboard/onboarding/manual-setup"
             className="hover:underline"
             style={{ color: "#6b4c9a" }}
           >

@@ -23,6 +23,7 @@ type UserRecord = {
   rss_token: string;
   tier: string;
   onboarding_completed_at: string | null;
+  forwarding_setup_at: string | null;
 };
 
 type Notification = {
@@ -44,7 +45,7 @@ export default async function DashboardPage() {
   // Fetch user record
   const { data: userRecord } = await supabase
     .from("users")
-    .select("id, email, forwarding_address, rss_token, tier, onboarding_completed_at")
+    .select("id, email, forwarding_address, rss_token, tier, onboarding_completed_at, forwarding_setup_at")
     .eq("id", user.id)
     .single<UserRecord>();
 
@@ -66,6 +67,7 @@ export default async function DashboardPage() {
       .select("id, type, message")
       .eq("user_id", user.id)
       .eq("read", false)
+      .neq("type", "gmail_forwarding_confirmation")
       .order("created_at", { ascending: false })
       .limit(10)
       .returns<Notification[]>(),
@@ -90,6 +92,43 @@ export default async function DashboardPage() {
       {/* Notifications */}
       {notifications && notifications.length > 0 && (
         <NotificationBanners notifications={notifications} />
+      )}
+
+      {/* Forwarding setup alert */}
+      {userRecord.onboarding_completed_at && !userRecord.forwarding_setup_at && (
+        <div
+          className="rounded-2xl p-5 flex items-start gap-4"
+          style={{
+            background: "rgba(232, 164, 74, 0.08)",
+            border: "1px solid rgba(232, 164, 74, 0.25)",
+          }}
+        >
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ background: "rgba(232, 164, 74, 0.15)" }}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1.5L1 14h14L8 1.5z" stroke="#c4842e" strokeWidth="1.5" strokeLinejoin="round" />
+              <line x1="8" y1="6" x2="8" y2="10" stroke="#c4842e" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="8" cy="12" r="0.75" fill="#c4842e" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium" style={{ color: "#1a0e2e" }}>
+              Your newsletters aren&apos;t being forwarded automatically yet.
+            </p>
+            <p className="text-xs mt-1" style={{ color: "#5a4d6b" }}>
+              Set up a Gmail filter so new issues are forwarded to Daily Gist automatically.
+            </p>
+            <Link
+              href="/dashboard/onboarding/manual-setup"
+              className="inline-block mt-3 px-4 py-2 rounded-xl text-xs font-medium transition-colors"
+              style={{ background: "#e8a44a", color: "#1a0e2e" }}
+            >
+              Set up auto-forwarding
+            </Link>
+          </div>
+        </div>
       )}
 
       <div>

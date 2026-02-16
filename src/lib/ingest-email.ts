@@ -10,6 +10,38 @@ export type InboundEmail = {
   date?: string;
 };
 
+/**
+ * Extract the original sender from a Gmail-forwarded email body.
+ * Gmail inserts a block like:
+ *   ---------- Forwarded message ---------
+ *   From: Display Name <email@example.com>
+ */
+function parseForwardedSender(
+  textBody: string
+): { name: string; email: string } | null {
+  const fwdIdx = textBody.lastIndexOf("---------- Forwarded message");
+  if (fwdIdx === -1) return null;
+
+  const after = textBody.slice(fwdIdx);
+  // Match "From: Name <email>" or "From: email@domain"
+  const match = after.match(
+    /^From:\s*(.+?)\s*<([^>]+)>/m
+  );
+  if (match) {
+    return { name: match[1].trim(), email: match[2].trim().toLowerCase() };
+  }
+
+  // Fallback: "From: email@domain" with no angle brackets
+  const emailOnly = after.match(
+    /^From:\s*([^\s@]+@[^\s]+)/m
+  );
+  if (emailOnly) {
+    return { name: "", email: emailOnly[1].trim().toLowerCase() };
+  }
+
+  return null;
+}
+
 type UserRow = {
   id: string;
   newsletter_limit: number;
@@ -54,6 +86,21 @@ export async function ingestEmail(
     });
 
     return { status: 200, body: { message: "Gmail confirmation handled" } };
+  }
+
+  // If this is a forwarded email, extract the original sender
+  const isForwarded =
+    email.subject.match(/^Fwd?:\s*/i) ||
+    email.textBody.includes("---------- Forwarded message");
+
+  if (isForwarded) {
+    const original = parseForwardedSender(email.textBody);
+    if (original) {
+      email.from = original.email;
+      email.fromName = original.name;
+      console.log("[ingest] Extracted original sender:", original.name, original.email);
+    }
+    email.subject = email.subject.replace(/^Fwd?:\s*/i, "");
   }
 
   // Check if this sender already exists as a source
