@@ -75,6 +75,7 @@ class GenerateAndStoreRequest(BaseModel):
     storage_path: str
     date: str
     user_email: str | None = None
+    target_length_minutes: int = 10
 
 
 # ---------------------------------------------------------------------------
@@ -164,7 +165,10 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
             }).eq("id", body.episode_id).execute()
 
         mp3_bytes, transcript, source_newsletters = generate_podcast(
-            body.newsletter_text, user_email=user_email, on_progress=_update_progress,
+            body.newsletter_text,
+            user_email=user_email,
+            on_progress=_update_progress,
+            target_length_minutes=body.target_length_minutes,
         )
         logger.info(
             "generate-and-store: pipeline complete for episode_id=%s, %d bytes MP3",

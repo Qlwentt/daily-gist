@@ -527,7 +527,7 @@ function GeneratingStep({
               : "Starting up..."}
           </p>
           <p className="text-xs mt-4" style={{ color: "#8a7f96" }}>
-            This usually takes 7-10 minutes. Feel free to wait here.
+            This usually takes 10-15 minutes. Feel free to wait here.
           </p>
         </>
       )}

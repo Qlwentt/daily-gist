@@ -80,7 +80,7 @@ def generate_transcript(newsletter_text: str) -> str:
     transcript_path = podcastfy_generate(
         text=newsletter_text,
         conversation_config=conversation_config,
-        llm_model_name="claude-sonnet-4-20250514",
+        llm_model_name="claude-sonnet-4-6",
         api_key_label="ANTHROPIC_API_KEY",
         transcript_only=True,
     )

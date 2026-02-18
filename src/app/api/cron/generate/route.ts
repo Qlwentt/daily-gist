@@ -163,6 +163,7 @@ export async function GET(request: Request) {
           storage_path: storagePath,
           date: today,
           user_email: userEmail,
+          target_length_minutes: 10, // TODO: derive from user tier/preference
         }),
       });
 

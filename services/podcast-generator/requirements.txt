@@ -1,5 +1,8 @@
 fastapi
 uvicorn[standard]
 google-genai
+google-auth
+requests
+pydub
 anthropic
 supabase

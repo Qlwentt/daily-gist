@@ -14,6 +14,7 @@ Cost per episode:
 Entry point: generate_podcast(newsletter_text, user_email=None) -> (mp3_bytes, transcript, source_newsletters)
 """
 
+import concurrent.futures
 import json
 import logging
 import os
@@ -26,6 +27,8 @@ import wave
 import anthropic
 from google import genai
 from google.genai import types
+from google.oauth2 import service_account
+from pydub import AudioSegment
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,18 +41,32 @@ logger = logging.getLogger(__name__)
 # Public entry point
 # ---------------------------------------------------------------------------
 
+_DEFAULT_LENGTH_MINUTES = 10
+_WORDS_PER_MINUTE = 170  # typical spoken pace
+
+
 def generate_podcast(
     newsletter_text: str,
     user_email: str | None = None,
     on_progress: "callable | None" = None,
+    target_length_minutes: int = _DEFAULT_LENGTH_MINUTES,
 ) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
     Returns (mp3_bytes, transcript, source_newsletters).
     on_progress is called with a stage name string at each pipeline step.
+    target_length_minutes controls how long the episode should be (~10-25 min).
     """
     if not newsletter_text.strip():
         raise ValueError("Empty newsletter text")
+
+    # Calculate per-section word target from desired episode length
+    total_words = target_length_minutes * _WORDS_PER_MINUTE
+    words_per_section = total_words // 2
+    logger.info(
+        "Target: %d min episode → %d total words, %d per section",
+        target_length_minutes, total_words, words_per_section,
+    )
 
     def _report(stage: str):
         if on_progress:
@@ -68,12 +85,12 @@ def generate_podcast(
 
     _report("first_half")
     logger.info("Step 2/4: Generating first half...")
-    first_half = _generate_section(outline, newsletter_text, "first")
+    first_half = _generate_section(outline, newsletter_text, "first", words_per_section=words_per_section)
     logger.info("Step 2/4 complete: first half %d chars", len(first_half))
 
     _report("second_half")
     logger.info("Step 3/4: Generating second half...")
-    second_half = _generate_section(outline, newsletter_text, "second", previous_turns=first_half)
+    second_half = _generate_section(outline, newsletter_text, "second", previous_turns=first_half, words_per_section=words_per_section)
     logger.info("Step 3/4 complete: second half %d chars", len(second_half))
 
     logger.info("Step 4/4: Stitching transcript...")
@@ -134,7 +151,7 @@ def _filter_user_from_sources(outline: dict, user_email: str) -> None:
 # Step 1: Generate transcript using 3-call Claude pipeline
 # ---------------------------------------------------------------------------
 
-_CLAUDE_MODEL = "claude-sonnet-4-20250514"
+_CLAUDE_MODEL = "claude-sonnet-4-6"
 
 _DIALOGUE_SYSTEM_PROMPT = """\
 You are writing dialogue for Daily Gist, a two-host podcast that summarizes newsletters.
@@ -197,7 +214,7 @@ def _generate_outline(newsletter_text: str) -> dict:
     response = _claude_create_with_retry(
         client,
         model=_CLAUDE_MODEL,
-        max_tokens=2048,
+        max_tokens=4096,
         system="You are a podcast producer planning an episode of Daily Gist, a two-host podcast that summarizes newsletters.",
         messages=[
             {
@@ -264,6 +281,7 @@ def _generate_section(
     newsletter_text: str,
     section: str,
     previous_turns: str | None = None,
+    words_per_section: int = 1250,
 ) -> str:
     """Call 2 or 3: Generate dialogue for the first or second half."""
     client = _get_claude_client()
@@ -276,10 +294,12 @@ def _generate_section(
         section_instruction = (
             f"Write dialogue covering the INTRO and these segments:\n"
             f"{json.dumps(segment_slice, indent=2)}\n\n"
-            f"Person1's first line MUST begin with exactly: \"Welcome to Daily Gist — your "
-            f"newsletters, distilled into conversation!\" then flow naturally into the episode's "
-            f"hook. Example: 'Welcome to Daily Gist — your newsletters, distilled into "
-            f"conversation! Today we're diving into...' "
+            f"INTRO FORMAT (strict):\n"
+            f"- Person1's first turn: Welcome line + ONE short teaser sentence (40 words max total).\n"
+            f"- Person2's first turn: Immediate reaction or question.\n"
+            f"- Then they unpack the hook together.\n"
+            f"Person1's turn MUST begin with: \"Welcome to Daily Gist — your newsletters, distilled "
+            f"into conversation!\"\n"
             f"Hook to weave in: \"{outline.get('intro_hook', '')}\"\n"
             f"Do NOT write an outro or sign-off. End mid-conversation, ready to continue."
         )
@@ -287,13 +307,19 @@ def _generate_section(
         segment_slice = segments[midpoint:]
         continuity_context = ""
         if previous_turns:
-            # Extract last 3-4 turns for tone continuity
-            tags = re.findall(r"<Person[12]>.*?</Person[12]>", previous_turns, re.DOTALL)
-            last_turns = tags[-4:] if len(tags) >= 4 else tags
             continuity_context = (
-                "Here are the last few turns from the first half — continue naturally from this tone:\n"
-                + "\n".join(last_turns)
-                + "\n\n"
+                "Here is the FULL first half of the episode that has already been recorded:\n"
+                "<first_half>\n"
+                + previous_turns
+                + "\n</first_half>\n\n"
+                "CRITICAL — avoid rehashing:\n"
+                "- If a segment's key points were already discussed in the first half, SKIP it "
+                "or add only a brief new angle. Do NOT re-cover it.\n"
+                "- Never re-explain a story, re-state a stat, or re-introduce a topic as if "
+                "it hasn't been discussed.\n"
+                "- Brief callbacks are fine (e.g. \"going back to what we said about...\") but "
+                "only to connect to genuinely new material.\n"
+                "- Listeners have already heard the first half. Treat it as recorded and aired.\n\n"
             )
         connections = outline.get("cross_source_connections", [])
         connections_context = ""
@@ -312,11 +338,9 @@ def _generate_section(
             f"{json.dumps(segment_slice, indent=2)}\n\n"
             f"Continue naturally from where the first half left off.\n"
             f"Tie stories together rather than covering remaining segments in isolation.\n"
-            f"IMPORTANT: Do NOT repeat any insight, stat, or example that was already covered "
-            f"in the first half. If a point was made, move on — find a new angle or skip it.\n"
             f"You MUST end with a complete outro in this exact order:\n"
-            f"1. Person2 credits the sources conversationally: \"Today's episode was brought to "
-            f"you by {', '.join(dict.fromkeys(s for seg in segments for s in seg.get('sources', [])))}.\"\n"
+            f"1. A dedicated Person2 turn (nothing else in this turn) that credits the sources: "
+            f"\"Today's episode was brought to you by {', '.join(dict.fromkeys(s for seg in segments for s in seg.get('sources', [])))}.\"\n"
             f"2. Then Person1 signs off with something like: \"That's your Daily Gist for today\" and a friendly farewell.\n"
             f"Thematic thread for the outro: \"{outline.get('outro_theme', '')}\""
         )
@@ -340,7 +364,7 @@ Here are the source newsletters:
 
 {section_instruction}
 
-Target: 2000-2500 words of dialogue. Output ONLY <Person1> and <Person2> tagged dialogue.""",
+Target: {words_per_section} words of dialogue. Output ONLY <Person1> and <Person2> tagged dialogue.""",
             }
         ],
     )
@@ -458,7 +482,7 @@ _TTS_VOICE_CONFIG = types.SpeechConfig(
             types.SpeakerVoiceConfig(
                 speaker="Host",
                 voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Charon")
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Enceladus")
                 ),
             ),
             types.SpeakerVoiceConfig(
@@ -471,49 +495,89 @@ _TTS_VOICE_CONFIG = types.SpeechConfig(
     )
 )
 
-
 _TTS_MAX_RETRIES = 3
 _TTS_RETRY_DELAYS = [5, 15, 30]  # seconds
 
 
-def _tts_generate(client, prompt: str, label: str = "TTS") -> bytes:
-    """Call Gemini TTS with retries on server errors. Returns raw PCM bytes."""
+def _get_tts_client() -> genai.Client:
+    """Create a Vertex AI Gemini client using service account credentials."""
+    sa_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if not sa_json:
+        raise ValueError("GOOGLE_SERVICE_ACCOUNT_JSON environment variable is required")
+    sa_info = json.loads(sa_json)
+    credentials = service_account.Credentials.from_service_account_info(
+        sa_info,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+    )
+    return genai.Client(
+        vertexai=True,
+        project=sa_info["project_id"],
+        location="us-central1",
+        credentials=credentials,
+        http_options=types.HttpOptions(timeout=_TTS_TIMEOUT_MS),
+    )
+
+
+_TTS_TIMEOUT_MS = 300_000  # 5 minutes — typical chunk takes ~1.5 min, some take longer
+
+
+_TTS_HARD_TIMEOUT_S = _TTS_TIMEOUT_MS // 1000  # hard Python-level kill
+
+
+def _tts_generate(client: genai.Client, prompt: str, label: str = "TTS") -> bytes:
+    """Call Gemini TTS via Vertex AI with retries on server/connection errors. Returns raw PCM bytes."""
     for attempt in range(_TTS_MAX_RETRIES):
         try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash-preview-tts",
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_modalities=["AUDIO"],
-                    speech_config=_TTS_VOICE_CONFIG,
-                ),
-            )
+            # Hard Python-level timeout — the HTTP-level timeout on the client
+            # doesn't always fire when Vertex AI hangs mid-stream.
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(
+                    client.models.generate_content,
+                    model="gemini-2.5-flash-preview-tts",
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_modalities=["AUDIO"],
+                        speech_config=_TTS_VOICE_CONFIG,
+                    ),
+                )
+                response = future.result(timeout=_TTS_HARD_TIMEOUT_S)
             return response.candidates[0].content.parts[0].inline_data.data
+        except concurrent.futures.TimeoutError:
+            logger.warning(
+                "%s attempt %d/%d hard-timed out after %ds",
+                label, attempt + 1, _TTS_MAX_RETRIES, _TTS_HARD_TIMEOUT_S,
+            )
+            if attempt == _TTS_MAX_RETRIES - 1:
+                raise TimeoutError(f"{label} timed out after {_TTS_MAX_RETRIES} attempts")
+            delay = _TTS_RETRY_DELAYS[attempt]
+            logger.info("Retrying in %ds...", delay)
+            time.sleep(delay)
         except Exception as e:
-            is_server_error = "500" in str(e) or "INTERNAL" in str(e) or "503" in str(e)
-            if not is_server_error or attempt == _TTS_MAX_RETRIES - 1:
+            err_str = str(e).lower()
+            is_retryable = (
+                "500" in err_str
+                or "internal" in err_str
+                or "503" in err_str
+                or "disconnected" in err_str
+                or "timeout" in err_str
+                or "timed out" in err_str
+            )
+            if not is_retryable or attempt == _TTS_MAX_RETRIES - 1:
                 raise
             delay = _TTS_RETRY_DELAYS[attempt]
             logger.warning(
-                "%s attempt %d/%d failed (server error), retrying in %ds: %s",
-                label, attempt + 1, _TTS_MAX_RETRIES, delay, e,
+                "%s attempt %d/%d failed (%s), retrying in %ds",
+                label, attempt + 1, _TTS_MAX_RETRIES, type(e).__name__, delay,
             )
             time.sleep(delay)
-    raise RuntimeError("Unreachable")  # satisfies type checker
+    raise RuntimeError("Unreachable")
 
 
 def _synthesize_audio(turns: list[dict]) -> bytes:
     """Synthesize multi-speaker audio, returning MP3 bytes."""
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is required")
+    client = _get_tts_client()
 
-    client = genai.Client(api_key=api_key)
-
-    tts_prompt_lines = [f"{t['speaker']}: {t['text']}" for t in turns]
-    full_prompt = "\n".join(tts_prompt_lines)
-
-    MAX_CHARS = 100_000
+    total_chars = sum(len(t["text"]) for t in turns)
     CHUNK_THRESHOLD = 10  # Always chunk if more than this many turns
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -521,18 +585,19 @@ def _synthesize_audio(turns: list[dict]) -> bytes:
 
         logger.info(
             "TTS input: %d turns, %d chars total",
-            len(turns), len(full_prompt),
+            len(turns), total_chars,
         )
 
-        if len(full_prompt) > MAX_CHARS or len(turns) > CHUNK_THRESHOLD:
+        if len(turns) > CHUNK_THRESHOLD:
             logger.info(
-                "Chunking required — %d chars, %d turns (thresholds: %d chars, %d turns)",
-                len(full_prompt), len(turns), MAX_CHARS, CHUNK_THRESHOLD,
+                "Chunking required — %d chars, %d turns (threshold: %d turns)",
+                total_chars, len(turns), CHUNK_THRESHOLD,
             )
             _synthesize_chunked(client, turns, tmp_dir, mp3_path)
         else:
-            logger.info("Single-shot TTS: %d chars, %d turns", len(full_prompt), len(turns))
-            audio_data = _tts_generate(client, full_prompt, label="Single-shot TTS")
+            prompt = "\n".join(f"{t['speaker']}: {t['text']}" for t in turns)
+            logger.info("Single-shot TTS: %d chars, %d turns", len(prompt), len(turns))
+            audio_data = _tts_generate(client, prompt, label="Single-shot TTS")
             logger.info("Single-shot TTS returned %d bytes of audio", len(audio_data))
             wav_path = os.path.join(tmp_dir, "episode.wav")
             _save_wav(wav_path, audio_data)
@@ -545,44 +610,62 @@ def _synthesize_audio(turns: list[dict]) -> bytes:
             return f.read()
 
 
-def _synthesize_chunked(client, turns: list[dict], tmp_dir: str, mp3_path: str) -> None:
-    chunk_size = 20
-    chunks = [turns[i : i + chunk_size] for i in range(0, len(turns), chunk_size)]
-    wav_files = []
+_CHUNK_GAP_MS = 300  # milliseconds of silence between chunks
 
-    logger.info("Splitting %d turns into %d chunks (chunk_size=%d)", len(turns), len(chunks), chunk_size)
+
+def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, mp3_path: str) -> None:
+    target_chunk_size = 15
+    num_chunks = max(1, round(len(turns) / target_chunk_size))
+    base = len(turns) // num_chunks
+    remainder = len(turns) % num_chunks
+
+    # Distribute turns evenly: first 'remainder' chunks get base+1, rest get base
+    chunks = []
+    offset = 0
+    for i in range(num_chunks):
+        size = base + (1 if i < remainder else 0)
+        chunks.append(turns[offset : offset + size])
+        offset += size
+    total_chunks = len(chunks)
+
+    logger.info(
+        "Splitting %d turns into %d balanced chunks (target=%d, sizes=%s)",
+        len(turns), total_chunks, target_chunk_size,
+        [len(c) for c in chunks],
+    )
+
+    audio_segments = []
 
     for i, chunk in enumerate(chunks):
         prompt = "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk)
         logger.info(
             "Synthesizing chunk %d/%d: %d turns, %d chars",
-            i + 1, len(chunks), len(chunk), len(prompt),
+            i + 1, total_chunks, len(chunk), len(prompt),
         )
 
-        audio_data = _tts_generate(client, prompt, label=f"Chunk {i + 1}/{len(chunks)}")
-        logger.info("Chunk %d/%d: received %d bytes of audio", i + 1, len(chunks), len(audio_data))
+        audio_data = _tts_generate(client, prompt, label=f"Chunk {i + 1}/{total_chunks}")
+        logger.info("Chunk %d/%d: received %d bytes of audio", i + 1, total_chunks, len(audio_data))
+
         chunk_wav = os.path.join(tmp_dir, f"chunk{i}.wav")
         _save_wav(chunk_wav, audio_data)
-        wav_files.append(chunk_wav)
+        audio_segments.append(AudioSegment.from_wav(chunk_wav))
 
-    logger.info("All %d chunks synthesized, concatenating into MP3...", len(wav_files))
+        # Sleep between chunks to respect rate limits (except after last chunk)
+        if i < total_chunks - 1:
+            logger.info("Sleeping 2s between chunks...")
+            time.sleep(2)
 
-    # Concatenate all chunks via ffmpeg
-    concat_list = os.path.join(tmp_dir, "concat.txt")
-    with open(concat_list, "w") as f:
-        for wav_file in wav_files:
-            f.write(f"file '{wav_file}'\n")
+    logger.info("All %d chunks synthesized, joining with %dms silence gaps...", total_chunks, _CHUNK_GAP_MS)
 
-    subprocess.run(
-        [
-            "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-            "-i", concat_list, "-c:a", "libmp3lame", "-q:a", "2", mp3_path,
-        ],
-        check=True,
-        capture_output=True,
-    )
+    # Join chunks with brief silence gaps (natural conversational pause)
+    silence = AudioSegment.silent(duration=_CHUNK_GAP_MS)
+    combined = audio_segments[0]
+    for i, seg in enumerate(audio_segments[1:], start=1):
+        combined = combined + silence + seg
+        logger.info("Joined chunk %d/%d (%dms gap)", i + 1, total_chunks, _CHUNK_GAP_MS)
 
-    logger.info("Concatenated %d chunks into MP3", len(chunks))
+    combined.export(mp3_path, format="mp3", parameters=["-q:a", "2"])
+    logger.info("Exported MP3 with silence gaps (%d chunks)", total_chunks)
 
 
 def _save_wav(
