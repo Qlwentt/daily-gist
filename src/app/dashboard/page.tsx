@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { NotificationBanners } from "@/components/notification-banner";
 import { EpisodeList } from "@/components/episode-list";
+import { CopyButton } from "@/components/copy-button";
 
 type Episode = {
   id: string;
@@ -81,6 +82,7 @@ export default async function DashboardPage() {
   ]);
 
   const hasEpisodes = episodes && episodes.length > 0;
+  const feedUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi"}/api/feed/${userRecord.rss_token}`;
 
   // Redirect to onboarding if not completed and no episodes
   if (!hasEpisodes && !userRecord.onboarding_completed_at) {
@@ -130,6 +132,100 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* RSS feed URL */}
+      <div
+        className="bg-white rounded-2xl p-5"
+        style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
+      >
+        <h2 className="text-sm font-semibold mb-1" style={{ color: "#1a0e2e" }}>
+          Your Podcast Feed
+        </h2>
+        <p className="text-xs mb-3" style={{ color: "#5a4d6b" }}>
+          Add this URL to your podcast app to get episodes automatically.
+        </p>
+        <div
+          className="flex items-center gap-2 p-3 rounded-xl mb-4"
+          style={{ background: "rgba(45, 27, 78, 0.04)" }}
+        >
+          <code className="flex-1 text-sm break-all" style={{ color: "#1a0e2e" }}>
+            {feedUrl}
+          </code>
+          <CopyButton text={feedUrl} />
+        </div>
+
+        <div className="space-y-3 text-sm">
+          <details className="group">
+            <summary
+              className="cursor-pointer font-medium list-none flex items-center gap-2"
+              style={{ color: "#1a0e2e" }}
+            >
+              <svg className="w-4 h-4 transition-transform group-open:rotate-90" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6,4 10,8 6,12" />
+              </svg>
+              Apple Podcasts
+            </summary>
+            <div className="mt-2 pl-6 space-y-1" style={{ color: "#5a4d6b" }}>
+              <p>1. Open Apple Podcasts on your Mac</p>
+              <p>2. Go to File &rarr; Add a Show by URL (or Cmd+Shift+U)</p>
+              <p>3. Paste your RSS feed URL and click Follow</p>
+              <p>4. The podcast will sync to your iPhone automatically</p>
+            </div>
+          </details>
+
+          <details className="group">
+            <summary
+              className="cursor-pointer font-medium list-none flex items-center gap-2"
+              style={{ color: "#1a0e2e" }}
+            >
+              <svg className="w-4 h-4 transition-transform group-open:rotate-90" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6,4 10,8 6,12" />
+              </svg>
+              Overcast
+            </summary>
+            <div className="mt-2 pl-6 space-y-1" style={{ color: "#5a4d6b" }}>
+              <p>1. Open Overcast and tap the + button</p>
+              <p>2. Tap &quot;Add URL&quot;</p>
+              <p>3. Paste your RSS feed URL and tap Add</p>
+            </div>
+          </details>
+
+          <details className="group">
+            <summary
+              className="cursor-pointer font-medium list-none flex items-center gap-2"
+              style={{ color: "#1a0e2e" }}
+            >
+              <svg className="w-4 h-4 transition-transform group-open:rotate-90" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6,4 10,8 6,12" />
+              </svg>
+              Pocket Casts
+            </summary>
+            <div className="mt-2 pl-6 space-y-1" style={{ color: "#5a4d6b" }}>
+              <p>1. Open Pocket Casts and tap Search</p>
+              <p>2. Scroll down and tap &quot;Submit RSS&quot;</p>
+              <p>3. Paste your RSS feed URL and tap Find</p>
+              <p>4. Tap Subscribe</p>
+            </div>
+          </details>
+
+          <details className="group">
+            <summary
+              className="cursor-pointer font-medium list-none flex items-center gap-2"
+              style={{ color: "#1a0e2e" }}
+            >
+              <svg className="w-4 h-4 transition-transform group-open:rotate-90" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6,4 10,8 6,12" />
+              </svg>
+              Castro
+            </summary>
+            <div className="mt-2 pl-6 space-y-1" style={{ color: "#5a4d6b" }}>
+              <p>1. Open Castro and go to Library</p>
+              <p>2. Tap the + button, then &quot;Add by URL&quot;</p>
+              <p>3. Paste your RSS feed URL and tap Add</p>
+            </div>
+          </details>
+        </div>
+      </div>
 
       <div>
         <h1
