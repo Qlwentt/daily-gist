@@ -192,18 +192,22 @@ def _get_claude_client() -> anthropic.Anthropic:
 
 
 def _claude_create_with_retry(client: anthropic.Anthropic, **kwargs) -> anthropic.types.Message:
-    """Call client.messages.create with retry on 429 rate limit errors."""
+    """Call client.messages.create with retry on 429/529 errors."""
     for attempt in range(_CLAUDE_MAX_RETRIES):
         try:
             return client.messages.create(**kwargs)
-        except anthropic.RateLimitError:
+        except (anthropic.RateLimitError, anthropic.APIStatusError) as exc:
+            if isinstance(exc, anthropic.APIStatusError) and exc.status_code != 529:
+                raise
             if attempt == _CLAUDE_MAX_RETRIES - 1:
                 raise
+            delay = _CLAUDE_RETRY_DELAY * (attempt + 1)  # linear backoff
             logger.warning(
-                "Claude 429 rate limit hit, waiting %ds before retry %d/%d",
-                _CLAUDE_RETRY_DELAY, attempt + 1, _CLAUDE_MAX_RETRIES,
+                "Claude %d error, waiting %ds before retry %d/%d",
+                exc.status_code if hasattr(exc, "status_code") else 429,
+                delay, attempt + 1, _CLAUDE_MAX_RETRIES,
             )
-            time.sleep(_CLAUDE_RETRY_DELAY)
+            time.sleep(delay)
     raise RuntimeError("Unreachable")
 
 
