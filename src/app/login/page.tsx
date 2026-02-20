@@ -375,13 +375,14 @@ export default function LoginPage() {
                   letterSpacing: "-0.02em",
                 }}
               >
-                Welcome back
+                Sign in or create account
               </h1>
               <p
                 className="text-center text-sm mb-8"
                 style={{ color: "#5a4d6b" }}
               >
-                We&apos;ll email you a magic link and sign-in code
+                Enter your email — we&apos;ll send you a magic link to sign in.
+                No account yet? We&apos;ll create one automatically.
               </p>
 
               {error && <ErrorBanner message={error} />}
@@ -726,10 +727,10 @@ export default function LoginPage() {
         </div>
 
         <p
-          className="text-center text-xs mt-6"
-          style={{ color: "#8a7f96" }}
+          className="text-center text-sm mt-6"
+          style={{ color: "#5a4d6b" }}
         >
-          Don&apos;t have an account? We&apos;ll create one for you.
+          New here? Just enter your email and we&apos;ll set everything up.
         </p>
       </div>
     </main>
