@@ -338,10 +338,11 @@ def _generate_section(
             f"{json.dumps(segment_slice, indent=2)}\n\n"
             f"Continue naturally from where the first half left off.\n"
             f"Tie stories together rather than covering remaining segments in isolation.\n"
-            f"You MUST end with a complete outro in this exact order:\n"
-            f"1. A dedicated Person2 turn (nothing else in this turn) that credits the sources: "
-            f"\"Today's episode was brought to you by {', '.join(dict.fromkeys(s for seg in segments for s in seg.get('sources', [])))}.\"\n"
-            f"2. Then Person1 signs off with something like: \"That's your Daily Gist for today\" and a friendly farewell.\n"
+            f"You MUST end with Person1 signing off in a SINGLE closing turn that includes:\n"
+            f"- A brief wrap-up\n"
+            f"- Credit the sources naturally: {', '.join(dict.fromkeys(s for seg in segments for s in seg.get('sources', [])))}\n"
+            f"- A friendly farewell\n"
+            f"Example: \"That's your Daily Gist for today. Big thanks to X, Y, and Z for the source material. See you tomorrow.\"\n"
             f"Thematic thread for the outro: \"{outline.get('outro_theme', '')}\""
         )
 
