@@ -294,7 +294,7 @@ export default function Home() {
               className="max-w-[480px] mb-8"
               style={{ fontSize: "1.2rem", lineHeight: 1.6, color: "#5a4d6b" }}
             >
-              Stop reading. Start listening. Daily Gist turns your email
+              Hit play. Stay informed. Daily Gist turns your email
               newsletters into a conversational podcast you can enjoy on your
               morning commute.
             </p>
@@ -949,7 +949,7 @@ export default function Home() {
             letterSpacing: "-0.02em",
           }}
         >
-          Stop reading. Start listening.
+          Hit play. Stay informed.
         </h2>
         <p
           className="max-w-[480px] mx-auto mb-8"
