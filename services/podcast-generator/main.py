@@ -7,6 +7,7 @@ GET  /health              — health check for Railway
 """
 
 import base64
+import concurrent.futures
 import logging
 import os
 import threading
@@ -16,6 +17,8 @@ from datetime import datetime, timezone
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from supabase import create_client
+
+import anthropic
 
 from pipeline import generate_podcast
 
@@ -33,6 +36,29 @@ GENERATOR_API_KEY = os.environ.get("GENERATOR_API_KEY")
 # Excess requests queue in-process and run when a slot opens.
 MAX_CONCURRENT_GENERATIONS = int(os.environ.get("MAX_CONCURRENT_GENERATIONS", "1"))
 _generation_semaphore = threading.Semaphore(MAX_CONCURRENT_GENERATIONS)
+
+# Pipeline-level retry: if the entire generate_podcast() call fails with a
+# transient error, wait and retry once before marking the episode as failed.
+_PIPELINE_MAX_RETRIES = 2
+_PIPELINE_RETRY_DELAY_S = 60
+
+_RETRYABLE_EXCEPTIONS = (
+    anthropic.RateLimitError,
+    anthropic.APIConnectionError,
+    concurrent.futures.TimeoutError,
+    ConnectionError,
+    TimeoutError,
+)
+
+
+def _is_retryable(exc: Exception) -> bool:
+    """Return True if the exception is transient and worth retrying."""
+    if isinstance(exc, _RETRYABLE_EXCEPTIONS):
+        return True
+    # 529 overloaded — caught as generic APIStatusError
+    if isinstance(exc, anthropic.APIStatusError) and exc.status_code == 529:
+        return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -164,12 +190,27 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
                 "progress_stage": stage,
             }).eq("id", body.episode_id).execute()
 
-        mp3_bytes, transcript, source_newsletters = generate_podcast(
-            body.newsletter_text,
-            user_email=user_email,
-            on_progress=_update_progress,
-            target_length_minutes=body.target_length_minutes,
-        )
+        for attempt in range(_PIPELINE_MAX_RETRIES):
+            try:
+                mp3_bytes, transcript, source_newsletters = generate_podcast(
+                    body.newsletter_text,
+                    user_email=user_email,
+                    on_progress=_update_progress,
+                    target_length_minutes=body.target_length_minutes,
+                )
+                break  # success
+            except Exception as exc:
+                if attempt < _PIPELINE_MAX_RETRIES - 1 and _is_retryable(exc):
+                    logger.warning(
+                        "Pipeline attempt %d failed (%s), retrying in %ds...",
+                        attempt + 1,
+                        type(exc).__name__,
+                        _PIPELINE_RETRY_DELAY_S,
+                    )
+                    time.sleep(_PIPELINE_RETRY_DELAY_S)
+                else:
+                    raise
+
         logger.info(
             "generate-and-store: pipeline complete for episode_id=%s, %d bytes MP3",
             body.episode_id,
