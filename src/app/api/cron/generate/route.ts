@@ -19,6 +19,7 @@ type UserRow = {
   email: string;
   timezone: string;
   generation_hour: number;
+  intro_music: string | null;
 };
 
 type FailedEpisodeRow = {
@@ -81,7 +82,7 @@ export async function GET(request: Request) {
     // Fetch timezone and generation_hour for candidate users
     const { data: users, error: usersError } = await supabase
       .from("users")
-      .select("id, email, timezone, generation_hour")
+      .select("id, email, timezone, generation_hour, intro_music")
       .in("id", candidateUserIds)
       .returns<UserRow[]>();
 
@@ -169,6 +170,7 @@ export async function GET(request: Request) {
             date: today,
             user_email: userEmail,
             target_length_minutes: 10, // TODO: derive from user tier/preference
+            intro_music: userMap.get(userId)!.intro_music,
           }),
         });
 
@@ -200,7 +202,7 @@ export async function GET(request: Request) {
     const failedUserIds = [...new Set(failedEpisodes.map((e) => e.user_id))];
     const { data: failedUsers, error: failedUsersError } = await supabase
       .from("users")
-      .select("id, email, timezone, generation_hour")
+      .select("id, email, timezone, generation_hour, intro_music")
       .in("id", failedUserIds)
       .returns<UserRow[]>();
 
@@ -271,6 +273,7 @@ export async function GET(request: Request) {
               date: today,
               user_email: user.email,
               target_length_minutes: 10,
+              intro_music: user.intro_music,
             }),
           });
 

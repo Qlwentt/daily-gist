@@ -50,6 +50,7 @@ def generate_podcast(
     user_email: str | None = None,
     on_progress: "callable | None" = None,
     target_length_minutes: int = _DEFAULT_LENGTH_MINUTES,
+    intro_music: str | None = None,
 ) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
@@ -109,7 +110,7 @@ def generate_podcast(
 
     _report("audio")
     logger.info("Synthesizing audio with Gemini TTS (%d turns)...", len(turns))
-    mp3_bytes = _synthesize_audio(turns)
+    mp3_bytes = _synthesize_audio(turns, intro_music=intro_music)
     logger.info("Synthesis complete: %d bytes MP3", len(mp3_bytes))
 
     # Extract unique source newsletter names from the outline
@@ -578,7 +579,7 @@ def _tts_generate(client: genai.Client, prompt: str, label: str = "TTS") -> byte
     raise RuntimeError("Unreachable")
 
 
-def _synthesize_audio(turns: list[dict]) -> bytes:
+def _synthesize_audio(turns: list[dict], intro_music: str | None = None) -> bytes:
     """Synthesize multi-speaker audio, returning MP3 bytes."""
     client = _get_tts_client()
 
@@ -608,11 +609,41 @@ def _synthesize_audio(turns: list[dict]) -> bytes:
             _save_wav(wav_path, audio_data)
             _convert_to_mp3(wav_path, mp3_path)
 
+        # Prepend intro music if selected
+        if intro_music:
+            mp3_path = _prepend_intro(mp3_path, intro_music, tmp_dir)
+
         mp3_size = os.path.getsize(mp3_path)
         logger.info("Final MP3: %d bytes (%.1f MB)", mp3_size, mp3_size / 1_048_576)
 
         with open(mp3_path, "rb") as f:
             return f.read()
+
+
+_INTRO_SILENCE_MS = 500  # milliseconds of silence between intro music and episode
+_INTRO_FADE_OUT_MS = 2500  # fade out the tail of the intro music
+
+
+def _prepend_intro(mp3_path: str, intro_music: str, tmp_dir: str) -> str:
+    """Prepend an intro music track + silence gap to the episode MP3."""
+    from pathlib import Path
+
+    intro_path = Path(__file__).parent / "intro-music" / intro_music
+    if not intro_path.exists():
+        logger.warning("Intro music file not found: %s — skipping", intro_path)
+        return mp3_path
+
+    logger.info("Prepending intro music: %s", intro_music)
+    intro_seg = AudioSegment.from_mp3(str(intro_path)).fade_out(_INTRO_FADE_OUT_MS)
+    episode_seg = AudioSegment.from_mp3(mp3_path)
+    silence = AudioSegment.silent(duration=_INTRO_SILENCE_MS)
+
+    combined = intro_seg + silence + episode_seg
+    final_path = os.path.join(tmp_dir, "episode_with_intro.mp3")
+    combined.export(final_path, format="mp3", parameters=["-q:a", "2"])
+    logger.info("Intro prepended: %dms intro + %dms silence + %dms episode",
+                len(intro_seg), _INTRO_SILENCE_MS, len(episode_seg))
+    return final_path
 
 
 _CHUNK_GAP_MS = 300  # milliseconds of silence between chunks

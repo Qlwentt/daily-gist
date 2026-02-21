@@ -102,6 +102,7 @@ class GenerateAndStoreRequest(BaseModel):
     date: str
     user_email: str | None = None
     target_length_minutes: int = 10
+    intro_music: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -197,6 +198,7 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
                     user_email=user_email,
                     on_progress=_update_progress,
                     target_length_minutes=body.target_length_minutes,
+                    intro_music=body.intro_music,
                 )
                 break  # success
             except Exception as exc:
