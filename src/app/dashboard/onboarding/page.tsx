@@ -7,6 +7,8 @@ type UserRecord = {
   forwarding_address: string;
   rss_token: string;
   onboarding_completed_at: string | null;
+  tier: string;
+  intro_music: string | null;
 };
 
 export default async function OnboardingPage() {
@@ -21,7 +23,7 @@ export default async function OnboardingPage() {
 
   const { data: userRecord } = await supabase
     .from("users")
-    .select("forwarding_address, rss_token, onboarding_completed_at")
+    .select("forwarding_address, rss_token, onboarding_completed_at, tier, intro_music")
     .eq("id", user.id)
     .single<UserRecord>();
 
@@ -58,6 +60,8 @@ export default async function OnboardingPage() {
       feedUrl={feedUrl}
       initialStep={initialStep}
       initialEpisode={latestEpisode}
+      tier={userRecord.tier}
+      currentIntroMusic={userRecord.intro_music}
     />
   );
 }

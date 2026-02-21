@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CopyButton } from "@/components/copy-button";
+import { IntroMusicPicker } from "@/components/intro-music-picker";
 
 type Email = {
   id: string;
@@ -64,11 +65,15 @@ export function OnboardingFlow({
   feedUrl,
   initialStep = 1,
   initialEpisode = null,
+  tier = "free",
+  currentIntroMusic = null,
 }: {
   forwardingAddress: string;
   feedUrl: string;
   initialStep?: 1 | 2 | 3 | 4;
   initialEpisode?: EpisodeStatus | null;
+  tier?: string;
+  currentIntroMusic?: string | null;
 }) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(initialStep);
   const [emails, setEmails] = useState<Email[]>([]);
@@ -229,6 +234,8 @@ export function OnboardingFlow({
           excludedIds={excludedIds}
           onToggleExclude={toggleExclude}
           onGenerate={handleGenerate}
+          tier={tier}
+          currentIntroMusic={currentIntroMusic}
         />
       )}
 
@@ -264,12 +271,16 @@ function ForwardStep({
   excludedIds,
   onToggleExclude,
   onGenerate,
+  tier,
+  currentIntroMusic,
 }: {
   forwardingAddress: string;
   emails: Email[];
   excludedIds: Set<string>;
   onToggleExclude: (id: string) => void;
   onGenerate: () => void;
+  tier: string;
+  currentIntroMusic: string | null;
 }) {
   return (
     <>
@@ -418,6 +429,12 @@ function ForwardStep({
           </div>
         )}
       </div>
+
+      {/* Intro Music */}
+      <IntroMusicPicker
+        currentTrack={currentIntroMusic}
+        isPower={tier === "power"}
+      />
 
       {/* Generate button */}
       {(() => {
