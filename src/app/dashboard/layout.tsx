@@ -63,6 +63,14 @@ export default function DashboardLayout({
                 >
                   Settings
                 </Link>
+                <a
+                  href="mailto:support@dailygist.fyi"
+                  target="_blank"
+                  className="text-sm font-medium transition-colors hover:opacity-70"
+                  style={{ color: "#5a4d6b" }}
+                >
+                  Support
+                </a>
               </div>
             </div>
             <div className="flex items-center">

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { CopyButton } from "@/components/copy-button";
 import { SaveButton } from "@/components/save-button";
+import { DeleteAccountSection } from "@/components/delete-account-section";
 
 type UserRecord = {
   email: string;
@@ -358,6 +359,9 @@ export default async function SettingsPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Account */}
+      <DeleteAccountSection />
     </div>
   );
 }
