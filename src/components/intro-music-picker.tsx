@@ -41,12 +41,13 @@ export function IntroMusicPicker({
   isPower: boolean;
 }) {
   const [selected, setSelected] = useState<string | null>(currentTrack);
+  const [committedTrack, setCommittedTrack] = useState<string | null>(currentTrack);
   const [playing, setPlaying] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const dirty = selected !== currentTrack;
+  const dirty = selected !== committedTrack;
 
   function togglePlay(track: string) {
     if (playing === track) {
@@ -76,6 +77,7 @@ export function IntroMusicPicker({
         body: JSON.stringify({ track: selected }),
       });
       if (res.ok) {
+        setCommittedTrack(selected);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       }
@@ -166,14 +168,14 @@ export function IntroMusicPicker({
               style={{
                 background: "linear-gradient(135deg, #7c3aed, #6366f1)",
                 opacity: !dirty || saving ? 0.5 : 1,
-                animation: dirty && !saving && !saved ? "pulse-save 1.5s ease-in-out infinite" : "none",
+                animation: dirty && !saving ? "pulse-save 1.5s ease-in-out infinite" : "none",
               }}
             >
               {saving ? "Saving..." : saved ? "Saved!" : "Save"}
             </button>
           )}
         </div>
-        {isPower && dirty && !saved && (
+        {isPower && dirty && (
           <p className="mt-2 text-xs" style={{ color: "#c084fc" }}>
             Don&apos;t forget to save your selection!
           </p>
