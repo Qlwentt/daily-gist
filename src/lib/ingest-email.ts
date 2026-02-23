@@ -1,5 +1,18 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
+/**
+ * Parse email Date headers (RFC 2822, ISO 8601, etc.) into ISO 8601.
+ * Strips trailing parenthesized timezone names like "(UTC)" that some
+ * mailers append and JS runtimes can't parse.
+ */
+export function parseEmailDate(raw: string | undefined): string {
+  if (!raw) return new Date().toISOString();
+  const cleaned = raw.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  const parsed = new Date(cleaned);
+  if (isNaN(parsed.getTime())) return new Date().toISOString();
+  return parsed.toISOString();
+}
+
 export type InboundEmail = {
   to: string;
   from: string;
@@ -156,12 +169,17 @@ export async function ingestEmail(
     subject: email.subject || null,
     text_body: email.textBody || null,
     html_body: email.htmlBody || null,
-    received_at: email.date || new Date().toISOString(),
+    received_at: parseEmailDate(email.date),
   });
 
   if (insertError) {
-    console.error("[ingest] Failed to insert raw_email:", insertError.message);
-    return { status: 200, body: { message: "Insert failed" } };
+    console.error(
+      "[ingest] Failed to insert raw_email:", insertError.message,
+      "| from:", email.from,
+      "| subject:", email.subject,
+      "| date:", email.date,
+    );
+    return { status: 500, body: { message: "Insert failed" } };
   }
 
   console.log("[ingest] Email stored for user:", user.id, "subject:", email.subject);
