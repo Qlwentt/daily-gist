@@ -186,9 +186,12 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
             if user_resp.data and user_resp.data.get("email"):
                 user_email = user_resp.data["email"]
 
-        def _update_progress(stage: str):
+        def _update_progress(stage: str, metadata: dict | None = None):
+            value = stage
+            if metadata and "chunk" in metadata and "total" in metadata:
+                value = f"{stage}:{metadata['chunk']}/{metadata['total']}"
             supabase.table("episodes").update({
-                "progress_stage": stage,
+                "progress_stage": value,
             }).eq("id", body.episode_id).execute()
 
         for attempt in range(_PIPELINE_MAX_RETRIES):

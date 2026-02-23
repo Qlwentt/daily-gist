@@ -110,7 +110,7 @@ def generate_podcast(
 
     _report("audio")
     logger.info("Synthesizing audio with Gemini TTS (%d turns)...", len(turns))
-    mp3_bytes = _synthesize_audio(turns, intro_music=intro_music)
+    mp3_bytes = _synthesize_audio(turns, intro_music=intro_music, on_progress=on_progress)
     logger.info("Synthesis complete: %d bytes MP3", len(mp3_bytes))
 
     # Extract unique source newsletter names from the outline
@@ -579,7 +579,7 @@ def _tts_generate(client: genai.Client, prompt: str, label: str = "TTS") -> byte
     raise RuntimeError("Unreachable")
 
 
-def _synthesize_audio(turns: list[dict], intro_music: str | None = None) -> bytes:
+def _synthesize_audio(turns: list[dict], intro_music: str | None = None, on_progress: "callable | None" = None) -> bytes:
     """Synthesize multi-speaker audio, returning MP3 bytes."""
     client = _get_tts_client()
 
@@ -599,7 +599,7 @@ def _synthesize_audio(turns: list[dict], intro_music: str | None = None) -> byte
                 "Chunking required — %d chars, %d turns (threshold: %d turns)",
                 total_chars, len(turns), CHUNK_THRESHOLD,
             )
-            _synthesize_chunked(client, turns, tmp_dir, mp3_path)
+            _synthesize_chunked(client, turns, tmp_dir, mp3_path, on_progress=on_progress)
         else:
             prompt = "\n".join(f"{t['speaker']}: {t['text']}" for t in turns)
             logger.info("Single-shot TTS: %d chars, %d turns", len(prompt), len(turns))
@@ -649,7 +649,7 @@ def _prepend_intro(mp3_path: str, intro_music: str, tmp_dir: str) -> str:
 _CHUNK_GAP_MS = 300  # milliseconds of silence between chunks
 
 
-def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, mp3_path: str) -> None:
+def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, mp3_path: str, on_progress: "callable | None" = None) -> None:
     target_chunk_size = 15
     num_chunks = max(1, round(len(turns) / target_chunk_size))
     base = len(turns) // num_chunks
@@ -678,6 +678,12 @@ def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, m
             "Synthesizing chunk %d/%d: %d turns, %d chars",
             i + 1, total_chunks, len(chunk), len(prompt),
         )
+
+        if on_progress:
+            try:
+                on_progress("audio", {"chunk": i + 1, "total": total_chunks})
+            except Exception:
+                logger.warning("on_progress callback failed for audio chunk %d/%d", i + 1, total_chunks, exc_info=True)
 
         audio_data = _tts_generate(client, prompt, label=f"Chunk {i + 1}/{total_chunks}")
         logger.info("Chunk %d/%d: received %d bytes of audio", i + 1, total_chunks, len(audio_data))

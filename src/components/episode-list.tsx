@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 type Episode = {
   id: string;
@@ -12,6 +13,7 @@ type Episode = {
   share_code: string | null;
   audio_url: string | null;
   source_newsletters: string[] | null;
+  progress_stage: string | null;
 };
 
 export function EpisodeList({ episodes }: { episodes: Episode[] }) {
@@ -206,9 +208,29 @@ function ReadyEpisodeCard({ episode }: { episode: Episode }) {
   );
 }
 
+const PROGRESS_STAGES: Record<string, string> = {
+  outline: "Planning your episode...",
+  first_half: "Writing the first half of the script...",
+  second_half: "Writing the second half of the script...",
+  audio: "Generating audio (this is the longest step)...",
+  uploading: "Uploading your episode...",
+};
+
+function formatProgressStage(stage: string | null): string {
+  if (!stage) return "Starting up...";
+  const chunkMatch = stage.match(/^audio:(\d+)\/(\d+)$/);
+  if (chunkMatch) {
+    return `Generating audio — part ${chunkMatch[1]} of ${chunkMatch[2]}...`;
+  }
+  return PROGRESS_STAGES[stage] ?? "Processing...";
+}
+
 function PendingEpisodeCard({ episode }: { episode: Episode }) {
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
+  const [progressStage, setProgressStage] = useState<string | null>(
+    episode.progress_stage
+  );
 
   const [year, month, day] = episode.date.split("-").map(Number);
   const date = new Date(year, month - 1, day).toLocaleDateString("en-US", {
@@ -216,6 +238,30 @@ function PendingEpisodeCard({ episode }: { episode: Episode }) {
     month: "short",
     day: "numeric",
   });
+
+  // Poll for progress updates when processing
+  useEffect(() => {
+    if (episode.status !== "processing") return;
+
+    const supabase = createClient();
+    const poll = async () => {
+      const { data } = await supabase
+        .from("episodes")
+        .select("progress_stage, status")
+        .eq("id", episode.id)
+        .single();
+
+      if (data) {
+        setProgressStage(data.progress_stage);
+        if (data.status === "ready" || data.status === "failed") {
+          window.location.reload();
+        }
+      }
+    };
+
+    const interval = setInterval(poll, 5000);
+    return () => clearInterval(interval);
+  }, [episode.id, episode.status]);
 
   const handleRetry = async () => {
     setRetrying(true);
@@ -272,9 +318,18 @@ function PendingEpisodeCard({ episode }: { episode: Episode }) {
         </div>
       )}
       {episode.status === "processing" && (
-        <p className="mt-2 text-sm text-gray-500">
-          Currently being generated...
-        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <div
+            className="w-4 h-4 border-2 rounded-full animate-spin flex-shrink-0"
+            style={{
+              borderColor: "rgba(107, 76, 154, 0.2)",
+              borderTopColor: "#6b4c9a",
+            }}
+          />
+          <p className="text-sm" style={{ color: "#5a4d6b" }}>
+            {formatProgressStage(progressStage)}
+          </p>
+        </div>
       )}
       {episode.status === "pending" && (
         <p className="mt-2 text-sm text-gray-500">

@@ -540,7 +540,13 @@ function GeneratingStep({
             style={{ color: "#5a4d6b" }}
           >
             {progressStage
-              ? PROGRESS_STAGES[progressStage] ?? "Processing..."
+              ? (() => {
+                  const chunkMatch = progressStage.match(/^audio:(\d+)\/(\d+)$/);
+                  if (chunkMatch) {
+                    return `Generating audio — part ${chunkMatch[1]} of ${chunkMatch[2]}...`;
+                  }
+                  return PROGRESS_STAGES[progressStage] ?? "Processing...";
+                })()
               : "Starting up..."}
           </p>
           <p className="text-xs mt-4" style={{ color: "#8a7f96" }}>

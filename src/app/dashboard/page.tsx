@@ -15,6 +15,7 @@ type Episode = {
   share_code: string | null;
   audio_url: string | null;
   source_newsletters: string[] | null;
+  progress_stage: string | null;
 };
 
 type UserRecord = {
@@ -74,7 +75,7 @@ export default async function DashboardPage() {
       .returns<Notification[]>(),
     supabase
       .from("episodes")
-      .select("id, title, date, status, transcript, error_message, share_code, audio_url, source_newsletters")
+      .select("id, title, date, status, transcript, error_message, share_code, audio_url, source_newsletters, progress_stage")
       .eq("user_id", user.id)
       .order("date", { ascending: false })
       .limit(20)
