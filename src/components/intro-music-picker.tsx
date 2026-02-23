@@ -85,6 +85,8 @@ export function IntroMusicPicker({
   }
 
   return (
+    <>
+    <style>{`@keyframes pulse-save { 0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.5); } 50% { box-shadow: 0 0 0 6px rgba(124, 58, 237, 0); } }`}</style>
     <div
       className="relative overflow-hidden rounded-2xl p-6"
       style={{
@@ -164,12 +166,18 @@ export function IntroMusicPicker({
               style={{
                 background: "linear-gradient(135deg, #7c3aed, #6366f1)",
                 opacity: !dirty || saving ? 0.5 : 1,
+                animation: dirty && !saving && !saved ? "pulse-save 1.5s ease-in-out infinite" : "none",
               }}
             >
               {saving ? "Saving..." : saved ? "Saved!" : "Save"}
             </button>
           )}
         </div>
+        {isPower && dirty && !saved && (
+          <p className="mt-2 text-xs" style={{ color: "#c084fc" }}>
+            Don&apos;t forget to save your selection!
+          </p>
+        )}
         {!isPower && (
           <p className="mt-3 text-sm" style={{ color: "rgba(255, 255, 255, 0.5)" }}>
             Intro music is available on the Power plan.{" "}
@@ -184,5 +192,6 @@ export function IntroMusicPicker({
         )}
       </div>
     </div>
+    </>
   );
 }
