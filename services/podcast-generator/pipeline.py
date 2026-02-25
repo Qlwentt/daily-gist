@@ -21,6 +21,7 @@ import os
 import re
 import subprocess
 import tempfile
+import threading
 import time
 import wave
 
@@ -670,34 +671,46 @@ def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, m
         [len(c) for c in chunks],
     )
 
-    audio_segments = []
-
+    # Build prompts for each chunk
+    prompts = []
     for i, chunk in enumerate(chunks):
         prompt = "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk)
+        prompts.append(prompt)
         logger.info(
-            "Synthesizing chunk %d/%d: %d turns, %d chars",
+            "Chunk %d/%d: %d turns, %d chars",
             i + 1, total_chunks, len(chunk), len(prompt),
         )
 
-        if on_progress:
-            try:
-                on_progress("audio", {"chunk": i + 1, "total": total_chunks})
-            except Exception:
-                logger.warning("on_progress callback failed for audio chunk %d/%d", i + 1, total_chunks, exc_info=True)
+    # Fire all TTS calls in parallel
+    completed = 0
+    completed_lock = threading.Lock()
+    results = [None] * total_chunks
 
-        audio_data = _tts_generate(client, prompt, label=f"Chunk {i + 1}/{total_chunks}")
-        logger.info("Chunk %d/%d: received %d bytes of audio", i + 1, total_chunks, len(audio_data))
+    def _tts_chunk(index: int) -> None:
+        nonlocal completed
+        audio_data = _tts_generate(client, prompts[index], label=f"Chunk {index + 1}/{total_chunks}")
+        logger.info("Chunk %d/%d: received %d bytes of audio", index + 1, total_chunks, len(audio_data))
 
-        chunk_wav = os.path.join(tmp_dir, f"chunk{i}.wav")
+        chunk_wav = os.path.join(tmp_dir, f"chunk{index}.wav")
         _save_wav(chunk_wav, audio_data)
-        audio_segments.append(AudioSegment.from_wav(chunk_wav))
+        results[index] = AudioSegment.from_wav(chunk_wav)
 
-        # Sleep between chunks to respect rate limits (except after last chunk)
-        if i < total_chunks - 1:
-            logger.info("Sleeping 2s between chunks...")
-            time.sleep(2)
+        with completed_lock:
+            completed += 1
+            if on_progress:
+                try:
+                    on_progress("audio", {"chunk": completed, "total": total_chunks})
+                except Exception:
+                    logger.warning("on_progress callback failed for audio chunk %d/%d", completed, total_chunks, exc_info=True)
 
-    logger.info("All %d chunks synthesized, joining with %dms silence gaps...", total_chunks, _CHUNK_GAP_MS)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=total_chunks) as executor:
+        futures = {executor.submit(_tts_chunk, i): i for i in range(total_chunks)}
+        for future in concurrent.futures.as_completed(futures):
+            idx = futures[future]
+            future.result()  # re-raises any exception from the thread
+
+    audio_segments = results
+    logger.info("All %d chunks synthesized in parallel, joining with %dms silence gaps...", total_chunks, _CHUNK_GAP_MS)
 
     # Join chunks with brief silence gaps (natural conversational pause)
     silence = AudioSegment.silent(duration=_CHUNK_GAP_MS)

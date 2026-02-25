@@ -48,7 +48,7 @@ export default async function OnboardingPage() {
     .maybeSingle();
 
   let initialStep: 1 | 2 | 3 | 4 = 1;
-  if (latestEpisode?.status === "processing") {
+  if (latestEpisode?.status === "queued" || latestEpisode?.status === "processing") {
     initialStep = 2;
   } else if (latestEpisode?.status === "ready" && latestEpisode.audio_url) {
     initialStep = 3;

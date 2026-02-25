@@ -18,17 +18,6 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const serviceUrl = process.env.PODCAST_GENERATOR_URL;
-  const apiKey = process.env.GENERATOR_API_KEY;
-
-  if (!serviceUrl || !apiKey) {
-    console.error("PODCAST_GENERATOR_URL or GENERATOR_API_KEY not configured");
-    return NextResponse.json(
-      { error: "Server configuration error" },
-      { status: 500 }
-    );
-  }
-
   const admin = createAdminClient();
 
   // Fetch user record for timezone
@@ -74,55 +63,36 @@ export async function POST() {
 
   const title = `Your Daily Gist — ${getFormattedDateInTimezone(userRecord.timezone)}`;
 
-  // Upsert episode in 'processing' state
-  const { data: episode, error: insertError } = await admin
+  const newsletterText = formatEmailsForPodcast(emails);
+  const emailIds = emails.map((e) => e.id);
+  const storagePath = `${user.id}/${today}.mp3`;
+
+  // Upsert episode with status='queued' + job_input — workers pick it up
+  const { data: episode, error: upsertError } = await admin
     .from("episodes")
     .upsert(
       {
         user_id: user.id,
         date: today,
         title,
-        status: "processing",
+        status: "queued",
+        job_input: {
+          newsletter_text: newsletterText,
+          email_ids: emailIds,
+          storage_path: storagePath,
+          date: today,
+          user_email: userRecord.email,
+          target_length_minutes: 10, // TODO: derive from user tier/preference
+          intro_music: userRecord.intro_music,
+        },
       },
       { onConflict: "user_id,date" }
     )
     .select("id")
     .single<{ id: string }>();
 
-  if (insertError || !episode) {
-    console.error("Failed to create episode:", insertError?.message);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
-  }
-
-  const newsletterText = formatEmailsForPodcast(emails);
-  const emailIds = emails.map((e) => e.id);
-  const storagePath = `${user.id}/${today}.mp3`;
-
-  // Fire-and-forget to podcast generator service
-  try {
-    await fetch(`${serviceUrl}/generate-and-store`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        user_id: user.id,
-        newsletter_text: newsletterText,
-        episode_id: episode.id,
-        email_ids: emailIds,
-        storage_path: storagePath,
-        date: today,
-        user_email: userRecord.email,
-        target_length_minutes: 10, // TODO: derive from user tier/preference
-        intro_music: userRecord.intro_music,
-      }),
-    });
-  } catch (err) {
-    console.error("Failed to call podcast generator:", err);
+  if (upsertError || !episode) {
+    console.error("Failed to queue episode:", upsertError?.message);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

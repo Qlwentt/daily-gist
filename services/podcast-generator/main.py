@@ -1,24 +1,29 @@
 """
-Daily Gist Podcast Generator — FastAPI Service
+Daily Gist Podcast Generator — Worker Service
 
-POST /generate            — generates a podcast from newsletter text
-POST /generate-and-store  — generates podcast, uploads to Supabase, updates DB
-GET  /health              — health check for Railway
+Workers poll the episodes table for queued jobs using Postgres SKIP LOCKED.
+Instant pickup via pg_notify; 5s poll as fallback.
+
+POST /generate  — synchronous generation (for testing)
+GET  /health    — health check for Railway
 """
 
 import base64
 import concurrent.futures
 import logging
 import os
+import platform
+import select
 import threading
 import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
+import anthropic
+import psycopg2
+from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from supabase import create_client
-
-import anthropic
 
 from pipeline import generate_podcast
 
@@ -31,11 +36,8 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Daily Gist Podcast Generator")
 
 GENERATOR_API_KEY = os.environ.get("GENERATOR_API_KEY")
-
-# Limit concurrent podcast generations to avoid API rate limits and memory issues.
-# Excess requests queue in-process and run when a slot opens.
-MAX_CONCURRENT_GENERATIONS = int(os.environ.get("MAX_CONCURRENT_GENERATIONS", "1"))
-_generation_semaphore = threading.Semaphore(MAX_CONCURRENT_GENERATIONS)
+MAX_WORKERS = int(os.environ.get("MAX_WORKERS", "2"))
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 # Pipeline-level retry: if the entire generate_podcast() call fails with a
 # transient error, wait and retry once before marking the episode as failed.
@@ -79,7 +81,19 @@ def verify_token(request: Request) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Models
+# Supabase client (REST API for storage + DB updates)
+# ---------------------------------------------------------------------------
+
+def _get_supabase():
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if not url or not key:
+        raise RuntimeError("Supabase not configured")
+    return create_client(url, key)
+
+
+# ---------------------------------------------------------------------------
+# Models (for /generate endpoint)
 # ---------------------------------------------------------------------------
 
 class GenerateRequest(BaseModel):
@@ -93,34 +107,26 @@ class GenerateResponse(BaseModel):
     source_newsletters: list[str]
 
 
-class GenerateAndStoreRequest(BaseModel):
-    user_id: str
-    newsletter_text: str
-    episode_id: str
-    email_ids: list[str]
-    storage_path: str
-    date: str
-    user_email: str | None = None
-    target_length_minutes: int = 10
-    intro_music: str | None = None
-
-
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 
+_worker_threads: list[threading.Thread] = []
+_shutdown_event = threading.Event()
+
+
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    alive_workers = sum(1 for t in _worker_threads if t.is_alive())
+    return {
+        "status": "ok",
+        "workers": {"alive": alive_workers, "configured": MAX_WORKERS},
+    }
 
 
 @app.post("/generate", response_model=GenerateResponse)
 def generate(body: GenerateRequest, _auth: None = Depends(verify_token)):
-    """Generate a podcast episode from newsletter text.
-
-    This is a sync def so FastAPI runs it in a threadpool, keeping the
-    async event loop free during the long-running Podcastfy/TTS calls.
-    """
+    """Synchronous generation for testing."""
     logger.info(
         "Generating podcast for user_id=%s, input=%d chars",
         body.user_id,
@@ -149,40 +155,42 @@ def generate(body: GenerateRequest, _auth: None = Depends(verify_token)):
     )
 
 
-def _get_supabase():
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not url or not key:
-        raise HTTPException(status_code=500, detail="Supabase not configured")
-    return create_client(url, key)
+# ---------------------------------------------------------------------------
+# Worker loop — polls episodes table via claim_next_job()
+# ---------------------------------------------------------------------------
+
+@contextmanager
+def _pg_connect():
+    """Open a direct Postgres connection (needed for LISTEN/NOTIFY)."""
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
-def _generate_and_store(body: GenerateAndStoreRequest):
-    """Background task: generate podcast, upload to Supabase, update DB."""
-    logger.info(
-        "generate-and-store: waiting for slot (max %d concurrent), episode_id=%s",
-        MAX_CONCURRENT_GENERATIONS,
-        body.episode_id,
-    )
-
-    with _generation_semaphore:
-        _do_generate_and_store(body)
-
-
-def _do_generate_and_store(body: GenerateAndStoreRequest):
+def _process_job(episode_id: str, user_id: str, job_input: dict):
+    """Run the podcast pipeline for a claimed job, upload result, update DB."""
     supabase = _get_supabase()
 
     try:
+        newsletter_text = job_input["newsletter_text"]
+        email_ids = job_input["email_ids"]
+        storage_path = job_input["storage_path"]
+        date = job_input["date"]
+        user_email = job_input.get("user_email")
+        target_length_minutes = job_input.get("target_length_minutes", 10)
+        intro_music = job_input.get("intro_music")
+
         logger.info(
-            "generate-and-store: starting for user_id=%s, episode_id=%s",
-            body.user_id,
-            body.episode_id,
+            "Processing job: episode_id=%s, user_id=%s, %d chars input",
+            episode_id, user_id, len(newsletter_text),
         )
 
-        # Resolve user_email: prefer the value from the request, fall back to DB lookup
-        user_email = body.user_email
+        # Resolve user_email if not provided
         if not user_email:
-            user_resp = supabase.table("users").select("email").eq("id", body.user_id).single().execute()
+            user_resp = supabase.table("users").select("email").eq("id", user_id).single().execute()
             if user_resp.data and user_resp.data.get("email"):
                 user_email = user_resp.data["email"]
 
@@ -192,16 +200,16 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
                 value = f"{stage}:{metadata['chunk']}/{metadata['total']}"
             supabase.table("episodes").update({
                 "progress_stage": value,
-            }).eq("id", body.episode_id).execute()
+            }).eq("id", episode_id).execute()
 
         for attempt in range(_PIPELINE_MAX_RETRIES):
             try:
                 mp3_bytes, transcript, source_newsletters = generate_podcast(
-                    body.newsletter_text,
+                    newsletter_text,
                     user_email=user_email,
                     on_progress=_update_progress,
-                    target_length_minutes=body.target_length_minutes,
-                    intro_music=body.intro_music,
+                    target_length_minutes=target_length_minutes,
+                    intro_music=intro_music,
                 )
                 break  # success
             except Exception as exc:
@@ -217,66 +225,51 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
                     raise
 
         logger.info(
-            "generate-and-store: pipeline complete for episode_id=%s, %d bytes MP3",
-            body.episode_id,
-            len(mp3_bytes),
+            "Pipeline complete for episode_id=%s, %d bytes MP3",
+            episode_id, len(mp3_bytes),
         )
 
         _update_progress("uploading")
-        logger.info(
-            "generate-and-store: uploading %d bytes to %s",
-            len(mp3_bytes),
-            body.storage_path,
-        )
 
         # Upload MP3 to Supabase Storage
         supabase.storage.from_("podcasts").upload(
-            body.storage_path,
+            storage_path,
             mp3_bytes,
             file_options={"content-type": "audio/mpeg", "upsert": "true"},
         )
 
         # Get public URL
-        public_url = supabase.storage.from_("podcasts").get_public_url(body.storage_path)
+        public_url = supabase.storage.from_("podcasts").get_public_url(storage_path)
 
         # Update episode record
-        update_resp = supabase.table("episodes").update({
+        supabase.table("episodes").update({
             "audio_url": public_url,
             "audio_size_bytes": len(mp3_bytes),
             "transcript": transcript or None,
             "source_newsletters": source_newsletters,
             "status": "ready",
-        }).eq("id", body.episode_id).execute()
+        }).eq("id", episode_id).execute()
 
-        logger.info(
-            "generate-and-store: episode update for %s returned %d row(s)",
-            body.episode_id,
-            len(update_resp.data) if update_resp.data else 0,
-        )
-
-        # Verify the episode is visible before inserting segments — guards
-        # against transient connection-pooler visibility issues between
-        # back-to-back requests.
-        for attempt in range(3):
-            check = supabase.table("episodes").select("id").eq("id", body.episode_id).execute()
+        # Verify the episode is visible before inserting segments
+        for vis_attempt in range(3):
+            check = supabase.table("episodes").select("id").eq("id", episode_id).execute()
             if check.data:
                 break
             logger.warning(
-                "generate-and-store: episode %s not visible (attempt %d/3), waiting",
-                body.episode_id,
-                attempt + 1,
+                "Episode %s not visible (attempt %d/3), waiting",
+                episode_id, vis_attempt + 1,
             )
             time.sleep(1)
         else:
-            raise RuntimeError(f"Episode {body.episode_id} not visible after 3 attempts")
+            raise RuntimeError(f"Episode {episode_id} not visible after 3 attempts")
 
         # Create episode segment
         supabase.table("episode_segments").insert({
-            "episode_id": body.episode_id,
+            "episode_id": episode_id,
             "segment_type": "deep_dive",
             "title": "Newsletter Digest",
-            "summary": f"Digest of {len(body.email_ids)} newsletter(s)",
-            "source_email_ids": body.email_ids,
+            "summary": f"Digest of {len(email_ids)} newsletter(s)",
+            "source_email_ids": email_ids,
             "sort_order": 0,
         }).execute()
 
@@ -284,53 +277,122 @@ def _do_generate_and_store(body: GenerateAndStoreRequest):
         now = datetime.now(timezone.utc).isoformat()
         supabase.table("raw_emails").update({
             "processed_at": now,
-        }).in_("id", body.email_ids).execute()
+        }).in_("id", email_ids).execute()
 
-        logger.info(
-            "generate-and-store: completed for episode_id=%s",
-            body.episode_id,
-        )
+        logger.info("Job completed: episode_id=%s", episode_id)
+
     except Exception:
-        logger.exception(
-            "generate-and-store: failed for episode_id=%s",
-            body.episode_id,
-        )
+        logger.exception("Job failed: episode_id=%s", episode_id)
         try:
-            fail_resp = supabase.table("episodes").update({
+            supabase.table("episodes").update({
                 "status": "failed",
                 "error_message": "Podcast generation failed",
-            }).eq("id", body.episode_id).execute()
-
-            if not fail_resp.data:
-                logger.warning(
-                    "generate-and-store: update to 'failed' matched 0 rows for episode_id=%s, trying upsert",
-                    body.episode_id,
-                )
-                supabase.table("episodes").upsert({
-                    "id": body.episode_id,
-                    "user_id": body.user_id,
-                    "date": body.date,
-                    "status": "failed",
-                    "error_message": "Podcast generation failed",
-                }).execute()
+            }).eq("id", episode_id).execute()
         except Exception:
             logger.exception("Failed to update episode status to failed")
 
 
-@app.post("/generate-and-store", status_code=202)
-def generate_and_store(
-    body: GenerateAndStoreRequest,
-    background_tasks: BackgroundTasks,
-    _auth: None = Depends(verify_token),
-):
-    """Accept a generation request and process it in the background.
+def _worker_loop(worker_id: str):
+    """Main loop for a worker thread: claim jobs, process them, repeat."""
+    logger.info("Worker %s started", worker_id)
 
-    Returns 202 immediately — the actual work happens asynchronously.
-    """
-    logger.info(
-        "generate-and-store: accepted for user_id=%s, episode_id=%s",
-        body.user_id,
-        body.episode_id,
-    )
-    background_tasks.add_task(_generate_and_store, body)
-    return {"status": "accepted", "episode_id": body.episode_id}
+    while not _shutdown_event.is_set():
+        try:
+            with _pg_connect() as conn:
+                cur = conn.cursor()
+
+                # LISTEN for instant notifications
+                cur.execute("LISTEN new_job;")
+                logger.info("Worker %s: listening for jobs", worker_id)
+
+                while not _shutdown_event.is_set():
+                    # Try to claim a job via RPC
+                    supabase = _get_supabase()
+                    resp = supabase.rpc("claim_next_job", {"p_worker_id": worker_id}).execute()
+
+                    job = resp.data
+                    if job:
+                        episode_id = job["id"]
+                        user_id = job["user_id"]
+                        job_input = job["job_input"]
+
+                        logger.info("Worker %s claimed job: episode_id=%s", worker_id, episode_id)
+                        _process_job(episode_id, user_id, job_input)
+
+                        # Immediately loop to check for more jobs
+                        continue
+
+                    # No job available — wait for pg_notify or poll timeout
+                    if select.select([conn], [], [], 5.0) != ([], [], []):
+                        conn.poll()
+                        # Drain all notifications
+                        while conn.notifies:
+                            conn.notifies.pop(0)
+                        # Loop back to claim
+                    # else: 5s timeout, loop back to poll
+
+        except Exception:
+            if _shutdown_event.is_set():
+                break
+            logger.exception("Worker %s: connection error, reconnecting in 5s", worker_id)
+            time.sleep(5)
+
+    logger.info("Worker %s stopped", worker_id)
+
+
+def _stale_job_monitor():
+    """Periodically reset stale processing jobs back to queued."""
+    logger.info("Stale job monitor started")
+
+    while not _shutdown_event.is_set():
+        try:
+            supabase = _get_supabase()
+            resp = supabase.rpc("reset_stale_jobs", {"p_timeout_minutes": 15}).execute()
+            reset_count = resp.data
+            if reset_count and reset_count > 0:
+                logger.warning("Reset %d stale job(s) back to queued", reset_count)
+        except Exception:
+            logger.exception("Stale job monitor error")
+
+        # Sleep 60s in 1s increments so we can respond to shutdown
+        for _ in range(60):
+            if _shutdown_event.is_set():
+                break
+            time.sleep(1)
+
+    logger.info("Stale job monitor stopped")
+
+
+# ---------------------------------------------------------------------------
+# Startup / Shutdown
+# ---------------------------------------------------------------------------
+
+@app.on_event("startup")
+def startup():
+    if not DATABASE_URL:
+        logger.warning("DATABASE_URL not set — workers will not start")
+        return
+
+    hostname = platform.node() or "worker"
+
+    for i in range(MAX_WORKERS):
+        worker_id = f"{hostname}-{i}"
+        t = threading.Thread(target=_worker_loop, args=(worker_id,), daemon=True, name=f"worker-{i}")
+        t.start()
+        _worker_threads.append(t)
+
+    # Stale job monitor thread
+    monitor = threading.Thread(target=_stale_job_monitor, daemon=True, name="stale-monitor")
+    monitor.start()
+    _worker_threads.append(monitor)
+
+    logger.info("Started %d worker(s) + stale job monitor", MAX_WORKERS)
+
+
+@app.on_event("shutdown")
+def shutdown():
+    logger.info("Shutting down workers...")
+    _shutdown_event.set()
+    for t in _worker_threads:
+        t.join(timeout=10)
+    logger.info("All workers stopped")

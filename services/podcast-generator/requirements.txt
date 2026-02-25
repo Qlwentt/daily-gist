@@ -6,3 +6,4 @@ requests
 pydub
 anthropic
 supabase
+psycopg2-binary

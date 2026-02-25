@@ -39,16 +39,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const serviceUrl = process.env.PODCAST_GENERATOR_URL;
-  const apiKey = process.env.GENERATOR_API_KEY;
-
-  if (!serviceUrl || !apiKey) {
-    return NextResponse.json(
-      { error: "PODCAST_GENERATOR_URL or GENERATOR_API_KEY not configured" },
-      { status: 500 }
-    );
-  }
-
   const supabase = createAdminClient();
 
   let triggered = 0;
@@ -122,57 +112,43 @@ export async function GET(request: Request) {
           continue;
         }
 
-        const userTimezone = userMap.get(userId)!.timezone;
+        const user = userMap.get(userId)!;
+        const userTimezone = user.timezone;
         const today = getTodayInTimezone(userTimezone);
         const title = `Your Daily Gist — ${getFormattedDateInTimezone(userTimezone)}`;
+        const newsletterText = formatEmailsForPodcast(emails);
+        const emailIds = emails.map((e) => e.id);
+        const storagePath = `${userId}/${today}.mp3`;
 
-        // Create episode record in 'processing' state
-        const { data: episode, error: insertError } = await supabase
+        // Upsert episode with status='queued' and job_input — workers pick it up
+        const { error: upsertError } = await supabase
           .from("episodes")
           .upsert(
             {
               user_id: userId,
               date: today,
               title,
-              status: "processing",
+              status: "queued",
+              job_input: {
+                newsletter_text: newsletterText,
+                email_ids: emailIds,
+                storage_path: storagePath,
+                date: today,
+                user_email: user.email,
+                target_length_minutes: 10, // TODO: derive from user tier/preference
+                intro_music: user.intro_music,
+              },
             },
             { onConflict: "user_id,date" }
-          )
-          .select("id")
-          .single<{ id: string }>();
+          );
 
-        if (insertError || !episode) {
+        if (upsertError) {
           errors.push({
             userId,
-            error: `Failed to create episode: ${insertError?.message || "Unknown"}`,
+            error: `Failed to queue episode: ${upsertError.message}`,
           });
           continue;
         }
-
-        const newsletterText = formatEmailsForPodcast(emails);
-        const emailIds = emails.map((e) => e.id);
-        const storagePath = `${userId}/${today}.mp3`;
-        const userEmail = userMap.get(userId)!.email;
-
-        // Await the 202 from Railway — it responds immediately before doing work
-        await fetch(`${serviceUrl}/generate-and-store`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            newsletter_text: newsletterText,
-            episode_id: episode.id,
-            email_ids: emailIds,
-            storage_path: storagePath,
-            date: today,
-            user_email: userEmail,
-            target_length_minutes: 10, // TODO: derive from user tier/preference
-            intro_music: userMap.get(userId)!.intro_music,
-          }),
-        });
 
         triggered++;
       } catch (err) {
@@ -234,15 +210,27 @@ export async function GET(request: Request) {
           }
 
           const title = `Your Daily Gist — ${getFormattedDateInTimezone(user.timezone)}`;
+          const newsletterText = formatEmailsForPodcast(emails);
+          const emailIds = emails.map((e) => e.id);
+          const storagePath = `${ep.user_id}/${today}.mp3`;
 
-          // Reset episode to processing and increment retry_attempts
+          // Reset episode to queued with job_input, increment retry_attempts
           const { error: updateError } = await supabase
             .from("episodes")
             .update({
-              status: "processing",
+              status: "queued",
               title,
               error_message: null,
               retry_attempts: ep.retry_attempts + 1,
+              job_input: {
+                newsletter_text: newsletterText,
+                email_ids: emailIds,
+                storage_path: storagePath,
+                date: today,
+                user_email: user.email,
+                target_length_minutes: 10,
+                intro_music: user.intro_music,
+              },
             })
             .eq("id", ep.id);
 
@@ -253,29 +241,6 @@ export async function GET(request: Request) {
             });
             continue;
           }
-
-          const newsletterText = formatEmailsForPodcast(emails);
-          const emailIds = emails.map((e) => e.id);
-          const storagePath = `${ep.user_id}/${today}.mp3`;
-
-          await fetch(`${serviceUrl}/generate-and-store`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              user_id: ep.user_id,
-              newsletter_text: newsletterText,
-              episode_id: ep.id,
-              email_ids: emailIds,
-              storage_path: storagePath,
-              date: today,
-              user_email: user.email,
-              target_length_minutes: 10,
-              intro_music: user.intro_music,
-            }),
-          });
 
           retried++;
         } catch (err) {

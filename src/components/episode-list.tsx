@@ -241,7 +241,7 @@ function PendingEpisodeCard({ episode }: { episode: Episode }) {
 
   // Poll for progress updates when processing
   useEffect(() => {
-    if (episode.status !== "processing") return;
+    if (episode.status !== "queued" && episode.status !== "processing") return;
 
     const supabase = createClient();
     const poll = async () => {
@@ -317,7 +317,7 @@ function PendingEpisodeCard({ episode }: { episode: Episode }) {
           </button>
         </div>
       )}
-      {episode.status === "processing" && (
+      {(episode.status === "queued" || episode.status === "processing") && (
         <div className="mt-2 flex items-center gap-2">
           <div
             className="w-4 h-4 border-2 rounded-full animate-spin flex-shrink-0"
@@ -327,13 +327,15 @@ function PendingEpisodeCard({ episode }: { episode: Episode }) {
             }}
           />
           <p className="text-sm" style={{ color: "#5a4d6b" }}>
-            {formatProgressStage(progressStage)}
+            {episode.status === "queued"
+              ? "Queued — waiting for a worker..."
+              : formatProgressStage(progressStage)}
           </p>
         </div>
       )}
       {episode.status === "pending" && (
         <p className="mt-2 text-sm text-gray-500">
-          Queued for generation.
+          Waiting for generation.
         </p>
       )}
     </div>
@@ -343,6 +345,7 @@ function PendingEpisodeCard({ episode }: { episode: Episode }) {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800",
+    queued: "bg-yellow-100 text-yellow-800",
     processing: "bg-blue-100 text-blue-800",
     ready: "bg-green-100 text-green-800",
     failed: "bg-red-100 text-red-800",
