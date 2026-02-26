@@ -33,8 +33,8 @@ const TOTAL_STEPS = 4;
 
 const PROGRESS_STAGES: Record<string, string> = {
   outline: "Planning your episode...",
-  first_half: "Writing the first half of the script...",
-  second_half: "Writing the second half of the script...",
+  first_half: "Writing the script...",
+  second_half: "Writing the script...",
   audio: "Generating audio (this is the longest step)...",
   uploading: "Uploading your episode...",
 };
@@ -543,7 +543,7 @@ function GeneratingStep({
               ? (() => {
                   const chunkMatch = progressStage.match(/^audio:(\d+)\/(\d+)$/);
                   if (chunkMatch) {
-                    return `Generating audio — part ${chunkMatch[1]} of ${chunkMatch[2]}...`;
+                    return `Generating audio — ${chunkMatch[1]} of ${chunkMatch[2]} chunks done...`;
                   }
                   return PROGRESS_STAGES[progressStage] ?? "Processing...";
                 })()

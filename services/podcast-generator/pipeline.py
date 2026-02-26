@@ -25,7 +25,7 @@ import threading
 import time
 import wave
 
-import anthropic
+
 from google import genai
 from google.genai import types
 from google.oauth2 import service_account
@@ -77,9 +77,13 @@ def generate_podcast(
             except Exception:
                 logger.warning("on_progress callback failed for stage=%s", stage, exc_info=True)
 
+    logger.info("Script model: %s", _SCRIPT_MODEL)
+
     _report("outline")
     logger.info("Step 1/4: Generating outline...")
-    outline = _generate_outline(newsletter_text)
+
+    outline = _generate_outline_gemini(newsletter_text, _SCRIPT_MODEL)
+
     logger.info("Step 1/4 complete: outline has %d segments", len(outline.get("segments", [])))
 
     if user_email:
@@ -87,12 +91,16 @@ def generate_podcast(
 
     _report("first_half")
     logger.info("Step 2/4: Generating first half...")
-    first_half = _generate_section(outline, newsletter_text, "first", words_per_section=words_per_section)
+
+    first_half = _generate_section_gemini(outline, newsletter_text, "first", _SCRIPT_MODEL, words_per_section=words_per_section)
+
     logger.info("Step 2/4 complete: first half %d chars", len(first_half))
 
     _report("second_half")
     logger.info("Step 3/4: Generating second half...")
-    second_half = _generate_section(outline, newsletter_text, "second", previous_turns=first_half, words_per_section=words_per_section)
+
+    second_half = _generate_section_gemini(outline, newsletter_text, "second", _SCRIPT_MODEL, previous_turns=first_half, words_per_section=words_per_section)
+
     logger.info("Step 3/4 complete: second half %d chars", len(second_half))
 
     logger.info("Step 4/4: Stitching transcript...")
@@ -150,82 +158,185 @@ def _filter_user_from_sources(outline: dict, user_email: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Step 1: Generate transcript using 3-call Claude pipeline
+# Step 1: Generate transcript using 3-call Gemini pipeline
 # ---------------------------------------------------------------------------
 
-_CLAUDE_MODEL = "claude-sonnet-4-6"
+_SCRIPT_MODEL = "gemini-3-flash-preview"
 
-_DIALOGUE_SYSTEM_PROMPT = """\
-You are writing dialogue for Daily Gist, a two-host podcast that summarizes newsletters.
-
-Rules:
-- Output ONLY dialogue in <Person1> and <Person2> tags. Nothing else.
-- No scratchpad, thinking blocks, stage directions, or meta-commentary.
+_DIALOGUE_RULES = """\
 - Person1 is the main summarizer. Person2 is the curious questioner.
 - Vary conversational style: sometimes debate, sometimes one explains while the other \
 reacts, sometimes they build on each other's ideas.
-- Hosts should occasionally disagree or push back on each other's takes, not just agree. \
-Real conversations have friction.
+
+DISAGREEMENT — Person2 must genuinely DISAGREE with Person1 at least once per half — not \
+just play devil's advocate with "but couldn't you argue..." but actually take a firm \
+opposing position and defend it for 2-3 exchanges before the hosts find common ground or \
+agree to disagree. Real podcasts have real friction.
+  Example of FAKE disagreement: "But couldn't you argue the other side?"
+  Example of REAL disagreement: "I actually think that's wrong. The Pentagon fight might be \
+the best thing that ever happened to Anthropic's brand — nothing says 'our AI is powerful' \
+like the military demanding access."
+
+PERSON2 FILLER BAN — Person2 must NEVER open a turn with a generic reaction phrase. \
+BANNED openers: "That's a chilling thought", "That's an astronomical figure", \
+"That's a head-scratcher", "That's a rare sight", "That's a stark term", \
+"That really hits home", "I can only imagine", any variation of "That's a [adjective] [noun]". \
+Instead, Person2 should respond with a SPECIFIC follow-up thought, a challenge, a \
+counterexample, or a question that pushes the conversation forward. Person2's first words \
+should add substance, not validate.
+  Bad: "That's an astronomical figure for GPUs. It really underscores how foundational..."
+  Good: "A hundred billion for GPUs — but AMD's been playing second fiddle to NVIDIA for \
+years. Is Meta making a bet or a mistake?"
+
 - Draw unexpected connections between seemingly unrelated stories — discover them in \
 conversation rather than stating them explicitly.
 - Include at least one hot take that challenges conventional wisdom.
-- Avoid repetitive transitions like "Speaking of which" or "Let's shift gears."
-- BANNED phrases (never use these): "great point", "exactly!", "that's so true", \
-"you're not kidding", "absolutely!", "I'm buzzing", "I'm so excited", "what a day"
+- TRANSITIONS: Each segment must connect to the previous one thematically. Find the tension, \
+irony, or surprising link between adjacent topics. Never use generic transitions — let one \
+topic's implications lead naturally into the next.
+
+BANNED PHRASES AND PATTERNS — these sound AI-generated, never use them:
+  "great point", "exactly!" (as standalone), "that's so true", "you're not kidding", \
+  "absolutely!" (as standalone), "I'm buzzing", "I'm so excited", "what a day", \
+  "a fair point", "it's genuinely X", "it's not just X, it's Y", \
+  "I don't know if it's X or Y, probably both", "and speaking of..." (as a transition), \
+  "that raises huge questions about...", "it really underscores...", \
+  "it's a fascinating [noun]", "speaking of which", "let's shift gears".
+  Do NOT start consecutive Person2 turns with "So...".
+  Vary sentence openings. Vary rhetorical structures. If you catch yourself falling into \
+  a pattern, break it.
+
 - Balance coverage — no single source > 30% of the conversation.
 - NEVER restate the same insight, stat, or example — even in different words. If a point was \
 made once, it's done. Listeners notice repetition immediately and it kills momentum.
+- Avoid overusing filler words like 'genuinely', 'essentially', 'literally', 'incredibly'. \
+Each should appear at most once per episode.
+- Hosts should never refer to themselves or each other by name, speaker label, or tag. \
+No "I'm Person1" or "as Person2 said" — they are unnamed co-hosts.
 - Skip sponsored content, ads, and promotional/referral sections.
 - Weave cross-source connections into the dialogue naturally — let them emerge through \
 conversation rather than listing them.
 - Use engagement techniques: rhetorical questions, analogies, real-world examples, humor, \
-surprising facts."""
+surprising facts.
+
+MEMORABLE ONE-LINERS — Each half needs at least 2 lines that are genuinely quotable — the \
+kind of line someone would screenshot and share. Techniques:
+  - Unexpected metaphors with concrete specifics (not "it's like a house of cards" but \
+"registering a ship in Panama to avoid labor laws, except the ship is a data center and \
+the ocean is low Earth orbit")
+  - Crystallize a complex situation into one sharp, original sentence
+  - Reframe what something actually means in a way that reveals the absurdity or irony
+  Generic observations like "that raises ethical questions" are NOT one-liners.
+
+- Person1 MUST deliver the final outro/sign-off. Person1 is the anchor of the show and should \
+always open and close the episode."""
+
+_DIALOGUE_SYSTEM_PROMPT = f"""\
+You are writing dialogue for Daily Gist, a two-host podcast that summarizes newsletters.
+
+Rules:
+- Output ONLY a JSON array of dialogue turns. Each turn has "speaker" and "text".
+- No scratchpad, thinking blocks, stage directions, or meta-commentary.
+{_DIALOGUE_RULES}"""
 
 
-_CLAUDE_MAX_RETRIES = 3
-_CLAUDE_RETRY_DELAY = 15  # seconds — Tier 2 rate limits are more generous
+_GEMINI_TEXT_MAX_RETRIES = 3
+_GEMINI_TEXT_RETRY_DELAYS = [5, 15, 30]
 
 
-def _get_claude_client() -> anthropic.Anthropic:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+def _get_gemini_text_client() -> genai.Client:
+    """Create a Gemini client for text generation via AI Studio."""
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError("ANTHROPIC_API_KEY environment variable is required")
-    return anthropic.Anthropic(api_key=api_key, max_retries=0)  # we handle retries ourselves
+        raise ValueError("GEMINI_API_KEY environment variable is required")
+    return genai.Client(api_key=api_key)
 
 
-def _claude_create_with_retry(client: anthropic.Anthropic, **kwargs) -> anthropic.types.Message:
-    """Call client.messages.create with retry on 429/529 errors."""
-    for attempt in range(_CLAUDE_MAX_RETRIES):
+def _gemini_create_with_retry(
+    client: genai.Client, model: str, system: str, prompt: str,
+    max_tokens: int = 8192, response_schema: dict | None = None,
+) -> str:
+    """Call Gemini text generation with retry on server errors. Returns text."""
+    for attempt in range(_GEMINI_TEXT_MAX_RETRIES):
         try:
-            return client.messages.create(**kwargs)
-        except (anthropic.RateLimitError, anthropic.APIStatusError) as exc:
-            if isinstance(exc, anthropic.APIStatusError) and exc.status_code != 529:
+            config = types.GenerateContentConfig(
+                system_instruction=system,
+                max_output_tokens=max_tokens,
+                temperature=1.0,
+            )
+            if response_schema is not None:
+                config.response_mime_type = "application/json"
+                config.response_schema = response_schema
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=config,
+            )
+            return response.text.strip()
+        except Exception as e:
+            err_str = str(e).lower()
+            is_retryable = any(s in err_str for s in ("429", "500", "503", "internal", "timeout", "rate"))
+            if not is_retryable or attempt == _GEMINI_TEXT_MAX_RETRIES - 1:
                 raise
-            if attempt == _CLAUDE_MAX_RETRIES - 1:
-                raise
-            delay = _CLAUDE_RETRY_DELAY * (attempt + 1)  # linear backoff
+            delay = _GEMINI_TEXT_RETRY_DELAYS[attempt]
             logger.warning(
-                "Claude %d error, waiting %ds before retry %d/%d",
-                exc.status_code if hasattr(exc, "status_code") else 429,
-                delay, attempt + 1, _CLAUDE_MAX_RETRIES,
+                "Gemini %s attempt %d/%d failed (%s), retrying in %ds",
+                model, attempt + 1, _GEMINI_TEXT_MAX_RETRIES, type(e).__name__, delay,
             )
             time.sleep(delay)
     raise RuntimeError("Unreachable")
 
 
-def _generate_outline(newsletter_text: str) -> dict:
-    """Call 1: Generate a structured outline from newsletter content."""
-    client = _get_claude_client()
+_OUTLINE_SYSTEM_PROMPT = "You are a podcast producer planning an episode of Daily Gist, a two-host podcast that summarizes newsletters."
 
-    response = _claude_create_with_retry(
-        client,
-        model=_CLAUDE_MODEL,
-        max_tokens=4096,
-        system="You are a podcast producer planning an episode of Daily Gist, a two-host podcast that summarizes newsletters.",
-        messages=[
-            {
-                "role": "user",
-                "content": f"""\
+
+def _fix_gemini_json(text: str) -> str:
+    """Best-effort fixups for common Gemini JSON issues.
+
+    Handles: trailing commas, JS-style comments, single-quoted strings.
+    """
+    # Remove single-line JS comments (// ...)
+    text = re.sub(r"//[^\n]*", "", text)
+    # Remove multi-line JS comments (/* ... */)
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+    # Trailing commas before } and ]
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+    # Single-quoted strings → double-quoted (only outside existing double quotes)
+    # This is a rough heuristic: replace ' with " when it looks like a JSON string boundary
+    text = re.sub(r"(?<=[\[,{:\s])'((?:[^'\\]|\\.)*?)'(?=\s*[,\]}:])", r'"\1"', text)
+    return text
+
+
+_OUTLINE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "intro_hook": {"type": "STRING"},
+        "segments": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "title": {"type": "STRING"},
+                    "sources": {"type": "ARRAY", "items": {"type": "STRING"}},
+                    "key_points": {"type": "ARRAY", "items": {"type": "STRING"}},
+                    "estimated_turns": {"type": "INTEGER"},
+                },
+                "required": ["title", "sources", "key_points", "estimated_turns"],
+            },
+        },
+        "cross_source_connections": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "provocative_angles": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "outro_theme": {"type": "STRING"},
+    },
+    "required": ["intro_hook", "segments", "cross_source_connections", "provocative_angles", "outro_theme"],
+}
+
+
+def _generate_outline_gemini(newsletter_text: str, model_id: str) -> dict:
+    """Call 1 (Gemini): Generate a structured outline from newsletter content."""
+    client = _get_gemini_text_client()
+
+    prompt = f"""\
 Analyze these newsletters and produce a JSON outline for a podcast episode.
 
 <newsletters>
@@ -239,58 +350,75 @@ Requirements:
 - Skip ads, sponsor mentions, and referral/promotional content
 - Each segment should have enough substance for a meaningful discussion
 - Prioritize stories with unique insights or provocative angles over stories that are just big numbers or straightforward announcements
-- Ensure every source newsletter gets at least a mention, but weight coverage by story impact and broad relevance
+- Ensure every source newsletter gets at least a mention, but weight coverage by story impact and broad relevance"""
 
-Return ONLY valid JSON (no markdown fencing) in this exact format:
-{{
-  "intro_hook": "One compelling sentence to open the show",
-  "segments": [
-    {{
-      "title": "Segment title",
-      "sources": ["Newsletter names that cover this topic"],
-      "key_points": ["Point 1", "Point 2", "Point 3"],
-      "estimated_turns": 6
-    }}
-  ],
-  "cross_source_connections": [
-    "Tension, contradiction, or surprising link between stories from different newsletters"
-  ],
-  "provocative_angles": [
-    "Hot take or counterintuitive observation the hosts could explore"
-  ],
-  "outro_theme": "Brief thematic thread connecting today's stories"
-}}""",
-            }
-        ],
+    raw = _gemini_create_with_retry(
+        client, model_id, _OUTLINE_SYSTEM_PROMPT, prompt,
+        max_tokens=8192, response_schema=_OUTLINE_SCHEMA,
     )
 
-    raw = response.content[0].text.strip()
-    # Strip markdown fencing if present
-    if raw.startswith("```"):
-        raw = re.sub(r"^```(?:json)?\s*", "", raw)
-        raw = re.sub(r"\s*```$", "", raw)
-
-    outline = json.loads(raw)
+    try:
+        outline = json.loads(raw)
+    except json.JSONDecodeError:
+        logger.error("Gemini outline JSON parse failed. Raw response:\n%s", raw)
+        raise
 
     segment_count = len(outline.get("segments", []))
     total_turns = sum(s.get("estimated_turns", 0) for s in outline.get("segments", []))
     logger.info(
-        "Outline generated: %d segments, %d estimated turns",
-        segment_count, total_turns,
+        "Outline generated (%s): %d segments, %d estimated turns",
+        model_id, segment_count, total_turns,
     )
 
     return outline
 
 
-def _generate_section(
+_DIALOGUE_TURN_SCHEMA = {
+    "type": "ARRAY",
+    "items": {
+        "type": "OBJECT",
+        "properties": {
+            "speaker": {"type": "STRING", "enum": ["Person1", "Person2"]},
+            "text": {"type": "STRING"},
+        },
+        "required": ["speaker", "text"],
+    },
+}
+
+
+def _turns_json_to_xml(turns: list[dict]) -> str:
+    """Convert JSON dialogue turns to XML-tagged transcript string."""
+    parts = []
+    for turn in turns:
+        speaker = turn["speaker"]
+        text = turn["text"].strip()
+        if text:
+            parts.append(f"<{speaker}>{text}</{speaker}>")
+    return "\n".join(parts)
+
+
+def _xml_to_json_str(xml_text: str) -> str:
+    """Convert XML-tagged dialogue back to a JSON array string.
+
+    Used to pass the first half to Gemini's second-half call in the same
+    JSON format that Gemini outputs, avoiding XML/JSON format confusion.
+    """
+    turns = []
+    for match in re.finditer(r"<(Person[12])>(.*?)</\1>", xml_text, re.DOTALL):
+        turns.append({"speaker": match.group(1), "text": match.group(2).strip()})
+    return json.dumps(turns, indent=2)
+
+
+def _generate_section_gemini(
     outline: dict,
     newsletter_text: str,
     section: str,
+    model_id: str,
     previous_turns: str | None = None,
     words_per_section: int = 1250,
 ) -> str:
-    """Call 2 or 3: Generate dialogue for the first or second half."""
-    client = _get_claude_client()
+    """Call 2 or 3 (Gemini): Generate dialogue for the first or second half."""
+    client = _get_gemini_text_client()
 
     segments = outline.get("segments", [])
     midpoint = len(segments) // 2
@@ -301,11 +429,18 @@ def _generate_section(
             f"Write dialogue covering the INTRO and these segments:\n"
             f"{json.dumps(segment_slice, indent=2)}\n\n"
             f"INTRO FORMAT (strict):\n"
-            f"- Person1's first turn: Welcome line + ONE short teaser sentence (40 words max total).\n"
-            f"- Person2's first turn: Immediate reaction or question.\n"
-            f"- Then they unpack the hook together.\n"
-            f"Person1's turn MUST begin with: \"Welcome to Daily Gist — your newsletters, distilled "
-            f"into conversation!\"\n"
+            f"- Person1's first turn MUST begin with: \"Welcome to Daily Gist — your newsletters, distilled "
+            f"into conversation!\" The VERY NEXT sentence must be a specific, provocative, visceral "
+            f"statement — NOT a summary. It should create tension or surprise that makes the listener "
+            f"need to hear more. 40 words max total.\n"
+            f"  BAD (summarizes): \"The Pentagon just gave Anthropic a Friday deadline — comply with "
+            f"military use, or get blacklisted.\"\n"
+            f"  GOOD (provokes): \"The Pentagon just told Anthropic: put your AI in our weapons systems, "
+            f"or we'll make sure nobody in government ever touches your models again.\"\n"
+            f"  The difference: summaries tell you what happened. Hooks make you feel the stakes. "
+            f"Lead with the most dramatic framing of the biggest story. Use active, visceral language.\n"
+            f"- Person2's first turn: React with genuine surprise or skepticism to that detail.\n"
+            f"- Then they unpack it together before moving to the first segment.\n"
             f"Hook to weave in: \"{outline.get('intro_hook', '')}\"\n"
             f"Do NOT write an outro or sign-off. End mid-conversation, ready to continue."
         )
@@ -313,19 +448,36 @@ def _generate_section(
         segment_slice = segments[midpoint:]
         continuity_context = ""
         if previous_turns:
+            # Convert XML to JSON format so Gemini sees the same format it outputs
+            previous_as_json = _xml_to_json_str(previous_turns)
+            previous_turns_list = json.loads(previous_as_json)
+            last_turn = previous_turns_list[-1] if previous_turns_list else None
+
+            # Determine who should speak first in the second half
+            if last_turn:
+                next_speaker = "Person2" if last_turn["speaker"] == "Person1" else "Person1"
+                handoff = (
+                    f"\nThe first half ENDS with this turn:\n"
+                    f"  {last_turn['speaker']}: \"{last_turn['text']}\"\n\n"
+                    f"Your FIRST turn must be {next_speaker} responding to this — "
+                    f"do NOT repeat, rephrase, or echo any part of {last_turn['speaker']}'s last line above.\n\n"
+                )
+            else:
+                handoff = ""
+
             continuity_context = (
-                "Here is the FULL first half of the episode that has already been recorded:\n"
-                "<first_half>\n"
-                + previous_turns
-                + "\n</first_half>\n\n"
-                "CRITICAL — avoid rehashing:\n"
-                "- If a segment's key points were already discussed in the first half, SKIP it "
-                "or add only a brief new angle. Do NOT re-cover it.\n"
-                "- Never re-explain a story, re-state a stat, or re-introduce a topic as if "
-                "it hasn't been discussed.\n"
+                "Here is the FULL first half of the episode that has already been recorded "
+                "(as a JSON array of dialogue turns):\n"
+                + previous_as_json
+                + "\n\n"
+                "CRITICAL — DO NOT REPEAT THE FIRST HALF:\n"
+                "- Your output must contain ONLY NEW dialogue. Do NOT include any turns from above.\n"
+                "- Do NOT start with a welcome, intro, or greeting — the episode is already underway.\n"
+                "- Do NOT re-introduce topics, re-state stats, or re-explain stories from the first half.\n"
                 "- Brief callbacks are fine (e.g. \"going back to what we said about...\") but "
                 "only to connect to genuinely new material.\n"
-                "- Listeners have already heard the first half. Treat it as recorded and aired.\n\n"
+                "- Listeners have already heard the first half. Treat it as recorded and aired.\n"
+                + handoff
             )
         connections = outline.get("cross_source_connections", [])
         connections_context = ""
@@ -337,30 +489,31 @@ def _generate_section(
                 + "\n\n"
             )
 
+        source_names = ', '.join(dict.fromkeys(s for seg in segments for s in seg.get('sources', [])))
         section_instruction = (
             f"{continuity_context}"
             f"{connections_context}"
             f"Write dialogue covering these remaining segments:\n"
             f"{json.dumps(segment_slice, indent=2)}\n\n"
-            f"Continue naturally from where the first half left off.\n"
-            f"Tie stories together rather than covering remaining segments in isolation.\n"
-            f"You MUST end with Person1 signing off in a SINGLE closing turn that includes:\n"
-            f"- A brief wrap-up\n"
-            f"- Credit the sources naturally: {', '.join(dict.fromkeys(s for seg in segments for s in seg.get('sources', [])))}\n"
+            f"Continue naturally from where the first half left off. Do NOT start with a welcome or intro.\n"
+            f"Tie stories together rather than covering remaining segments in isolation.\n\n"
+            f"PACING: Give remaining stories proportional depth. Do NOT speed-run through stories "
+            f"as a rapid-fire list. Every story that made it into the outline deserves at least 2-3 "
+            f"exchanges of real discussion, not a single mention-and-move-on. If there are too many "
+            f"remaining stories to cover with depth, CUT the least important ones entirely rather than "
+            f"giving all of them shallow treatment. Depth over breadth. Quality over completeness.\n\n"
+            f"CRITICAL — OUTRO REQUIREMENT:\n"
+            f"The VERY LAST turn in your output MUST be Person1 signing off. This is non-negotiable.\n"
+            f"The sign-off turn must include:\n"
+            f"- A brief thematic wrap-up (theme: \"{outline.get('outro_theme', '')}\")\n"
+            f"- Credit the sources naturally: {source_names}\n"
             f"- A friendly farewell\n"
-            f"Example: \"That's your Daily Gist for today. Big thanks to X, Y, and Z for the source material. See you tomorrow.\"\n"
-            f"Thematic thread for the outro: \"{outline.get('outro_theme', '')}\""
+            f"Example final turn: {{\"speaker\": \"Person1\", \"text\": \"That's your Daily Gist for today. "
+            f"Big thanks to {source_names} for the source material. See you tomorrow.\"}}\n"
+            f"If you do not end with Person1's sign-off, the episode will be broken."
         )
 
-    response = _claude_create_with_retry(
-        client,
-        model=_CLAUDE_MODEL,
-        max_tokens=16384,
-        system=_DIALOGUE_SYSTEM_PROMPT,
-        messages=[
-            {
-                "role": "user",
-                "content": f"""\
+    prompt = f"""\
 Here is the episode outline:
 {json.dumps(outline, indent=2)}
 
@@ -371,16 +524,26 @@ Here are the source newsletters:
 
 {section_instruction}
 
-Target: {words_per_section} words of dialogue. Output ONLY <Person1> and <Person2> tagged dialogue.""",
-            }
-        ],
+Target: {words_per_section} words of dialogue.
+Return a JSON array of dialogue turns. Each turn has "speaker" (Person1 or Person2) and "text"."""
+
+    result = _gemini_create_with_retry(
+        client, model_id, _DIALOGUE_SYSTEM_PROMPT, prompt,
+        max_tokens=16384, response_schema=_DIALOGUE_TURN_SCHEMA,
     )
 
-    result = response.content[0].text.strip()
-    word_count = len(result.split())
-    logger.info("Section '%s' generated: %d words", section, word_count)
+    # Parse JSON turns and convert to XML string for downstream compatibility
+    try:
+        turns = json.loads(result)
+    except json.JSONDecodeError:
+        logger.error("Gemini section JSON parse failed. Raw response:\n%s", result)
+        raise
 
-    return result
+    xml_result = _turns_json_to_xml(turns)
+    word_count = len(xml_result.split())
+    logger.info("Section '%s' generated (%s): %d turns, %d words", section, model_id, len(turns), word_count)
+
+    return xml_result
 
 
 def _stitch_transcript(first_half: str, second_half: str) -> str:
@@ -411,9 +574,53 @@ _GREETING_RE = re.compile(
 )
 
 
+def _fix_unclosed_tags(text: str) -> str:
+    """Close unclosed <Person1>/<Person2> tags.
+
+    Some models (e.g. Gemini Flash Lite) output tags without closing them:
+      <Person1>\ntext\n<Person2>\ntext
+    This converts them to proper:
+      <Person1>text</Person1>\n<Person2>text</Person2>
+    """
+    # Check if there are already properly closed tags — if so, skip
+    if re.search(r"</Person[12]>", text):
+        return text
+
+    # Pattern: <PersonN> followed by text until next <PersonN> or end
+    parts = re.split(r"(<Person[12]>)", text)
+    result = []
+    current_tag = None
+    for part in parts:
+        tag_match = re.match(r"<(Person[12])>", part)
+        if tag_match:
+            if current_tag:
+                result.append(f"</{current_tag}>")
+            result.append(part)
+            current_tag = tag_match.group(1)
+        else:
+            result.append(part)
+    if current_tag:
+        result.append(f"</{current_tag}>")
+
+    fixed = "".join(result)
+    logger.info("Fixed unclosed Person tags in transcript")
+    return fixed
+
+
 def _clean_transcript(raw: str) -> str:
     """Remove LLM artifacts from a Podcastfy transcript."""
     text = raw
+
+    # Fix unclosed tags (Gemini models may omit closing tags)
+    text = _fix_unclosed_tags(text)
+
+    # Fix mismatched closing tags: <Person1>...</Person2> → <Person1>...</Person1>
+    # Gemini Flash sometimes closes with the wrong speaker tag. The parser uses
+    # a backreference so mismatched tags get silently dropped, losing turns.
+    mismatched = len(re.findall(r"<(Person[12])>.*?</Person(?!\1)[12]>", text, re.DOTALL))
+    if mismatched:
+        text = re.sub(r"<(Person[12])>(.*?)</Person[12]>", r"<\1>\2</\1>", text, flags=re.DOTALL)
+        logger.info("Fixed %d mismatched Person closing tags", mismatched)
 
     # Remove <scratchpad>/<thinking> blocks
     text = re.sub(r"<scratchpad>.*?</scratchpad>", "", text, flags=re.DOTALL | re.IGNORECASE)
@@ -440,6 +647,37 @@ def _clean_transcript(raw: str) -> str:
         text,
         flags=re.IGNORECASE,
     )
+
+    # Deduplicate overlapping turns at stitch boundary
+    # When the second half echoes the last turn of the first half, we get
+    # consecutive same-speaker turns with overlapping text.
+    all_turns = list(re.finditer(r"<(Person[12])>(.*?)</\1>", text, re.DOTALL))
+    for i in range(len(all_turns) - 1):
+        curr = all_turns[i]
+        nxt = all_turns[i + 1]
+        if curr.group(1) != nxt.group(1):
+            continue  # different speakers
+        curr_text = curr.group(2).strip()
+        next_text = nxt.group(2).strip()
+        # Find longest suffix of curr_text that's a prefix of next_text
+        _MIN_OVERLAP = 50
+        max_check = min(len(curr_text), len(next_text))
+        overlap = 0
+        for length in range(max_check, _MIN_OVERLAP - 1, -1):
+            if curr_text[-length:] == next_text[:length]:
+                overlap = length
+                break
+        if overlap >= _MIN_OVERLAP:
+            trimmed = next_text[overlap:].lstrip()
+            if trimmed:
+                old = nxt.group(0)
+                new = f"<{nxt.group(1)}>{trimmed}</{nxt.group(1)}>"
+                text = text.replace(old, new, 1)
+                logger.info("Trimmed %d chars of stitch overlap from consecutive %s turns", overlap, nxt.group(1))
+            else:
+                text = text.replace(nxt.group(0), "", 1)
+                logger.info("Removed fully duplicate %s turn at stitch boundary", nxt.group(1))
+            break  # only fix one boundary
 
     # Deduplicate opener greeting
     p1_matches = list(re.finditer(r"<Person1>(.*?)</Person1>", text, re.DOTALL))
@@ -525,7 +763,7 @@ def _get_tts_client() -> genai.Client:
     )
 
 
-_TTS_TIMEOUT_MS = 300_000  # 5 minutes — typical chunk takes ~1.5 min, some take longer
+_TTS_TIMEOUT_MS = 180_000  # 3 minutes — typical chunk takes ~1.5 min, some take longer
 
 
 _TTS_HARD_TIMEOUT_S = _TTS_TIMEOUT_MS // 1000  # hard Python-level kill
@@ -639,7 +877,7 @@ def _prepend_intro(mp3_path: str, intro_music: str, tmp_dir: str) -> str:
     episode_seg = AudioSegment.from_mp3(mp3_path)
     silence = AudioSegment.silent(duration=_INTRO_SILENCE_MS)
 
-    combined = intro_seg + silence + episode_seg
+    combined = intro_seg + silence + episode_seg + AudioSegment.silent(duration=500)
     final_path = os.path.join(tmp_dir, "episode_with_intro.mp3")
     combined.export(final_path, format="mp3", parameters=["-q:a", "2"])
     logger.info("Intro prepended: %dms intro + %dms silence + %dms episode",
@@ -682,15 +920,21 @@ def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, m
         )
 
     # Fire all TTS calls in parallel
+    _LOOP_DURATION_THRESHOLD = 1.25  # flag chunk if bytes/char is >25% above median
+    _LOOP_MAX_RETRIES = 2
+
     completed = 0
     completed_lock = threading.Lock()
-    results = [None] * total_chunks
+    raw_audio = [None] * total_chunks  # raw PCM bytes per chunk
+    results = [None] * total_chunks    # AudioSegment per chunk
+    chunk_chars = [len(prompts[i]) for i in range(total_chunks)]
 
     def _tts_chunk(index: int) -> None:
         nonlocal completed
         audio_data = _tts_generate(client, prompts[index], label=f"Chunk {index + 1}/{total_chunks}")
         logger.info("Chunk %d/%d: received %d bytes of audio", index + 1, total_chunks, len(audio_data))
 
+        raw_audio[index] = audio_data
         chunk_wav = os.path.join(tmp_dir, f"chunk{index}.wav")
         _save_wav(chunk_wav, audio_data)
         results[index] = AudioSegment.from_wav(chunk_wav)
@@ -709,6 +953,51 @@ def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, m
             idx = futures[future]
             future.result()  # re-raises any exception from the thread
 
+    # Duration-based loop detection: compare bytes/char across chunks
+    # If any chunk is >40% above the median, it likely looped — retry it
+    if total_chunks >= 2:
+        ratios = [len(raw_audio[i]) / max(chunk_chars[i], 1) for i in range(total_chunks)]
+        sorted_ratios = sorted(ratios)
+        median_ratio = sorted_ratios[len(sorted_ratios) // 2]
+        threshold = median_ratio * _LOOP_DURATION_THRESHOLD
+
+        for i in range(total_chunks):
+            if ratios[i] <= threshold:
+                continue
+            label = f"Chunk {i + 1}/{total_chunks}"
+            logger.warning(
+                "%s: possible loop detected (bytes/char=%.0f, median=%.0f, threshold=%.0f). Retrying...",
+                label, ratios[i], median_ratio, threshold,
+            )
+            for retry in range(_LOOP_MAX_RETRIES):
+                audio_data = _tts_generate(client, prompts[i], label=f"{label} retry {retry + 1}")
+                new_ratio = len(audio_data) / max(chunk_chars[i], 1)
+                logger.info("%s retry %d: bytes/char=%.0f", label, retry + 1, new_ratio)
+                if new_ratio <= threshold:
+                    raw_audio[i] = audio_data
+                    chunk_wav = os.path.join(tmp_dir, f"chunk{i}.wav")
+                    _save_wav(chunk_wav, audio_data)
+                    results[i] = AudioSegment.from_wav(chunk_wav)
+                    logger.info("%s retry %d: clean audio, keeping", label, retry + 1)
+                    break
+            else:
+                # All retries still looped — split chunk in half
+                logger.warning("%s: still looping after %d retries, splitting chunk", label, _LOOP_MAX_RETRIES)
+                chunk_turns = chunks[i]
+                mid = len(chunk_turns) // 2
+                prompt_a = "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk_turns[:mid])
+                prompt_b = "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk_turns[mid:])
+                pcm_a = _tts_generate(client, prompt_a, label=f"{label}a")
+                pcm_b = _tts_generate(client, prompt_b, label=f"{label}b")
+                wav_a = os.path.join(tmp_dir, f"chunk{i}a.wav")
+                wav_b = os.path.join(tmp_dir, f"chunk{i}b.wav")
+                _save_wav(wav_a, pcm_a)
+                _save_wav(wav_b, pcm_b)
+                seg_a = AudioSegment.from_wav(wav_a)
+                seg_b = AudioSegment.from_wav(wav_b)
+                results[i] = seg_a + AudioSegment.silent(duration=_CHUNK_GAP_MS) + seg_b
+                logger.info("%s: split into two halves (%d + %d bytes)", label, len(pcm_a), len(pcm_b))
+
     audio_segments = results
     logger.info("All %d chunks synthesized in parallel, joining with %dms silence gaps...", total_chunks, _CHUNK_GAP_MS)
 
@@ -719,6 +1008,8 @@ def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, m
         combined = combined + silence + seg
         logger.info("Joined chunk %d/%d (%dms gap)", i + 1, total_chunks, _CHUNK_GAP_MS)
 
+    # Pad end with 500ms silence to prevent MP3 encoder truncation
+    combined = combined + AudioSegment.silent(duration=500)
     combined.export(mp3_path, format="mp3", parameters=["-q:a", "2"])
     logger.info("Exported MP3 with silence gaps (%d chunks)", total_chunks)
 

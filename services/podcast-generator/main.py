@@ -19,7 +19,6 @@ import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
 
-import anthropic
 import psycopg2
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel
@@ -31,6 +30,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
+logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Daily Gist Podcast Generator")
@@ -45,8 +45,6 @@ _PIPELINE_MAX_RETRIES = 2
 _PIPELINE_RETRY_DELAY_S = 60
 
 _RETRYABLE_EXCEPTIONS = (
-    anthropic.RateLimitError,
-    anthropic.APIConnectionError,
     concurrent.futures.TimeoutError,
     ConnectionError,
     TimeoutError,
@@ -57,8 +55,9 @@ def _is_retryable(exc: Exception) -> bool:
     """Return True if the exception is transient and worth retrying."""
     if isinstance(exc, _RETRYABLE_EXCEPTIONS):
         return True
-    # 529 overloaded — caught as generic APIStatusError
-    if isinstance(exc, anthropic.APIStatusError) and exc.status_code == 529:
+    # Catch rate-limit and server errors from Gemini by message content
+    err_str = str(exc).lower()
+    if any(s in err_str for s in ("429", "500", "503", "rate", "overloaded")):
         return True
     return False
 
