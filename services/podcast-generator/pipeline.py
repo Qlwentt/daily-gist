@@ -28,7 +28,6 @@ import wave
 
 from google import genai
 from google.genai import types
-from google.oauth2 import service_account
 from pydub import AudioSegment
 
 logging.basicConfig(
@@ -744,7 +743,7 @@ _TTS_VOICE_CONFIG = types.SpeechConfig(
             types.SpeakerVoiceConfig(
                 speaker="Host",
                 voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Enceladus")
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Charon")
                 ),
             ),
             types.SpeakerVoiceConfig(
@@ -762,20 +761,12 @@ _TTS_RETRY_DELAYS = [5, 15, 30]  # seconds
 
 
 def _get_tts_client() -> genai.Client:
-    """Create a Vertex AI Gemini client using service account credentials."""
-    sa_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
-    if not sa_json:
-        raise ValueError("GOOGLE_SERVICE_ACCOUNT_JSON environment variable is required")
-    sa_info = json.loads(sa_json)
-    credentials = service_account.Credentials.from_service_account_info(
-        sa_info,
-        scopes=["https://www.googleapis.com/auth/cloud-platform"],
-    )
+    """Create a Gemini client for TTS via AI Studio."""
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY environment variable is required")
     return genai.Client(
-        vertexai=True,
-        project=sa_info["project_id"],
-        location="us-central1",
-        credentials=credentials,
+        api_key=api_key,
         http_options=types.HttpOptions(timeout=_TTS_TIMEOUT_MS),
     )
 
@@ -953,9 +944,10 @@ def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, m
     )
 
     # Build prompts for each chunk
+    _PREAMBLE = "TTS the following conversation between Host and Guest:\n"
     prompts = []
     for i, chunk in enumerate(chunks):
-        prompt = "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk)
+        prompt = _PREAMBLE + "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk)
         prompts.append(prompt)
         logger.info(
             "Chunk %d/%d: %d turns, %d chars",

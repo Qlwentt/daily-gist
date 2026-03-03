@@ -1,7 +1,6 @@
 fastapi
 uvicorn[standard]
 google-genai
-google-auth
 requests
 pydub
 supabase
