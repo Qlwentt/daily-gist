@@ -633,9 +633,10 @@ def _clean_transcript(raw: str) -> str:
     # Fix mismatched closing tags: <Person1>...</Person2> → <Person1>...</Person1>
     # Gemini Flash sometimes closes with the wrong speaker tag. The parser uses
     # a backreference so mismatched tags get silently dropped, losing turns.
-    mismatched = len(re.findall(r"<(Person[12])>.*?</Person(?!\1)[12]>", text, re.DOTALL))
+    # Use (?:(?!<Person[12]>).)* to prevent matching across turn boundaries.
+    mismatched = len(re.findall(r"<(Person[12])>(?:(?!<Person[12]>).)*?</Person(?!\1)[12]>", text, re.DOTALL))
     if mismatched:
-        text = re.sub(r"<(Person[12])>(.*?)</Person[12]>", r"<\1>\2</\1>", text, flags=re.DOTALL)
+        text = re.sub(r"<(Person[12])>((?:(?!<Person[12]>).)*?)</Person[12]>", r"<\1>\2</\1>", text, flags=re.DOTALL)
         logger.info("Fixed %d mismatched Person closing tags", mismatched)
 
     # Remove <scratchpad>/<thinking> blocks
@@ -749,7 +750,7 @@ _TTS_VOICE_CONFIG = types.SpeechConfig(
             types.SpeakerVoiceConfig(
                 speaker="Guest",
                 voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Leda")
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Sulafat")
                 ),
             ),
         ]
