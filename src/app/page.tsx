@@ -493,7 +493,7 @@ export default function Home() {
                 >
                   Sources
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {[
                     "TLDR",
                     "TLDR AI",
@@ -502,7 +502,7 @@ export default function Home() {
                   ].map((topic) => (
                     <span
                       key={topic}
-                      className="px-2.5 py-1 rounded-md text-xs"
+                      className="px-1.5 py-0.5 rounded-md text-[0.65rem] whitespace-nowrap"
                       style={{
                         background: "rgba(250, 247, 242, 0.08)",
                         color: "rgba(250, 247, 242, 0.7)",
