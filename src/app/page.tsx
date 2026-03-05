@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -24,7 +30,7 @@ const BAR_HEIGHTS = Array.from({ length: BAR_COUNT }, (_, i) => {
 });
 
 const DEMO_URL =
-  "https://sonfybfifxikagevctzn.supabase.co/storage/v1/object/public/podcasts/10799ef4-1de8-4686-a26d-ec12e697fd6f/2026-02-10.mp3";
+  "https://ysnulqtmdfphmpzrzelg.supabase.co/storage/v1/object/public/podcasts/47215626-1b26-47ad-a1f0-15fb2480b6f9/2026-03-04.mp3";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -86,7 +92,7 @@ export default function Home() {
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.15 },
     );
 
     revealRefs.current.forEach((el) => observer.observe(el));
@@ -137,7 +143,10 @@ export default function Home() {
     const bar = progressBarRef.current;
     if (!audio || !bar || !audio.duration) return;
     const rect = bar.getBoundingClientRect();
-    const fraction = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const fraction = Math.max(
+      0,
+      Math.min(1, (e.clientX - rect.left) / rect.width),
+    );
     audio.currentTime = fraction * audio.duration;
   };
 
@@ -164,7 +173,9 @@ export default function Home() {
           color: "#1a0e2e",
         }}
       >
-        <p className="text-sm" style={{ color: "#5a4d6b" }}>Signing you in...</p>
+        <p className="text-sm" style={{ color: "#5a4d6b" }}>
+          Signing you in...
+        </p>
       </div>
     );
   }
@@ -285,7 +296,8 @@ export default function Home() {
             >
               Your newsletters,
               <br />
-              as a <em style={{ fontStyle: "italic", color: "#6b4c9a" }}>
+              as a{" "}
+              <em style={{ fontStyle: "italic", color: "#6b4c9a" }}>
                 daily podcast
               </em>
             </h1>
@@ -294,9 +306,9 @@ export default function Home() {
               className="max-w-[480px] mb-8"
               style={{ fontSize: "1.2rem", lineHeight: 1.6, color: "#5a4d6b" }}
             >
-              Hit play. Stay informed. Daily Gist turns your email
-              newsletters into a conversational podcast you can enjoy on your
-              morning commute.
+              Hit play. Stay informed. Daily Gist turns your email newsletters
+              into a conversational podcast you can enjoy on your morning
+              commute.
             </p>
 
             <div className="flex items-center gap-4 flex-wrap">
@@ -324,10 +336,7 @@ export default function Home() {
                 See how it works
               </a>
             </div>
-            <p
-              className="mt-4 text-xs"
-              style={{ color: "#8a7f96" }}
-            >
+            <p className="mt-4 text-xs" style={{ color: "#8a7f96" }}>
               Currently supports Gmail only. More providers coming soon.
             </p>
           </div>
@@ -359,145 +368,153 @@ export default function Home() {
                 style={{ background: "rgba(45, 27, 78, 0.12)" }}
               />
             </div>
-          <div
-            className="rounded-2xl p-8 relative overflow-hidden"
-            style={{
-              background: "#1a0e2e",
-              color: "#faf7f2",
-              boxShadow: "0 24px 60px rgba(26, 14, 46, 0.25)",
-            }}
-          >
             <div
-              className="absolute inset-0 pointer-events-none"
+              className="rounded-2xl p-8 relative overflow-hidden"
               style={{
-                background:
-                  "radial-gradient(circle at 20% 20%, rgba(157, 124, 216, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(232, 164, 74, 0.1) 0%, transparent 50%)",
+                background: "#1a0e2e",
+                color: "#faf7f2",
+                boxShadow: "0 24px 60px rgba(26, 14, 46, 0.25)",
               }}
-            />
-
-            <div className="flex items-center gap-4 mb-6 relative">
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0"
-                style={{
-                  fontFamily:
-                    "var(--font-instrument-serif), 'Instrument Serif', serif",
-                  background: "linear-gradient(135deg, #6b4c9a, #e8a44a)",
-                }}
-              >
-                DG
-              </div>
-              <div>
-                <h3 className="text-base font-semibold mb-0.5">
-                  Your Daily Gist
-                </h3>
-                <p
-                  className="text-xs"
-                  style={{ color: "rgba(250, 247, 242, 0.6)" }}
-                >
-                  Feb 10, 2026 &middot; 7 min
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-end gap-[2px] h-12 mb-4 relative px-1">
-              {BAR_HEIGHTS.map((height, i) => {
-                const activeCount = Math.max(1, Math.floor(BAR_COUNT * progress));
-                const isActive = i < activeCount;
-                return (
-                  <div
-                    key={i}
-                    className="flex-1 rounded-sm min-w-[2px]"
-                    style={{
-                      height: `${height * (isActive ? 1 : 0.5)}%`,
-                      background: isActive
-                        ? "#9d7cd8"
-                        : "rgba(157, 124, 216, 0.3)",
-                      animationName:
-                        playing && isActive ? "waveAnim" : "none",
-                      animationDuration: "0.8s",
-                      animationTimingFunction: "ease-in-out",
-                      animationIterationCount: "infinite",
-                      animationDirection: "alternate",
-                      animationDelay: `${(i * 0.03) % 0.5}s`,
-                    }}
-                  />
-                );
-              })}
-            </div>
-
-            <div className="flex items-center gap-4 relative">
-              <button
-                onClick={togglePlay}
-                className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 border-none cursor-pointer transition-transform hover:scale-110"
-                style={{ background: "#faf7f2" }}
-              >
-                {playing ? (
-                  <svg viewBox="0 0 24 24" className="w-[18px] h-[18px]">
-                    <rect x="6" y="4" width="4" height="16" fill="#1a0e2e" />
-                    <rect x="14" y="4" width="4" height="16" fill="#1a0e2e" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] ml-0.5">
-                    <polygon points="6,4 20,12 6,20" fill="#1a0e2e" />
-                  </svg>
-                )}
-              </button>
-              <div
-                ref={progressBarRef}
-                onClick={seekAudio}
-                className="flex-1 h-[3px] rounded-sm relative overflow-hidden cursor-pointer"
-                style={{ background: "rgba(250, 247, 242, 0.15)" }}
-              >
-                <div
-                  className="absolute left-0 top-0 bottom-0 rounded-sm transition-[width] duration-200"
-                  style={{ width: `${progress * 100}%`, background: "#9d7cd8" }}
-                />
-              </div>
-              <div
-                className="flex gap-4 text-xs"
-                style={{
-                  color: "rgba(250, 247, 242, 0.5)",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                <span>{formatTime(currentTime)}</span>
-                <span>{duration ? formatTime(duration) : "--:--"}</span>
-              </div>
-            </div>
-
-            <div
-              className="mt-6 pt-5 relative"
-              style={{ borderTop: "1px solid rgba(250, 247, 242, 0.08)" }}
             >
               <div
-                className="text-[0.7rem] uppercase tracking-widest mb-3"
-                style={{ color: "rgba(250, 247, 242, 0.4)" }}
-              >
-                Today&apos;s topics
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  "ChatGPT ads & growth",
-                  "AI social network (Moltbook)",
-                  "SpaceX Moon pivot",
-                  "DC Lunar New Year",
-                  "AI coding",
-                ].map((topic) => (
-                  <span
-                    key={topic}
-                    className="px-2.5 py-1 rounded-md text-xs"
-                    style={{
-                      background: "rgba(250, 247, 242, 0.08)",
-                      color: "rgba(250, 247, 242, 0.7)",
-                      border: "1px solid rgba(250, 247, 242, 0.06)",
-                    }}
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    "radial-gradient(circle at 20% 20%, rgba(157, 124, 216, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(232, 164, 74, 0.1) 0%, transparent 50%)",
+                }}
+              />
+
+              <div className="flex items-center gap-4 mb-6 relative">
+                <div
+                  className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0"
+                  style={{
+                    fontFamily:
+                      "var(--font-instrument-serif), 'Instrument Serif', serif",
+                    background: "linear-gradient(135deg, #6b4c9a, #e8a44a)",
+                  }}
+                >
+                  DG
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold mb-0.5">
+                    Your Daily Gist
+                  </h3>
+                  <p
+                    className="text-xs"
+                    style={{ color: "rgba(250, 247, 242, 0.6)" }}
                   >
-                    {topic}
-                  </span>
-                ))}
+                    Mar 4, 2026 &middot; 10 min
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-end gap-[2px] h-12 mb-4 relative px-1">
+                {BAR_HEIGHTS.map((height, i) => {
+                  const activeCount = Math.max(
+                    1,
+                    Math.floor(BAR_COUNT * progress),
+                  );
+                  const isActive = i < activeCount;
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 rounded-sm min-w-[2px]"
+                      style={{
+                        height: `${height * (isActive ? 1 : 0.5)}%`,
+                        background: isActive
+                          ? "#9d7cd8"
+                          : "rgba(157, 124, 216, 0.3)",
+                        animationName:
+                          playing && isActive ? "waveAnim" : "none",
+                        animationDuration: "0.8s",
+                        animationTimingFunction: "ease-in-out",
+                        animationIterationCount: "infinite",
+                        animationDirection: "alternate",
+                        animationDelay: `${(i * 0.03) % 0.5}s`,
+                      }}
+                    />
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-4 relative">
+                <button
+                  onClick={togglePlay}
+                  className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 border-none cursor-pointer transition-transform hover:scale-110"
+                  style={{ background: "#faf7f2" }}
+                >
+                  {playing ? (
+                    <svg viewBox="0 0 24 24" className="w-[18px] h-[18px]">
+                      <rect x="6" y="4" width="4" height="16" fill="#1a0e2e" />
+                      <rect x="14" y="4" width="4" height="16" fill="#1a0e2e" />
+                    </svg>
+                  ) : (
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="w-[18px] h-[18px] ml-0.5"
+                    >
+                      <polygon points="6,4 20,12 6,20" fill="#1a0e2e" />
+                    </svg>
+                  )}
+                </button>
+                <div
+                  ref={progressBarRef}
+                  onClick={seekAudio}
+                  className="flex-1 h-[3px] rounded-sm relative overflow-hidden cursor-pointer"
+                  style={{ background: "rgba(250, 247, 242, 0.15)" }}
+                >
+                  <div
+                    className="absolute left-0 top-0 bottom-0 rounded-sm transition-[width] duration-200"
+                    style={{
+                      width: `${progress * 100}%`,
+                      background: "#9d7cd8",
+                    }}
+                  />
+                </div>
+                <div
+                  className="flex gap-4 text-xs"
+                  style={{
+                    color: "rgba(250, 247, 242, 0.5)",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{duration ? formatTime(duration) : "--:--"}</span>
+                </div>
+              </div>
+
+              <div
+                className="mt-6 pt-5 relative"
+                style={{ borderTop: "1px solid rgba(250, 247, 242, 0.08)" }}
+              >
+                <div
+                  className="text-[0.7rem] uppercase tracking-widest mb-3"
+                  style={{ color: "rgba(250, 247, 242, 0.4)" }}
+                >
+                  Sources
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    "TLDR",
+                    "TLDR AI",
+                    "Crunchbase Daily",
+                    "Market Briefs",
+                  ].map((topic) => (
+                    <span
+                      key={topic}
+                      className="px-2.5 py-1 rounded-md text-xs"
+                      style={{
+                        background: "rgba(250, 247, 242, 0.08)",
+                        color: "rgba(250, 247, 242, 0.7)",
+                        border: "1px solid rgba(250, 247, 242, 0.06)",
+                      }}
+                    >
+                      {topic}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
           </div>
         </div>
       </section>
@@ -801,8 +818,7 @@ export default function Home() {
                 <span
                   className="text-base"
                   style={{
-                    fontFamily:
-                      "var(--font-dm-sans), 'DM Sans', sans-serif",
+                    fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif",
                     color: "#8a7f96",
                   }}
                 >
@@ -877,8 +893,7 @@ export default function Home() {
                 <span
                   className="text-base"
                   style={{
-                    fontFamily:
-                      "var(--font-dm-sans), 'DM Sans', sans-serif",
+                    fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif",
                     color: "#8a7f96",
                   }}
                 >
