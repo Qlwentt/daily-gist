@@ -181,6 +181,8 @@ def _process_job(episode_id: str, user_id: str, job_input: dict):
         user_email = job_input.get("user_email")
         target_length_minutes = job_input.get("target_length_minutes", 10)
         intro_music = job_input.get("intro_music")
+        host_voice = job_input.get("host_voice", "Charon")
+        guest_voice = job_input.get("guest_voice", "Sulafat")
 
         logger.info(
             "Processing job: episode_id=%s, user_id=%s, %d chars input",
@@ -209,6 +211,8 @@ def _process_job(episode_id: str, user_id: str, job_input: dict):
                     on_progress=_update_progress,
                     target_length_minutes=target_length_minutes,
                     intro_music=intro_music,
+                    host_voice=host_voice,
+                    guest_voice=guest_voice,
                 )
                 break  # success
             except Exception as exc:

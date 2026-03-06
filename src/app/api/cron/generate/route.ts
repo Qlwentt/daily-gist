@@ -20,6 +20,8 @@ type UserRow = {
   timezone: string;
   generation_hour: number;
   intro_music: string | null;
+  host_voice: string;
+  guest_voice: string;
 };
 
 type FailedEpisodeRow = {
@@ -72,7 +74,7 @@ export async function GET(request: Request) {
     // Fetch timezone and generation_hour for candidate users
     const { data: users, error: usersError } = await supabase
       .from("users")
-      .select("id, email, timezone, generation_hour, intro_music")
+      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice")
       .in("id", candidateUserIds)
       .returns<UserRow[]>();
 
@@ -137,6 +139,8 @@ export async function GET(request: Request) {
                 user_email: user.email,
                 target_length_minutes: 10, // TODO: derive from user tier/preference
                 intro_music: user.intro_music,
+                host_voice: user.host_voice,
+                guest_voice: user.guest_voice,
               },
             },
             { onConflict: "user_id,date" }
@@ -178,7 +182,7 @@ export async function GET(request: Request) {
     const failedUserIds = [...new Set(failedEpisodes.map((e) => e.user_id))];
     const { data: failedUsers, error: failedUsersError } = await supabase
       .from("users")
-      .select("id, email, timezone, generation_hour, intro_music")
+      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice")
       .in("id", failedUserIds)
       .returns<UserRow[]>();
 
@@ -230,6 +234,8 @@ export async function GET(request: Request) {
                 user_email: user.email,
                 target_length_minutes: 10,
                 intro_music: user.intro_music,
+                host_voice: user.host_voice,
+                guest_voice: user.guest_voice,
               },
             })
             .eq("id", ep.id);

@@ -51,6 +51,8 @@ def generate_podcast(
     on_progress: "callable | None" = None,
     target_length_minutes: int = _DEFAULT_LENGTH_MINUTES,
     intro_music: str | None = None,
+    host_voice: str = "Charon",
+    guest_voice: str = "Sulafat",
 ) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
@@ -122,8 +124,9 @@ def generate_podcast(
     logger.info("Parsing complete: %d turns", len(turns))
 
     _report("audio")
-    logger.info("Synthesizing audio with Gemini TTS (%d turns)...", len(turns))
-    mp3_bytes = _synthesize_audio(turns, intro_music=intro_music, on_progress=on_progress)
+    logger.info("Synthesizing audio with Gemini TTS (%d turns), voices: Host=%s, Guest=%s", len(turns), host_voice, guest_voice)
+    voice_config = _build_voice_config(host_voice, guest_voice)
+    mp3_bytes = _synthesize_audio(turns, intro_music=intro_music, on_progress=on_progress, voice_config=voice_config)
     logger.info("Synthesis complete: %d bytes MP3", len(mp3_bytes))
 
     # Extract unique source newsletter names from the outline
@@ -719,8 +722,8 @@ def _parse_transcript(transcript: str) -> list[dict]:
     matches = re.findall(pattern, transcript, re.DOTALL)
 
     speaker_map = {
-        "Person1": "Host",
-        "Person2": "Guest",
+        "Person1": "Speaker1",
+        "Person2": "Speaker2",
     }
 
     for person_tag, text in matches:
@@ -738,17 +741,39 @@ def _parse_transcript(transcript: str) -> list[dict]:
 # Step 3: Synthesize audio using Gemini 2.5 Flash TTS
 # ---------------------------------------------------------------------------
 
+def _build_voice_config(host_voice: str = "Charon", guest_voice: str = "Sulafat") -> types.SpeechConfig:
+    """Build a TTS voice config with the given voice names."""
+    return types.SpeechConfig(
+        multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
+            speaker_voice_configs=[
+                types.SpeakerVoiceConfig(
+                    speaker="Speaker1",
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=host_voice)
+                    ),
+                ),
+                types.SpeakerVoiceConfig(
+                    speaker="Speaker2",
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=guest_voice)
+                    ),
+                ),
+            ]
+        )
+    )
+
+
 _TTS_VOICE_CONFIG = types.SpeechConfig(
     multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
         speaker_voice_configs=[
             types.SpeakerVoiceConfig(
-                speaker="Host",
+                speaker="Speaker1",
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Charon")
                 ),
             ),
             types.SpeakerVoiceConfig(
-                speaker="Guest",
+                speaker="Speaker2",
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Sulafat")
                 ),
@@ -778,8 +803,9 @@ _TTS_TIMEOUT_MS = 180_000  # 3 minutes — typical chunk takes ~1.5 min, some ta
 _TTS_HARD_TIMEOUT_S = _TTS_TIMEOUT_MS // 1000  # hard Python-level kill
 
 
-def _tts_generate(client: genai.Client, prompt: str, label: str = "TTS") -> bytes:
-    """Call Gemini TTS via Vertex AI with retries on server/connection errors. Returns raw PCM bytes."""
+def _tts_generate(client: genai.Client, prompt: str, label: str = "TTS", voice_config: types.SpeechConfig | None = None) -> bytes:
+    """Call Gemini TTS via AI Studio with retries on server/connection errors. Returns raw PCM bytes."""
+    speech_config = voice_config or _TTS_VOICE_CONFIG
     for attempt in range(_TTS_MAX_RETRIES):
         try:
             # Hard Python-level timeout — the HTTP-level timeout on the client
@@ -791,10 +817,17 @@ def _tts_generate(client: genai.Client, prompt: str, label: str = "TTS") -> byte
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         response_modalities=["AUDIO"],
-                        speech_config=_TTS_VOICE_CONFIG,
+                        speech_config=speech_config,
                     ),
                 )
                 response = future.result(timeout=_TTS_HARD_TIMEOUT_S)
+            # Guard against empty responses (content filter, transient issue)
+            if (
+                not response.candidates
+                or not response.candidates[0].content
+                or not response.candidates[0].content.parts
+            ):
+                raise RuntimeError("TTS returned empty response (no audio content)")
             return response.candidates[0].content.parts[0].inline_data.data
         except concurrent.futures.TimeoutError:
             logger.warning(
@@ -818,6 +851,7 @@ def _tts_generate(client: genai.Client, prompt: str, label: str = "TTS") -> byte
                 or "disconnected" in err_str
                 or "timeout" in err_str
                 or "timed out" in err_str
+                or "empty response" in err_str
             )
             if not is_retryable or attempt == _TTS_MAX_RETRIES - 1:
                 raise
@@ -830,7 +864,7 @@ def _tts_generate(client: genai.Client, prompt: str, label: str = "TTS") -> byte
     raise RuntimeError("Unreachable")
 
 
-def _synthesize_audio(turns: list[dict], intro_music: str | None = None, on_progress: "callable | None" = None) -> bytes:
+def _synthesize_audio(turns: list[dict], intro_music: str | None = None, on_progress: "callable | None" = None, voice_config: types.SpeechConfig | None = None) -> bytes:
     """Synthesize multi-speaker audio, returning MP3 bytes."""
     client = _get_tts_client()
 
@@ -850,11 +884,11 @@ def _synthesize_audio(turns: list[dict], intro_music: str | None = None, on_prog
                 "Chunking required — %d chars, %d turns (threshold: %d turns)",
                 total_chars, len(turns), CHUNK_THRESHOLD,
             )
-            _synthesize_chunked(client, turns, tmp_dir, mp3_path, on_progress=on_progress)
+            _synthesize_chunked(client, turns, tmp_dir, mp3_path, on_progress=on_progress, voice_config=voice_config)
         else:
             prompt = "\n".join(f"{t['speaker']}: {t['text']}" for t in turns)
             logger.info("Single-shot TTS: %d chars, %d turns", len(prompt), len(turns))
-            audio_data = _tts_generate(client, prompt, label="Single-shot TTS")
+            audio_data = _tts_generate(client, prompt, label="Single-shot TTS", voice_config=voice_config)
             logger.info("Single-shot TTS returned %d bytes of audio", len(audio_data))
             wav_path = os.path.join(tmp_dir, "episode.wav")
             _save_wav(wav_path, audio_data)
@@ -900,7 +934,7 @@ def _prepend_intro(mp3_path: str, intro_music: str, tmp_dir: str) -> str:
 _CHUNK_GAP_MS = 300  # milliseconds of silence between chunks
 
 
-def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, mp3_path: str, on_progress: "callable | None" = None) -> None:
+def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, mp3_path: str, on_progress: "callable | None" = None, voice_config: types.SpeechConfig | None = None) -> None:
     target_chunk_size = 15
     num_chunks = max(1, round(len(turns) / target_chunk_size))
     base = len(turns) // num_chunks
@@ -944,30 +978,34 @@ def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, m
         [len(c) for c in chunks],
     )
 
-    # Build prompts for each chunk
-    _PREAMBLE = "TTS the following conversation between Host and Guest:\n"
+    # Build prompts for each chunk, with overlap from previous chunk to
+    # maintain tonal continuity across chunk boundaries.
+    _PREAMBLE = "TTS the following conversation between Speaker1 and Speaker2:\n"
+    _OVERLAP_TURNS = 2  # number of turns from previous chunk to prepend
+    overlap_turns_per_chunk = [None] * total_chunks  # overlap turn list for trim calc
     prompts = []
     for i, chunk in enumerate(chunks):
-        prompt = _PREAMBLE + "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk)
+        overlap = []
+        if i > 0:
+            overlap = chunks[i - 1][-_OVERLAP_TURNS:]
+        overlap_turns_per_chunk[i] = overlap
+        full_turns = overlap + chunk
+        prompt = _PREAMBLE + "\n".join(f"{t['speaker']}: {t['text']}" for t in full_turns)
         prompts.append(prompt)
         logger.info(
-            "Chunk %d/%d: %d turns, %d chars",
-            i + 1, total_chunks, len(chunk), len(prompt),
+            "Chunk %d/%d: %d turns (+%d overlap), %d chars",
+            i + 1, total_chunks, len(chunk), len(overlap), len(prompt),
         )
 
     # Fire all TTS calls in parallel
-    _LOOP_DURATION_THRESHOLD = 1.25  # flag chunk if bytes/char is >25% above median
-    _LOOP_MAX_RETRIES = 2
-
     completed = 0
     completed_lock = threading.Lock()
     raw_audio = [None] * total_chunks  # raw PCM bytes per chunk
     results = [None] * total_chunks    # AudioSegment per chunk
-    chunk_chars = [len(prompts[i]) for i in range(total_chunks)]
 
     def _tts_chunk(index: int) -> None:
         nonlocal completed
-        audio_data = _tts_generate(client, prompts[index], label=f"Chunk {index + 1}/{total_chunks}")
+        audio_data = _tts_generate(client, prompts[index], label=f"Chunk {index + 1}/{total_chunks}", voice_config=voice_config)
         logger.info("Chunk %d/%d: received %d bytes of audio", index + 1, total_chunks, len(audio_data))
 
         raw_audio[index] = audio_data
@@ -989,50 +1027,114 @@ def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, m
             idx = futures[future]
             future.result()  # re-raises any exception from the thread
 
-    # Duration-based loop detection: compare bytes/char across chunks
-    # If any chunk is >40% above the median, it likely looped — retry it
-    if total_chunks >= 2:
-        ratios = [len(raw_audio[i]) / max(chunk_chars[i], 1) for i in range(total_chunks)]
-        sorted_ratios = sorted(ratios)
-        median_ratio = sorted_ratios[len(sorted_ratios) // 2]
-        threshold = median_ratio * _LOOP_DURATION_THRESHOLD
+    # Trim overlap audio from the start of each chunk (except the first).
+    # Estimate overlap duration from word count, then use silence detection
+    # to find the nearest natural pause and trim there.
+    from pydub.silence import detect_silence as _detect_silence
+    _EXPECTED_WPM = 170
+    _PCM_BYTES_PER_SEC = 48000  # 24kHz, 16-bit mono
 
-        for i in range(total_chunks):
-            if ratios[i] <= threshold:
-                continue
-            label = f"Chunk {i + 1}/{total_chunks}"
-            logger.warning(
-                "%s: possible loop detected (bytes/char=%.0f, median=%.0f, threshold=%.0f). Retrying...",
-                label, ratios[i], median_ratio, threshold,
+    for i in range(1, total_chunks):
+        overlap = overlap_turns_per_chunk[i]
+        if not overlap:
+            continue
+        overlap_words = sum(len(t["text"].split()) for t in overlap)
+        expected_overlap_ms = int((overlap_words / _EXPECTED_WPM) * 60 * 1000)
+        # Pad by 20% to avoid under-trimming (repeated words are worse than
+        # losing a fraction of a second of new content).
+        padded_overlap_ms = int(expected_overlap_ms * 1.20)
+
+        silences = _detect_silence(results[i], min_silence_len=100, silence_thresh=-35)
+        # Find the first silence gap AT or AFTER the padded overlap estimate.
+        # This biases toward trimming more rather than less.
+        best_trim = padded_overlap_ms  # fallback
+        best_dist = float("inf")
+        for start, end in silences:
+            if start < expected_overlap_ms * 0.8:
+                continue  # too early — skip
+            dist = abs(start - padded_overlap_ms)
+            if dist < best_dist and dist < 3000:  # within 3s of padded estimate
+                best_dist = dist
+                best_trim = end  # trim at end of silence gap
+
+        if best_trim > 0 and len(results[i]) > best_trim:
+            results[i] = results[i][best_trim:]
+            raw_audio[i] = results[i].raw_data
+            logger.info(
+                "Chunk %d/%d: trimmed %dms overlap (%d words, expected=%dms, silence_dist=%dms)",
+                i + 1, total_chunks, best_trim, overlap_words, expected_overlap_ms, best_dist,
             )
-            for retry in range(_LOOP_MAX_RETRIES):
-                audio_data = _tts_generate(client, prompts[i], label=f"{label} retry {retry + 1}")
-                new_ratio = len(audio_data) / max(chunk_chars[i], 1)
-                logger.info("%s retry %d: bytes/char=%.0f", label, retry + 1, new_ratio)
-                if new_ratio <= threshold:
-                    raw_audio[i] = audio_data
-                    chunk_wav = os.path.join(tmp_dir, f"chunk{i}.wav")
-                    _save_wav(chunk_wav, audio_data)
-                    results[i] = AudioSegment.from_wav(chunk_wav)
-                    logger.info("%s retry %d: clean audio, keeping", label, retry + 1)
-                    break
-            else:
-                # All retries still looped — split chunk in half
-                logger.warning("%s: still looping after %d retries, splitting chunk", label, _LOOP_MAX_RETRIES)
-                chunk_turns = chunks[i]
-                mid = len(chunk_turns) // 2
-                prompt_a = "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk_turns[:mid])
-                prompt_b = "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk_turns[mid:])
-                pcm_a = _tts_generate(client, prompt_a, label=f"{label}a")
-                pcm_b = _tts_generate(client, prompt_b, label=f"{label}b")
-                wav_a = os.path.join(tmp_dir, f"chunk{i}a.wav")
-                wav_b = os.path.join(tmp_dir, f"chunk{i}b.wav")
-                _save_wav(wav_a, pcm_a)
-                _save_wav(wav_b, pcm_b)
-                seg_a = AudioSegment.from_wav(wav_a)
-                seg_b = AudioSegment.from_wav(wav_b)
-                results[i] = seg_a + AudioSegment.silent(duration=_CHUNK_GAP_MS) + seg_b
-                logger.info("%s: split into two halves (%d + %d bytes)", label, len(pcm_a), len(pcm_b))
+
+    # Loop detection: compare each chunk's actual audio duration (after overlap
+    # trimming) against expected duration based on word count.
+    _LOOP_DURATION_TOLERANCE = 1.25  # flag if actual > 25% above expected
+    _LOOP_MAX_RETRIES = 2
+
+    for i in range(total_chunks):
+        chunk_words = sum(len(t["text"].split()) for t in chunks[i])
+        expected_sec = (chunk_words / _EXPECTED_WPM) * 60
+        actual_sec = len(results[i]) / 1000.0  # AudioSegment len is in ms
+        label = f"Chunk {i + 1}/{total_chunks}"
+
+        logger.info(
+            "%s: %d words, expected=%.0fs, actual=%.0fs (ratio=%.2f)",
+            label, chunk_words, expected_sec, actual_sec, actual_sec / max(expected_sec, 1),
+        )
+
+        if actual_sec <= expected_sec * _LOOP_DURATION_TOLERANCE:
+            continue
+
+        logger.warning(
+            "%s: possible loop detected (actual=%.0fs, expected=%.0fs, tolerance=%.0f%%). Retrying...",
+            label, actual_sec, expected_sec, (_LOOP_DURATION_TOLERANCE - 1) * 100,
+        )
+        for retry in range(_LOOP_MAX_RETRIES):
+            audio_data = _tts_generate(client, prompts[i], label=f"{label} retry {retry + 1}", voice_config=voice_config)
+            retry_wav = os.path.join(tmp_dir, f"chunk{i}_retry{retry}.wav")
+            _save_wav(retry_wav, audio_data)
+            retry_seg = AudioSegment.from_wav(retry_wav)
+            # Trim overlap from retry if applicable
+            overlap = overlap_turns_per_chunk[i]
+            if overlap:
+                ov_words = sum(len(t["text"].split()) for t in overlap)
+                ov_ms = int((ov_words / _EXPECTED_WPM) * 60 * 1000)
+                padded_ov_ms = int(ov_ms * 1.20)
+                sils = _detect_silence(retry_seg, min_silence_len=100, silence_thresh=-35)
+                bt = padded_ov_ms
+                bd = float("inf")
+                for s, e in sils:
+                    if s < ov_ms * 0.8:
+                        continue
+                    d = abs(s - padded_ov_ms)
+                    if d < bd and d < 3000:
+                        bd = d
+                        bt = e
+                if bt > 0 and len(retry_seg) > bt:
+                    retry_seg = retry_seg[bt:]
+            new_sec = len(retry_seg) / 1000.0
+            logger.info("%s retry %d: actual=%.0fs (expected=%.0fs)", label, retry + 1, new_sec, expected_sec)
+            if new_sec <= expected_sec * _LOOP_DURATION_TOLERANCE:
+                results[i] = retry_seg
+                logger.info("%s retry %d: clean audio, keeping", label, retry + 1)
+                break
+        else:
+            # All retries still looped — split chunk in half and generate separately
+            logger.warning("%s: still looping after %d retries, splitting chunk", label, _LOOP_MAX_RETRIES)
+            chunk_turns = chunks[i]
+            mid = len(chunk_turns) // 2
+            preamble = "TTS the following conversation between Speaker1 and Speaker2:\n"
+            prompt_a = preamble + "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk_turns[:mid])
+            prompt_b = preamble + "\n".join(f"{t['speaker']}: {t['text']}" for t in chunk_turns[mid:])
+            pcm_a = _tts_generate(client, prompt_a, label=f"{label}a", voice_config=voice_config)
+            pcm_b = _tts_generate(client, prompt_b, label=f"{label}b", voice_config=voice_config)
+            wav_a = os.path.join(tmp_dir, f"chunk{i}a.wav")
+            wav_b = os.path.join(tmp_dir, f"chunk{i}b.wav")
+            _save_wav(wav_a, pcm_a)
+            _save_wav(wav_b, pcm_b)
+            seg_a = AudioSegment.from_wav(wav_a)
+            seg_b = AudioSegment.from_wav(wav_b)
+            results[i] = seg_a + AudioSegment.silent(duration=_CHUNK_GAP_MS) + seg_b
+            logger.info("%s: split into two halves (%d + %d bytes)", label, len(pcm_a), len(pcm_b))
 
     audio_segments = results
     logger.info("All %d chunks synthesized in parallel, joining with %dms silence gaps...", total_chunks, _CHUNK_GAP_MS)

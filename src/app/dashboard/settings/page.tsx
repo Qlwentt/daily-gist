@@ -6,6 +6,8 @@ import { CopyButton } from "@/components/copy-button";
 import { SaveButton } from "@/components/save-button";
 import { DeleteAccountSection } from "@/components/delete-account-section";
 import { IntroMusicPicker } from "@/components/intro-music-picker";
+import { VoicePicker } from "@/components/voice-picker";
+
 
 type UserRecord = {
   email: string;
@@ -15,6 +17,8 @@ type UserRecord = {
   tier: string;
   generation_hour: number;
   intro_music: string | null;
+  host_voice: string;
+  guest_voice: string;
 };
 
 type RawEmail = {
@@ -108,7 +112,7 @@ export default async function SettingsPage() {
   const [{ data: userRecord }, { data: recentEmails }] = await Promise.all([
     supabase
       .from("users")
-      .select("email, forwarding_address, rss_token, timezone, tier, generation_hour, intro_music")
+      .select("email, forwarding_address, rss_token, timezone, tier, generation_hour, intro_music, host_voice, guest_voice")
       .eq("id", user.id)
       .single<UserRecord>(),
     supabase
@@ -186,6 +190,13 @@ export default async function SettingsPage() {
       {/* Intro Music */}
       <IntroMusicPicker
         currentTrack={userRecord.intro_music}
+        isPower={userRecord.tier === "power"}
+      />
+
+      {/* Voices */}
+      <VoicePicker
+        currentHostVoice={userRecord.host_voice}
+        currentGuestVoice={userRecord.guest_voice}
         isPower={userRecord.tier === "power"}
       />
 

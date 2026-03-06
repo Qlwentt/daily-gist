@@ -23,9 +23,9 @@ export async function POST() {
   // Fetch user record for timezone
   const { data: userRecord, error: userError } = await admin
     .from("users")
-    .select("id, email, timezone, intro_music")
+    .select("id, email, timezone, intro_music, host_voice, guest_voice")
     .eq("id", user.id)
-    .single<{ id: string; email: string; timezone: string; intro_music: string | null }>();
+    .single<{ id: string; email: string; timezone: string; intro_music: string | null; host_voice: string; guest_voice: string }>();
 
   if (userError || !userRecord) {
     console.error("Failed to fetch user record:", userError?.message);
@@ -84,6 +84,8 @@ export async function POST() {
           user_email: userRecord.email,
           target_length_minutes: 10, // TODO: derive from user tier/preference
           intro_music: userRecord.intro_music,
+          host_voice: userRecord.host_voice,
+          guest_voice: userRecord.guest_voice,
         },
       },
       { onConflict: "user_id,date" }

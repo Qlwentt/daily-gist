@@ -5,6 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CopyButton } from "@/components/copy-button";
 import { IntroMusicPicker } from "@/components/intro-music-picker";
+import { VoicePicker } from "@/components/voice-picker";
+
 
 type Email = {
   id: string;
@@ -67,6 +69,8 @@ export function OnboardingFlow({
   initialEpisode = null,
   tier = "free",
   currentIntroMusic = null,
+  currentHostVoice = "Charon",
+  currentGuestVoice = "Sulafat",
 }: {
   forwardingAddress: string;
   feedUrl: string;
@@ -74,6 +78,8 @@ export function OnboardingFlow({
   initialEpisode?: EpisodeStatus | null;
   tier?: string;
   currentIntroMusic?: string | null;
+  currentHostVoice?: string;
+  currentGuestVoice?: string;
 }) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(initialStep);
   const [emails, setEmails] = useState<Email[]>([]);
@@ -236,6 +242,8 @@ export function OnboardingFlow({
           onGenerate={handleGenerate}
           tier={tier}
           currentIntroMusic={currentIntroMusic}
+          currentHostVoice={currentHostVoice}
+          currentGuestVoice={currentGuestVoice}
         />
       )}
 
@@ -273,6 +281,8 @@ function ForwardStep({
   onGenerate,
   tier,
   currentIntroMusic,
+  currentHostVoice,
+  currentGuestVoice,
 }: {
   forwardingAddress: string;
   emails: Email[];
@@ -281,6 +291,8 @@ function ForwardStep({
   onGenerate: () => void;
   tier: string;
   currentIntroMusic: string | null;
+  currentHostVoice: string;
+  currentGuestVoice: string;
 }) {
   return (
     <>
@@ -433,6 +445,13 @@ function ForwardStep({
       {/* Intro Music */}
       <IntroMusicPicker
         currentTrack={currentIntroMusic}
+        isPower={tier === "power"}
+      />
+
+      {/* Voices */}
+      <VoicePicker
+        currentHostVoice={currentHostVoice}
+        currentGuestVoice={currentGuestVoice}
         isPower={tier === "power"}
       />
 

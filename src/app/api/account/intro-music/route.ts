@@ -19,7 +19,7 @@ const VALID_TRACKS = [
   "Daily_Gist_Pop_Female.mp3",
   "Daily_Gist_Pop_Male_1.mp3",
   "Daily_Gist_Pop_Male_2.mp3",
-  "Daily_Gist_Raggae.mp3",
+  "Daily_Gist_Reggae.mp3",
   "Daily_Gist_RnB_Female.mp3",
   "Daily_Gist_RnB_Male.mp3",
   "Daily_Gist_Rock.mp3",
