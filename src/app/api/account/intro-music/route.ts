@@ -39,8 +39,8 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { track } = body;
 
-  // Validate: must be null or a known filename
-  if (track !== null && !VALID_TRACKS.includes(track)) {
+  // Validate: must be null, "random", or a known filename
+  if (track !== null && track !== "random" && !VALID_TRACKS.includes(track)) {
     return NextResponse.json({ error: "Invalid track" }, { status: 400 });
   }
 
