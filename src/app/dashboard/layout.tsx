@@ -63,6 +63,13 @@ export default function DashboardLayout({
                 >
                   Settings
                 </Link>
+                <Link
+                  href="/explore"
+                  className="text-sm font-medium transition-colors hover:opacity-70"
+                  style={{ color: "#5a4d6b" }}
+                >
+                  Explore
+                </Link>
                 <a
                   href="mailto:support@dailygist.fyi"
                   target="_blank"
