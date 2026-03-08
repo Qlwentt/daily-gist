@@ -2,6 +2,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { ExplorePageClient } from "@/components/explore-page-client";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Explore — Daily Gist",
   description:
