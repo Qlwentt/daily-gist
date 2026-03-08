@@ -224,6 +224,11 @@ export function ExplorePageClient({
               isPlaying={playingId === episode.id}
               progress={progress[episode.id] ?? 0}
               onTogglePlay={() => togglePlay(episode)}
+              onSeek={(fraction) => {
+                if (audioRef.current && playingIdRef.current === episode.id && audioRef.current.duration) {
+                  audioRef.current.currentTime = fraction * audioRef.current.duration;
+                }
+              }}
             />
           ))}
 
@@ -300,11 +305,13 @@ function EpisodeCard({
   isPlaying,
   progress,
   onTogglePlay,
+  onSeek,
 }: {
   episode: ExploreEpisode;
   isPlaying: boolean;
   progress: number;
   onTogglePlay: () => void;
+  onSeek: (fraction: number) => void;
 }) {
   const hostAlias = episode.host_voice
     ? getVoiceAlias(episode.host_voice)
@@ -460,8 +467,13 @@ function EpisodeCard({
             )}
           </button>
           <div
-            className="flex-1 h-1 rounded-full overflow-hidden"
+            className="flex-1 h-1 rounded-full overflow-hidden cursor-pointer"
             style={{ background: "rgba(45, 27, 78, 0.08)" }}
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const fraction = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+              onSeek(fraction);
+            }}
           >
             <div
               className="h-full rounded-full transition-[width] duration-200"
