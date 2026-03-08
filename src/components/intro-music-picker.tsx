@@ -138,13 +138,14 @@ export function IntroMusicPicker({
             }}
           >
             <option value="" style={{ color: "#1a0e2e" }}>None</option>
+            <option value="random" style={{ color: "#1a0e2e" }}>Surprise Me!</option>
             {TRACKS.map((track) => (
               <option key={track} value={track} style={{ color: "#1a0e2e" }}>
                 {formatLabel(track)}
               </option>
             ))}
           </select>
-          {selected && (
+          {selected && selected !== "random" && (
             <button
               type="button"
               onClick={() => togglePlay(selected)}

@@ -911,9 +911,19 @@ _INTRO_FADE_OUT_MS = 2500  # fade out the tail of the intro music
 
 def _prepend_intro(mp3_path: str, intro_music: str, tmp_dir: str) -> str:
     """Prepend an intro music track + silence gap to the episode MP3."""
+    import random as _random
     from pathlib import Path
 
-    intro_path = Path(__file__).parent / "intro-music" / intro_music
+    if intro_music == "random":
+        intro_dir = Path(__file__).parent / "intro-music"
+        tracks = list(intro_dir.glob("*.mp3"))
+        if not tracks:
+            logger.warning("No intro music files found in %s — skipping", intro_dir)
+            return mp3_path
+        intro_path = _random.choice(tracks)
+        intro_music = intro_path.name
+    else:
+        intro_path = Path(__file__).parent / "intro-music" / intro_music
     if not intro_path.exists():
         logger.warning("Intro music file not found: %s — skipping", intro_path)
         return mp3_path
