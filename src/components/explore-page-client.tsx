@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Instrument_Serif, DM_Sans } from "next/font/google";
 import { getVoiceAlias } from "@/lib/voices";
 import type { ExploreEpisode } from "@/app/explore/page";
@@ -340,10 +341,13 @@ function EpisodeCard({
       {/* Square thumbnail */}
       {episode.cover_image_url && (
         <div className="relative flex-shrink-0 w-32 md:w-36">
-          <img
+          <Image
             src={episode.cover_image_url}
             alt={episode.title}
+            width={144}
+            height={144}
             className="w-full h-full object-cover"
+            sizes="144px"
           />
           {/* Category badge */}
           <span
