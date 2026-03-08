@@ -98,6 +98,10 @@ def _get_supabase():
 class GenerateRequest(BaseModel):
     user_id: str
     newsletter_text: str
+    target_length_minutes: int | None = None
+    host_voice: str | None = None
+    guest_voice: str | None = None
+    intro_music: str | None = None
 
 
 class GenerateResponse(BaseModel):
@@ -132,8 +136,20 @@ def generate(body: GenerateRequest, _auth: None = Depends(verify_token)):
         len(body.newsletter_text),
     )
 
+    kwargs: dict = {}
+    if body.target_length_minutes is not None:
+        kwargs["target_length_minutes"] = body.target_length_minutes
+    if body.host_voice is not None:
+        kwargs["host_voice"] = body.host_voice
+    if body.guest_voice is not None:
+        kwargs["guest_voice"] = body.guest_voice
+    if body.intro_music is not None:
+        kwargs["intro_music"] = body.intro_music
+
     try:
-        mp3_bytes, transcript, source_newsletters = generate_podcast(body.newsletter_text)
+        mp3_bytes, transcript, source_newsletters = generate_podcast(
+            body.newsletter_text, **kwargs
+        )
     except Exception:
         logger.exception("Podcast generation failed for user_id=%s", body.user_id)
         raise HTTPException(status_code=500, detail="Podcast generation failed")

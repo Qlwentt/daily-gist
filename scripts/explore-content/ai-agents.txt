@@ -1,0 +1,50 @@
+--- Newsletter: TLDR AI ---
+Subject: GPT 5.4 rumors, Qwen team exodus, AI safety's deadline
+
+OpenAI released GPT-5.4 this week with numbers that stop you in your tracks: a one million token context window in the API, native computer use scoring 75% on OSWorld (surpassing human performance at 72.4%), 33% fewer factual errors, and professional-level performance across 44 occupations. The computer-use capability is the headline feature -- the model can now operate a full desktop environment, clicking through menus, filling out forms, and navigating multi-step workflows without human intervention. It is the clearest signal yet that agentic AI is no longer a research demo.
+
+AI-native companies like Linear, Ramp, and Factory are already integrating AI agents deeply into their operations, treating them not as tools but as essential team members across all functions. Factory, for instance, uses agents throughout its software development lifecycle -- from triaging incoming issues to drafting pull requests to running QA. Linear has agents that autonomously categorize, prioritize, and route bugs based on product context. Ramp deploys agents across expense management that catch policy violations, flag anomalies, and auto-categorize transactions, reducing the finance team's manual review work by an estimated 60%.
+
+The Qwen team at Alibaba just saw major high-profile departures. Junyang Lin, the lead researcher building Qwen, announced his departure on X. Several other core members followed: Binyuan Hui, who was responsible for the entire agent training process from pre-training to post-training; Bowen Yu, who led the development of the Qwen-Instruct series models; and Kaixin Li, a core contributor to Qwen 3.5/VL/Coder. This exodus raises questions about the future trajectory of what has been one of the strongest open-weight model families, particularly in agentic and coding capabilities.
+
+In other agent news, AI models now handle complex tasks without micromanagement, but they require pre-planned workflows. The emerging best practice is to sketch workflows with decision branches and use visual diagrams for agent setup, allowing agents to work independently and produce ready-to-use outputs. The shift is subtle but profound -- teams are moving from prompting to architecting. You are not telling the model what to do step by step. You are defining the decision space and letting it navigate. The companies getting the most out of agents are the ones that invested in clear process documentation before they ever plugged in AI.
+
+--- Newsletter: The Pragmatic Engineer ---
+Subject: AI Tooling for Software Engineers in 2026
+
+I just published the results of our latest AI tooling survey -- nearly a thousand software engineers responded, and the data tells a striking story about how fast this space is moving.
+
+The headline finding: Claude Code has gone from zero to the number one AI coding tool in only eight months. Released by Anthropic in May 2025, it has already overtaken both GitHub Copilot and Cursor to become the most-used AI coding tool among our respondents. To put that in perspective, Claude Code is today nearly as widespread as GitHub Copilot was in our survey three years ago, in the spring of 2023. That shows you how fast the AI tooling market moves -- dominance is measured in months, not years.
+
+But the more interesting signal is the shift from autocomplete to agents. Fifty-five percent of respondents say they regularly use AI agents, often to help debug code, explore unfamiliar codebases, or automate repetitive parts of the development process. Coding with agents has slowly overtaken using AI for "just" autocomplete. This is a meaningful transition: autocomplete augments your typing, but agents augment your thinking and your workflow.
+
+The adoption correlates with seniority in ways I did not expect. Staff-plus engineers are the heaviest agent users at 63.5%, compared to regular engineers at 49.7%, engineering managers at 46.1%, and directors and VPs at 51.9%. My interpretation: senior engineers are better at defining clear tasks and constraints for agents, which makes agents more useful for them. They are also more comfortable delegating and reviewing output rather than writing everything from scratch.
+
+Sentiment tracks with usage. People using agents are nearly twice as likely to feel excited about AI, while non-users are twice as likely to be skeptical. This creates a self-reinforcing dynamic -- the engineers who try agents get more productive, which makes them more enthusiastic, which makes them invest more time in learning agent workflows.
+
+Most engineers now juggle multiple AI tools. Seventy percent use between two and four tools simultaneously, while fifteen percent use five or more. The typical setup is a code-completion tool in the IDE plus a chat-based agent for complex tasks plus a terminal-based tool for automation. OpenAI's Codex has seen explosive early growth despite not existing during our last survey -- it already has 60% of Cursor's usage share.
+
+The MCP protocol had a breakout year in 2025. Running an MCP server has become almost as common as running a web server. The Python and TypeScript SDKs have surpassed 97 million monthly downloads combined. MCP provides the connective tissue that lets agents interact with codebases, databases, APIs, and other tools in a standardized way. Without it, every agent integration was bespoke. With it, the ecosystem can compose.
+
+One trend worth watching: "vibe coding" went from a term Andrej Karpathy coined in February 2025 to a Merriam-Webster entry within a month. The concept -- describing what you want in natural language and letting AI handle the implementation -- has matured rapidly. It is enabling non-developers to build functional applications. But it is also creating new problems. Open-source maintainers are facing floods of low-quality AI-generated pull requests, and projects like Gentoo Linux and NetBSD have moved to ban AI-generated submissions entirely. The community is still working out the norms.
+
+The bottom line: 95% of respondents use AI tools at least weekly, and 75% use AI for at least half their software engineering work. We have crossed the tipping point. AI tooling is no longer optional for professional software development. The question is not whether to use it, but how to use it well.
+
+--- Newsletter: Exponential View ---
+Subject: Entering the Trillion-Agent Economy
+
+Azeem Azhar here. This week I want to share what happens when agents stop being a product category and start being an economic layer.
+
+My own experience is instructive. I have been running an AI agent -- an OpenClaw-based system I call Arnold -- as a 24/7 chief of staff on a Mac mini. It uses multiple specialized sub-agents, each handling different domains: research, scheduling, financial analysis, writing assistance. My personal token usage went from roughly a million tokens a day to 80 million, and I can account for every single one of them in terms of value delivered.
+
+Here is an example. Last week, I had a complex financial question about portfolio dispersion. I told Arnold to make sense of it, compare it to my current portfolio, and spin up sub-agents if needed. Twenty minutes later, I had a report that had pulled historical dispersion data, retrieved current stock prices, assembled the comparison, and explained the underlying mechanism. That task would have taken me half a day of research, or I would have paid an analyst to do it. The agent did it for about forty cents in API costs.
+
+Now multiply that by eight billion people. Even if only a fraction adopt this pattern, even if the interface needs another year or two to get easy enough for mainstream use, the demand picture stops being theoretical very quickly. Agentic workflows that plan, load tools, and spawn sub-agents can consume tens of thousands of tokens per task. The token bill and revenues for model providers are often 10 to 40 times higher than basic chatbot interactions. This is why the generative AI sector saw roughly 230% annual revenue growth in 2025, reaching around 60 billion dollars. The fastest-growing segment by far is the API layer, which grew nearly 300% in 2025.
+
+My colleague Rohit Krishnan has been running about 20 AI agents simultaneously and burned through 50 billion tokens last month. He is not an anomaly -- he is an early signal. The power users of today are consuming at levels that will be normal for knowledge workers within two to three years.
+
+The economic infrastructure question is the one nobody is adequately addressing. What does coordination look like in a world of trillions of agents? How do agents establish identity and trust when interacting with each other? What does exchange look like when software entities are conducting transactions autonomously? These are not futuristic questions. They are engineering problems we need to solve in the next 18 months.
+
+What I keep coming back to is orchestration. 2026 is the year when AI stops feeling like a set of tools and starts feeling like a workforce. The advantage is shifting to those who can orchestrate agents into reliable, repeatable outcomes. The skill is not prompt engineering anymore. It is systems design, process architecture, and quality control for autonomous workers. A Deloitte survey from late 2025 shows 85% of organizations increased their AI investment in the past 12 months, and 91% plan to increase it again. The money is flowing. The question is whether the management capability will keep up.
+
+My prediction: we are about 18 months from the point where most knowledge workers will manage a portfolio of specialized agents rather than performing tasks directly. Your job title will not change, but your job will be fundamentally different. You will be an orchestrator. And that requires a new set of skills that almost nobody is systematically teaching yet.

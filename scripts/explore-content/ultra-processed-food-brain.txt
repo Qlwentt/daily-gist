@@ -1,0 +1,85 @@
+--- Newsletter: ZOE Science & Nutrition ---
+Subject: New research: Ultra-processed food is reshaping your brain — here's what 9.8 million people taught us
+
+We need to talk about ultra-processed food.
+
+You've probably seen the headlines. But the science behind them is more alarming — and more nuanced — than most coverage suggests. At ZOE, we've been tracking this research closely, and the latest findings demand your attention.
+
+Let's start with definitions. The NOVA classification system, developed by Carlos Monteiro's group at the University of Sao Paulo, divides all food into four categories. Group 1 is unprocessed or minimally processed foods — fruits, vegetables, meat, eggs. Group 2 is processed culinary ingredients like olive oil, butter, and salt. Group 3 is processed foods — canned vegetables, artisan bread, simple cheeses. Group 4 is ultra-processed food, or UPF: industrial formulations made mostly from substances derived from foods and additives, with little if any intact Group 1 food.
+
+That Group 4 category now accounts for 57% of calories consumed in the US and UK. In some demographics — particularly adolescents and lower-income households — it exceeds 70%.
+
+Here's what has the research community paying serious attention. A landmark BMJ meta-analysis published in February 2025 pooled data from 45 systematic reviews covering 9.8 million participants. The findings: higher UPF consumption was convincingly associated with 32 adverse health outcomes, including a 50% greater risk of cardiovascular disease-related death, a 48-53% higher risk of anxiety and common mental health disorders, a 12% increase in type 2 diabetes risk per 10% increment of UPF in the diet, and — critically for today's discussion — measurable cognitive decline and increased dementia risk.
+
+That last point deserves unpacking. A 2022 study published in JAMA Neurology followed 10,775 participants from the Brazilian Longitudinal Study of Adult Health over a median of eight years. Those consuming more than 20% of their calories from ultra-processed foods experienced 28% faster global cognitive decline and 25% faster executive function decline compared to those eating less UPF.
+
+Professor Tim Spector, our co-founder and professor of genetic epidemiology at King's College London, puts it directly: "We used to think of ultra-processed food primarily as a metabolic problem — obesity, diabetes, heart disease. But the emerging evidence on neurodegeneration is, frankly, what keeps me up at night. The brain is extraordinarily sensitive to systemic inflammation and gut microbiome disruption, both of which UPF drives relentlessly."
+
+The mechanism connecting your gut to your brain is the gut-brain axis — a bidirectional communication highway operating through the vagus nerve, immune signaling, and microbial metabolites. Your gut microbiome produces neurotransmitters including roughly 95% of your body's serotonin and significant quantities of GABA and dopamine. When UPF disrupts microbial diversity — and our ZOE PREDICT studies have shown it absolutely does — the downstream effects on brain chemistry are real and measurable.
+
+But there's another layer. UPF is specifically engineered to override your satiety signals. The combination of refined starches, added sugars, seed oils, salt, and flavor enhancers creates what food scientists call a "bliss point" — the precise ratio that maximizes consumption. This isn't a conspiracy theory. Howard Moskowitz, the food industry researcher who pioneered bliss point optimization, has spoken publicly about it. These products are designed to be over-consumed. Your willpower isn't the problem. The food is.
+
+What can you do? At ZOE, we believe in evidence over ideology. You don't need to eliminate every processed food from your life. But understanding what you're eating — and making informed swaps — is the single highest-leverage dietary change most people in Western countries can make. Start by reading ingredients, not just nutrition labels. If the list contains substances you wouldn't find in a home kitchen — maltodextrin, carrageenan, high-fructose corn syrup, artificial sweeteners — that's UPF. And it's reshaping your biology in ways we're only beginning to understand.
+
+More on this in next week's podcast with Professor Chris van Tulleken.
+
+--- Newsletter: Examine.com Research Digest ---
+Subject: UPF and the brain: separating mechanism from moral panic
+
+The ultra-processed food discourse has reached a fever pitch. Carnivore influencers claim seed oils are "literally poison." Wellness accounts insist emulsifiers are "destroying your gut lining." And the phrase "ultra-processed" has become a catch-all term of dietary condemnation, applied to everything from Doritos to protein bars.
+
+At Examine, our job is to look at what the evidence actually says. So let's break down the specific mechanistic pathways by which UPF components may affect neurological health — and where the science is genuinely strong versus where social media has outrun the data.
+
+Mechanism 1: Gut microbiome disruption. This is where the evidence is most robust. Emulsifiers — particularly polysorbate 80 (P80) and carboxymethylcellulose (CMC) — have been shown in both animal models and a 2022 randomized controlled trial by Chassaing et al. to reduce microbial diversity and thin the intestinal mucus layer. The mucus layer is your gut's first line of defense. When it thins, bacterial endotoxins — specifically lipopolysaccharides (LPS) — translocate into the bloodstream at higher rates. This is called metabolic endotoxemia, and it triggers low-grade systemic inflammation measurable via C-reactive protein and IL-6 levels. These inflammatory markers cross the blood-brain barrier and activate microglia, the brain's resident immune cells. Chronically activated microglia are a hallmark of Alzheimer's disease pathology.
+
+Artificial sweeteners add another dimension. A 2023 Cell study by Suez et al. demonstrated that saccharin, sucralose, aspartame, and stevia all altered the human gut microbiome within two weeks, though the effects were highly individualized. Sucralose and saccharin produced the most consistent changes, including impaired glycemic responses. The neurological implications of sweetener-driven dysbiosis remain understudied, but the microbiome disruption itself is now well-established.
+
+Mechanism 2: Neuroinflammation. Beyond LPS-driven microglial activation, UPF consumption correlates with elevated levels of advanced glycation end-products (AGEs) — compounds formed when sugars react with proteins or fats during high-temperature industrial processing. AGEs bind to RAGE receptors in the brain, triggering NF-kB inflammatory cascades. A 2024 study in Neurobiology of Aging found that participants in the highest tertile of dietary AGE intake showed 19% greater hippocampal volume loss over five years compared to the lowest tertile. The hippocampus is your brain's memory center.
+
+Mechanism 3: Dopamine receptor downregulation. This is the mechanism that gets the most social media attention, and the science is genuinely interesting, though more preliminary. Hyper-palatable foods — defined by Fazzino et al. (2019) as combinations that exceed thresholds in fat + sodium, fat + sugar, or carbohydrate + sodium — activate mesolimbic dopamine pathways similarly to addictive substances. Using PET imaging, a 2023 study in Nature Metabolism showed that individuals consuming high-UPF diets had measurably reduced dopamine D2 receptor availability in the striatum — the same pattern observed in substance use disorders. The implication: chronic UPF consumption may literally dull your brain's reward circuitry, requiring increasing stimulation (more hyper-palatable food) to achieve the same hedonic response.
+
+Now, the caveats. And these matter.
+
+First, the NOVA classification is a blunt instrument. It groups protein powder, whole-grain bread with added emulsifiers, and Coca-Cola in the same category. Not all Group 4 foods are metabolically equivalent. A mass-produced white bread and a commercial whole-grain loaf with lecithin have very different glycemic and microbiome impacts, despite both being "ultra-processed."
+
+Second, most UPF-cognition studies are observational. The 2025 BMJ meta-analysis is impressive in scale but cannot establish causation. Residual confounding is significant: people who eat more UPF also tend to exercise less, sleep worse, have lower incomes, and experience more chronic stress — all independent risk factors for cognitive decline.
+
+Third, the dose matters enormously. Going from 60% UPF calories to 30% is likely far more impactful than going from 15% to zero. Perfectionism here is unnecessary and potentially counterproductive if it triggers orthorexic patterns.
+
+The bottom line: the mechanistic plausibility linking UPF to neurological harm is strong and growing. The emulsifier-microbiome-inflammation-microglia pathway is the most convincing. Dopamine downregulation is real but needs more human data. Seed oils as isolated compounds remain unproven as uniquely harmful — the context of the overall food matrix matters more than any single ingredient.
+
+Reduce UPF. But do it because the evidence supports it, not because an influencer told you canola oil is destroying civilization.
+
+--- Newsletter: Mark Hyman's The Doctor's Farmacy ---
+Subject: Your practical guide to breaking up with ultra-processed food (without losing your mind)
+
+Friends,
+
+I've spent three decades in functional medicine, and I can tell you — the conversation around food is finally catching up to what we've seen in clinical practice for years. Ultra-processed food isn't just making us fat. It's making us sick, tired, anxious, foggy, and inflamed. And the research now backs this up in ways that are impossible to ignore.
+
+But here's what frustrates me about the UPF conversation: most of it stops at the problem. "Ultra-processed food is bad!" Great. Now what? If you're a parent working two jobs, or a college student on a tight budget, or frankly anyone living in a modern food environment where 73% of the US grocery supply is ultra-processed, you need practical solutions, not just scary data.
+
+So let me give you what actually works.
+
+First, the 80/20 approach. You do not need to be perfect. I want to be very clear about this. If 80% of what you eat is real, whole food — vegetables, fruits, quality proteins, healthy fats, whole grains, nuts, seeds — the remaining 20% is not going to derail your health. Perfectionism around food creates its own stress response, which drives cortisol, which drives inflammation. The goal is progress, not purity.
+
+Second, let's talk simple swaps. These are specific substitutions I give my patients, and they work because they don't require you to overhaul your entire life overnight.
+
+Swap commercial bread for sourdough or sprouted grain bread. Most supermarket bread contains high-fructose corn syrup, dough conditioners like azodicarbonamide, and preservatives like calcium propionate. Real sourdough has flour, water, salt, and starter. That's it. Brands like Dave's Killer Bread Organic Thin-Sliced or local bakery sourdough are easy wins.
+
+Swap flavored yogurt for plain whole-milk yogurt with actual fruit. A single container of Yoplait Original Strawberry has 18 grams of added sugar plus Red 40 and modified corn starch. Plain Greek yogurt with fresh berries gives you protein, probiotics, and fiber without the industrial additives.
+
+Swap bottled salad dressing for olive oil and vinegar. Most commercial dressings — even "healthy" ones — contain soybean oil, sugar, natural flavors (which can mean dozens of chemical compounds), and xanthan gum. Extra virgin olive oil, balsamic vinegar, salt, pepper. Thirty seconds. Better in every measurable way.
+
+Swap breakfast cereal for eggs. I don't care if the box says "heart healthy" or "whole grain." Most cereals are sugar delivery systems with synthetic vitamins sprayed on. Two eggs cooked in butter or olive oil with some vegetables will keep you full until lunch and stabilize your blood sugar. The cholesterol concern is outdated — the 2020 Dietary Guidelines Advisory Committee confirmed that dietary cholesterol is no longer a nutrient of concern for most people.
+
+Now, a word about label reading. Ignore the front of the package. It's marketing. Flip it over. Look at the ingredient list. My rule: if it has more than five ingredients and you can't pronounce or picture three of them, put it back. Watch specifically for added sugars hiding under alternative names — there are at least 60: dextrose, maltose, rice syrup, cane juice, barley malt. And watch for seed oils listed as "vegetable oil" — that typically means soybean, corn, or canola oil, which are industrially extracted using hexane solvent.
+
+Here's something I really want to emphasize: organic junk food is still junk food. I see patients who are eating organic tortilla chips, organic cookies, organic mac and cheese, and wondering why they still feel terrible. The organic label means the ingredients were grown without synthetic pesticides. It says nothing about the degree of processing. An organic Oreo equivalent still has refined flour, sugar, and palm oil. It's marginally better, not meaningfully different.
+
+Finally — and this is what excites me most — the food-as-medicine movement is gaining real traction in healthcare policy. The Food Is Medicine Research Initiative, funded by the NIH and Rockefeller Foundation, has now produced data from its produce prescription programs showing that medically tailored meals reduce healthcare costs by 16% and hospital admissions by 49% in food-insecure populations with diet-related chronic disease. California's Medi-Cal program is covering medically tailored meals for qualifying patients. Medicare Advantage plans are beginning to include grocery benefits. Representative Jim McGovern's White House Conference on Hunger, Nutrition, and Health in 2022 set a national goal to end hunger and reduce diet-related disease by 2030, with UPF reduction as a stated priority.
+
+The system is shifting. Slowly, imperfectly, but meaningfully. Your job is to start where you are, swap what you can, and stop beating yourself up about the rest. Real food doesn't have to be expensive, complicated, or time-consuming. It just has to be real.
+
+To your health,
+Dr. Mark Hyman

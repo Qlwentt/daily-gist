@@ -1,0 +1,42 @@
+--- Newsletter: Market Briefs ---
+Subject: S&P Hits New High on AI Infrastructure Boom
+
+The S&P 500 closed at 6,847 yesterday, marking its 15th record high this year. The rally is broadening beyond the Magnificent Seven, with industrials and utilities joining the party.
+
+The catalyst: AI infrastructure spending is flowing into the real economy. Data center construction hit $120 billion in 2025 and is projected to reach $200 billion in 2026. That's not just benefiting Nvidia — it's boosting concrete companies, electrical equipment makers, cooling system manufacturers, and rural communities where data centers are being built.
+
+Energy stocks are having a renaissance. The insatiable power demand from AI data centers has made utilities the second-best performing sector this year. NextEra Energy is up 34%. Nuclear stocks are surging on the back of Microsoft's deal to restart Three Mile Island and Google's commitment to small modular reactors.
+
+The Fed factor: Chair Powell's latest comments hinted at two more rate cuts this year, citing "sufficient progress" on inflation. The 10-year yield dropped to 3.8%, the lowest since early 2024. Lower rates plus massive AI capex equals a very happy stock market.
+
+Bear case: Valuations are stretched. The S&P trades at 23x forward earnings, well above the 10-year average of 18x. If AI spending disappoints — or if the productivity gains don't materialize — we could see a meaningful correction. But for now, the momentum is firmly bullish.
+
+--- Newsletter: Morning Brew ---
+Subject: The Fed Pivot Nobody Saw Coming
+
+Happy Wednesday, Brew readers. The big story: the Fed is pivoting faster than expected, and it's not because the economy is weak — it's because inflation fell more than anyone predicted.
+
+Core PCE came in at 2.1% annualized in February, basically at the Fed's 2% target. The surprising part: housing inflation finally cracked. Rent growth slowed to 1.8% year-over-year, down from 8% at its peak. The "long and variable lags" of rate hikes are finally showing up in the data.
+
+What this means for your money: mortgage rates could hit 5.5% by summer. That would unlock a wave of housing activity — both existing home sales (frozen by the "lock-in effect") and new construction. Homebuilder stocks are already pricing this in, with the XHB ETF up 22% year-to-date.
+
+The dollar is weakening, which is boosting international stocks and commodities. Gold hit $2,850, and copper is near all-time highs on AI data center demand.
+
+One concern: the job market is cooling faster than expected. Unemployment ticked up to 4.2%, and job openings dropped below 8 million for the first time since 2021. The Fed is threading the needle between supporting growth and not letting the labor market deteriorate too much.
+
+Bottom line: this is the soft landing everyone wanted but nobody believed was possible. The question is whether it lasts.
+
+--- Newsletter: The Hustle ---
+Subject: The Great Rotation: Why Smart Money Is Moving Beyond Big Tech
+
+If you've only been watching the Magnificent Seven, you're missing the real story in markets right now. The biggest shift of 2026 so far is the "great rotation" — institutional investors are quietly moving capital from mega-cap tech into sectors that benefit from AI spending without the sky-high valuations.
+
+Here's what's happening: Eaton Corporation, which makes electrical equipment for data centers, is up 45% year-to-date. Vertiv, which builds cooling systems for server racks, has tripled since 2024. Quanta Services, which constructs the power infrastructure these facilities need, just hit an all-time high. These aren't sexy AI companies — they're the picks-and-shovels plays, and they're crushing it.
+
+The numbers tell the story. Bank of America's latest fund manager survey shows the biggest overweight in industrials since 2018, while tech allocation dropped to its lowest level in two years. It's not that managers are bearish on tech — it's that the risk-reward has shifted. Nvidia trades at 35x earnings, while Eaton trades at 28x with faster earnings growth.
+
+Private credit is the other big winner. With banks still cautious on lending, private credit funds are stepping in to finance everything from data center construction to energy infrastructure. Apollo just raised a $25 billion fund — the largest private credit vehicle ever. Yields of 10-12% with senior secured positions are attracting pension funds and endowments that used to park money in bonds.
+
+The retail investor angle: individual investors are piling into leveraged ETFs at a record pace. ProShares UltraPro QQQ (TQQQ) saw $3.2 billion in inflows last month alone. That's a warning sign — retail leverage tends to peak near market tops. But as long as the AI infrastructure buildout continues and rates keep falling, the music keeps playing.
+
+One wildcard: tariff policy. The administration's proposed 25% tariff on semiconductor equipment imports could disrupt the entire AI supply chain. ASML and Tokyo Electron shares wobbled on the news. If tariffs stick, it could add 15-20% to data center construction costs and slow the very spending boom that's driving this rally. Markets are pricing in a low probability of follow-through, but it's worth watching.

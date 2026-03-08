@@ -1,0 +1,38 @@
+--- Newsletter: Heatmap News ---
+Subject: All the Nuclear Workers Are Building Data Centers Now
+
+The Trump administration has set an ambitious goal to have 10 new large nuclear reactors under construction by 2030. But the workforce that should be driving steel into the ground, pouring concrete, and laying down wires for nuclear plants is instead building data centers. The skilled labor competition between the nuclear renaissance and the data center boom is one of the defining tensions in American energy policy right now.
+
+Data centers now account for an estimated 4 percent of US power usage, a figure that could more than double by 2030. Microsoft, Google, and Amazon collectively need around 20 gigawatts of new clean power by 2030. Microsoft signed a 20-year power purchase agreement with Constellation Energy to restart Three Mile Island's Unit 1 reactor. Amazon signed a contract for 960 megawatts from Talen Energy's Susquehanna nuclear plant. Google announced it will purchase power from a fleet of small modular reactors made by Kairos Power, with the first SMR coming online by 2030.
+
+The irony is sharp: the same demand that is creating the business case for new nuclear is pulling workers away from building it. Unions like the International Brotherhood of Electrical Workers and the Laborers' International Union see data center projects as faster, more predictable work. Nuclear construction involves extensive regulatory requirements and longer development periods. The workforce that was trained from scratch for Vogtle — 13,000 people — is now being courted by hyperscale data center developers offering competitive wages and quicker timelines.
+
+In Surry County, Virginia, work is advancing on a project adjacent to the existing nuclear plant that would combine data centers, small modular reactors, and hydrogen fuel production. The data centers would come first, with SMRs following once costs come down. It is a template for how these two industries might coexist, but only if there are enough workers to build both.
+
+--- Newsletter: Volts by David Roberts ---
+Subject: Nuclear? Perhaps! — An Interview with Jigar Shah on the Future of Nuclear Energy
+
+David Roberts sat down with Jigar Shah, head of the Department of Energy's Loan Programs Office, for a wide-ranging conversation about whether nuclear energy can finally deliver on its promise. Shah's argument is straightforward: clean firm power is essential because wind and solar alone cannot meet future electricity demand, and when nuclear plants shut down, gas fills the gap — not solar plus storage. Historical examples include Vermont Yankee and Indian Point.
+
+The fundamental problem with American nuclear, Shah explains, is that we have 92 operating reactors today and no four are the same. The Atomic Energy Commission allowed reactor manufacturers to offer menu-driven customization, creating massive cost escalation. South Korea and Canada achieved cost control through standardized designs. Shah advocates standardizing on the AP1000 design, arguing that if you just built Unit 4 again at Unit 5 right next door, it would come in at somewhere in the neighborhood of $130 per megawatt-hour. The learning curve proves itself: Vogtle Unit 4 came in at 30 percent less than Unit 3.
+
+On small modular reactors, Shah offers a reality check: they are neither small nor modular, but they are reactors. They are structurally more expensive per megawatt than large reactors because fixed costs — security, perimeter, refueling — do not scale proportionally. The choice between SMRs and large plants depends on site infrastructure. Retired coal plants with 1,200 MW capacity suit four 300 MW SMRs; sites with 2,200 MW suit two AP1000s.
+
+The real innovation may be microreactors in the 1 to 50 MW range. The oil and gas sector willingly pays 35 to 50 cents per kilowatt-hour for diesel generators and would pay for microreactors in remote locations. Shah projects microreactors reaching sub-10 cents per kilowatt-hour after building 100 units annually in factories, with first commercial units expected by the day before 2030.
+
+The financial picture has changed. IRA tax credits provide a 30 percent base credit plus 10 percent for energy communities — all nuclear sites qualify — plus 10 percent for domestic content, totaling a 50 percent tax credit on reactor costs. Combined with hyperscale data centers paying premium tariffs, the financial barriers shrink significantly.
+
+--- Newsletter: Nuclear Business Platform ---
+Subject: 500 GW By 2050? Inside China's Massive Nuclear Expansion and Its Global Power Shift
+
+On April 27, 2025, China's State Council approved construction of 10 new nuclear reactors across five projects with investment exceeding 200 billion yuan, or $27.45 billion. These facilities are scheduled to begin operations between 2030 and 2031. By the end of 2024, China had 102 nuclear reactors that were operational, under construction, or approved, totaling 113 million kilowatts of installed capacity.
+
+The 10 new reactors comprise eight units using China's domestically developed Hualong One technology and two units utilizing the CAP1000 design, adapted from the U.S. AP1000. They are spread across five provinces: Zhejiang, Guangdong, Guangxi, Shandong, and Fujian. Each reactor is projected to produce approximately 10 billion kilowatt-hours annually.
+
+The scale of ambition is staggering. China's targets call for 110 million kilowatts by 2030, 200 GW by 2035, and 400 to 500 GW by 2050. In 2024, nuclear energy generated 444.7 billion kilowatt-hours, representing 4.72 percent of total electricity generation and avoiding an estimated 334 million tons of carbon emissions. According to the IEA, the size of China's nuclear fleet will overtake that of the United States by 2030 to become the largest in the world.
+
+The cost and construction efficiency gap with the West is enormous. China constructs reactors in approximately five years at roughly $2.7 billion per unit — substantially lower than Western projects like Hinkley Point C, estimated at $63.7 billion for two units. China delivered 114 sets of domestically produced nuclear equipment in 2024, doubling previous year output.
+
+China also aims to export 30 nuclear reactors to Belt and Road Initiative partners by 2030, with projected revenues reaching approximately 1 trillion yuan, or $145.5 billion. The Hualong One already has 41 units operational or under construction globally. Advanced projects include the world's first commercial fourth-generation high-temperature gas-cooled reactor at Huaneng Shidaowan and the Linglong One small modular reactor scheduled for 2026 completion.
+
+A 500 GW capacity by 2050 would require 4.25 million tonnes of uranium, creating an entirely new set of supply chain challenges. But the trajectory is clear: China is building the nuclear future that the rest of the world is still debating.

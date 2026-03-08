@@ -1,0 +1,58 @@
+--- Newsletter: Crunchbase Daily ---
+Subject: Global Venture Funding In 2025 Surged As Startup Deals And Valuations Set All-Time Records
+
+The numbers are in, and 2025 was the third-highest venture financing year on record, trailing only the peak years of 2021 and 2022. Venture and growth investors poured $425 billion into more than 24,000 private companies last year, with funding gaining 30% year over year from $328 billion in 2024.
+
+But the headline number tells only part of the story. Last year was defined by new startup records: the largest private funding round of all time ($40 billion to OpenAI), the largest private valuation ever recorded (SpaceX at $800 billion), and the largest venture-backed acquisition on record (Google's $32 billion purchase of Wiz).
+
+The concentration of capital into mega-rounds was staggering. More than a third of global funding went to just 68 companies that raised rounds of $500 million or more, compared to 24% of funding in 2024. Close to 60% of all invested capital went to 629 companies raising rounds of $100 million or more. At the very top, five companies alone — OpenAI, Scale AI, Anthropic, Project Prometheus, and xAI — each raised more than $5 billion, collectively pulling in $84 billion, or 20% of all venture capital deployed in 2025. That level of concentration at the top is unprecedented in any prior year.
+
+AI dominated everything. Venture funding to AI-related companies reached $211 billion, up 85% year over year from $114 billion in 2024. Roughly 50% of all global venture funding went to AI companies, making artificial intelligence the leading sector for the third consecutive year. Foundation model companies alone raised $80 billion, representing 40% of global AI funding, with model company funding more than doubling from $31 billion in 2024. U.S.-based AI companies took the lion's share, with $159 billion — or 79% of all AI sector funding — going to American startups.
+
+Beyond AI, the second-largest industry was healthcare and biotech with around $71.7 billion in funding, up slightly from 2024 amounts. Financial services was the third-largest sector, receiving $52 billion. Defense tech emerged as a notable bright spot, with Anduril, Shield AI, and a dozen smaller companies raising significant rounds as governments increased spending on autonomous systems.
+
+The unicorn board tells its own story. The Crunchbase Unicorn Board approached $7.5 trillion in total value at the close of 2025, showing a more than $2 trillion increase compared to the close of 2024. More than 100 new tech startups achieved unicorn status during the year, with a significant portion centered around artificial intelligence. Notable new unicorns include Unconventional AI ($4.5 billion valuation from a $475 million seed round), Gamma ($2.1 billion after a $68 million Series B), and Main Func ($1.25 billion after a $275 million Series B for AI agents automating white-collar tasks).
+
+Meanwhile, the IPO window showed surprising strength. At least 23 U.S.-based companies listed above $1 billion in value compared to nine in 2024, with total valuations reaching at least $125 billion. The median time to IPO for companies valued at $500 million or more has reached over 11 years, with the bar now set at close to $500 million-plus in revenue, at least 30% growth, and positive rule of 40.
+
+For all the records, the picture is deeply uneven. Non-AI startups saw a very different reality. Fintech funding dropped 35%, consumer social fell 50%, and crypto declined 60% from 2024. Even healthtech, which was resilient through 2024, saw a 20% decline as investors rotated into AI health applications instead.
+
+--- Newsletter: TechCrunch Venture ---
+Subject: Just Three Companies Dominated the $189B in VC Investments Last Month
+
+February 2026 just became the largest startup funding month in venture history. Global venture investment totaled $189 billion — shattering the previous record of $78 billion set in November 2021 during the Web3 boom. But the headline masks a reality that should concern anyone who isn't building a frontier AI model.
+
+Three companies accounted for 83% of all capital raised. OpenAI closed a $110 billion round — the largest venture round ever raised by a private company — at a $730 billion valuation. Anthropic added $30 billion at a $380 billion valuation, ranking as the third-largest venture deal on record. And Waymo closed $16 billion at a $126 billion valuation. Together, those three rounds totaled $156 billion.
+
+AI-related startups raised $171 billion in February alone, accounting for 90% of all global venture funding. Other sectors that stood out include hardware-related startups dominated by autonomous-vehicle technology, semiconductors, robotics, and networking products.
+
+The geographic concentration was equally stark. U.S.-based companies took in $174 billion, or 92% of the total, versus roughly 59% a year earlier. Just a couple of months into the year, global venture funding has already topped 50% of the total invested in all of 2025.
+
+But strip out the three mega-rounds and the picture looks very different. Without OpenAI, Anthropic, and Waymo, venture activity looks far more ordinary. Seed-stage funding actually fell about 11% year over year in February, to $2.6 billion. The reality for most founders raising a $3 million seed or $15 million Series A hasn't changed much — if anything, it's gotten harder as LP capital flows upstream toward the biggest names.
+
+Meanwhile, there are 17 U.S.-based AI companies that have raised $100 million or more already in 2026, with three raising rounds larger than $1 billion. The velocity of mega-rounds shows no sign of slowing.
+
+The investor side tells its own story. Active investors spent more on fewer deals in February. Y Combinator, Andreessen Horowitz, and Nvidia were among the most active deployers of capital. The trend toward fewer but bigger bets is accelerating — a pattern that favors established platforms and proven teams over first-time founders.
+
+For non-AI startups, the message is clear: the venture market is functionally a two-tier system right now. If you're building in AI, autonomous systems, or defense tech, capital is abundant. If you're building a SaaS tool, a consumer app, or a fintech product without a compelling AI angle, the fundraising environment is as tough as it's been since 2019. It will likely be very difficult for a SaaS company without native AI or agentic capabilities to find VC dollars at any stage in 2026.
+
+--- Newsletter: The VC Outlook ---
+Subject: Venture Capital Outlook for 2026: More Dollars, Bigger Rounds, Fewer Winners
+
+As we move deeper into 2026, the venture capital landscape is being reshaped by forces that will determine which startups thrive and which funds survive. Global venture capital deployment is expected to increase from the low $400 billion range to the high $400 billion mark — roughly a 10% increase in dollars deployed — but the distribution of that capital will be anything but even.
+
+The AI investment thesis continues to strengthen. AI startups now account for roughly 33% of total VC funding across all stages, up from 25% just two years ago. Series A funding for AI startups averages $51.9 million, approximately 30% higher than their non-AI counterparts. At the seed stage, AI companies command a 42% premium in valuations, with median pre-money valuations reaching approximately $17.9 million.
+
+But here's the uncomfortable truth about 2026: it's a fundamentals-first year. Capital rewards revenue growth, efficiency, and real AI advantage, and punishes anything that is AI veneer on old ideas. The "ChatGPT wrapper" era is definitively over. VCs want startups with clear distribution advantages, proprietary data moats, or genuine technical differentiation at the model or infrastructure layer.
+
+The seed-to-Series-A gap remains brutal. Just 15.5% of seed companies funded in Q1 2023 had raised a Series A as of Q1 2025, and 60% of startups that secure pre-seed funding fail before reaching Series A. The bridge from A to B sees another 35% drop off. Series A is expected to see growth as seed remains crowded and growth selectively reopens for companies with real revenue and AI leverage.
+
+M&A is emerging as a critical exit pathway. Global M&A volumes surged in Q3 2025 and are on track to surpass 2021's record highs, with total announced deal volume up 40% year over year. Big corporates are acquiring seed and Series A startups through AI acqui-hires, with many teams having fewer than 100 employees landing $100 million-plus exits. This is actually a relief valve for an ecosystem that had too many companies and too few IPO exits.
+
+The VC industry itself is going through a reckoning. There are roughly 3,000 active VC firms in the U.S., but the top 20 firms deployed 55% of all capital in 2025. That leaves 2,980 firms fighting over $76 billion, averaging $25 million each. LPs are increasingly asking why they should invest in generalist venture funds when they can invest directly in AI companies through growth equity. The line between venture and growth has blurred, and mega-funds like Andreessen Horowitz and Sequoia are eating the market from both ends.
+
+The funds surviving are either hyper-specialized (climate only, biotech only, defense only) or hyper-local (specific geographic markets). The generalist "we invest in great founders" pitch is dead unless you have a track record from 2010. A culling of mediocre funds means the survivors should generate better returns, but the transition is painful for portfolio companies stuck with zombie investors who can't do follow-on rounds.
+
+Defense tech is positioned for continued growth, with the current administration's focus on defense procurement creating increased near-term contract wins for startups. Robotics, autonomous systems, and dual-use AI companies are attracting serious capital from both traditional VCs and government-adjacent investors.
+
+Looking ahead, most venture investors expect funding to continue concentrating into AI-related companies and adjacent sectors such as robotics and defense tech, at the expense of climate tech, crypto, and undifferentiated vertical AI. The 2026 venture market demands a more selective, quality-driven approach where access, underwriting discipline, and cross-market insights matter most. The era of spray-and-pray is over.

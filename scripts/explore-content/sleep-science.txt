@@ -1,0 +1,72 @@
+--- Newsletter: Huberman Lab Neural Network ---
+Subject: Toolkit for Sleep — 12 Science-Based Protocols for Better Rest
+
+Dr. Andrew Huberman here with the most-requested toolkit we've ever published. Sleep is the foundation of mental and physical health, and after years of discussing it on the podcast, I've distilled the science into twelve actionable protocols.
+
+Protocol 1: Morning Sunlight Exposure. View sunlight by going outside within 30-60 minutes of waking. On bright, cloudless days, aim for 10 minutes. On cloudy days, 20 minutes. On very overcast days, 30-60 minutes. This is the single most important thing you can do to anchor your circadian rhythm. The photosensitive retinal ganglion cells in your eyes need bright light to signal your suprachiasmatic nucleus — artificial indoor light is typically 50-100x dimmer than outdoor light, even on cloudy days.
+
+Protocol 2: Afternoon Sunlight. View sunlight again in the late afternoon, prior to sunset. This "second anchor" helps calibrate your internal clock and provides a signal that evening is approaching, priming your melatonin production system.
+
+Protocol 3: Caffeine Timing. Delay caffeine for 90-120 minutes after waking. This allows your natural cortisol pulse — the cortisol awakening response — to clear adenosine naturally. Consuming caffeine too early blocks this process and leads to an afternoon crash. Avoid caffeine entirely after 2 PM; its half-life is 5-6 hours, meaning half the caffeine from a 2 PM coffee is still circulating at 8 PM.
+
+Protocol 4: Temperature Regulation. Your body needs to drop 1-3 degrees Fahrenheit in core temperature to initiate and maintain sleep. Keep your bedroom cool — most research points to 65-68°F as optimal. A warm shower or bath 90 minutes before bed paradoxically helps: the vasodilation causes a rapid core temperature drop afterward. Layer your blankets so you can easily adjust during the night.
+
+Protocol 5: Consistent Sleep-Wake Times. Maintain the same wake time every day, including weekends. Regularity is more important than duration. Research by Dr. Matthew Walker's lab shows that "social jet lag" — the shift in sleep timing between weekdays and weekends — is associated with metabolic disruption, mood disorders, and impaired cognitive performance.
+
+Protocol 6: Evening Light Management. Dim lights in the evening hours. Avoid bright overhead lights between 10 PM and 4 AM. Use low, dim lighting if you must be awake. Even brief exposure to bright light during these hours suppresses melatonin by 50% or more and can shift your circadian rhythm by 1-3 hours.
+
+Protocol 7: Exercise Timing. Exercise is pro-sleep, but timing matters. Morning or early afternoon exercise enhances slow-wave deep sleep that night. Intense exercise within 2-3 hours of bedtime can elevate core body temperature and adrenaline, delaying sleep onset.
+
+Protocol 8: Alcohol Avoidance. Alcohol is the most misunderstood sleep disruptor. While it may help you fall asleep faster, it fragments sleep architecture dramatically. Even moderate drinking (1-2 drinks) reduces REM sleep by 20-30% and increases nighttime awakenings. The metabolites of alcohol — particularly acetaldehyde — are stimulants that disrupt sleep in the second half of the night.
+
+Protocol 9: Supplement Stack (Optional). Taken 30-60 minutes before bed: Magnesium Threonate (145mg) or Magnesium Bisglycinate (200mg) — threonate crosses the blood-brain barrier and reduces neural excitability. L-Theanine (200-400mg) — promotes relaxation without sedation, but skip this if you experience vivid dreams, sleepwalk, or have night terrors. Apigenin (50mg) — derived from chamomile, binds to GABA receptors for calming effects. Start with one supplement and add others over time. Some people need none of these.
+
+Protocol 10: Inositol for Middle-of-Night Waking. If you wake at 2-3 AM and cannot fall back asleep, Myo-Inositol (900mg) can help. This is a different issue from sleep-onset difficulty and requires a different approach.
+
+Protocol 11: Non-Sleep Deep Rest (NSDR). If you cannot sleep or wake up feeling unrested, use NSDR protocols — these are specific guided relaxation practices (available free on YouTube) that shift your brain into states similar to deep sleep. Ten to twenty minutes of NSDR can partially restore the cognitive benefits of lost sleep.
+
+Protocol 12: Limit Naps. If you nap, keep it under 90 minutes and before 3 PM. Napping too late or too long depletes your "sleep drive" — the adenosine pressure that helps you fall asleep at night. That said, a brief 20-minute nap early in the afternoon can boost alertness without compromising nighttime sleep.
+
+The key insight from years of sleep research: consistency beats optimization. You don't need a perfect protocol. You need a good-enough protocol that you follow every single day.
+
+--- Newsletter: OHSU Health Research Digest ---
+Subject: Sleep May Matter More Than Diet or Exercise for Longevity — Major New Study
+
+A landmark study from Oregon Health & Science University, published in December 2025 in the journal SLEEP Advances, has found that insufficient sleep is more strongly correlated with decreased life expectancy than nearly any other behavioral factor — including diet, exercise, social isolation, and unemployment. Only smoking showed a stronger association.
+
+The research team, led by senior author Dr. Andrew McHill of OHSU's Sleep, Chronobiology, and Health Laboratory, analyzed county-level data from all 3,143 U.S. counties, comparing life expectancy figures with detailed survey data collected by the Centers for Disease Control and Prevention between 2019 and 2025.
+
+The CDC defines sufficient sleep as at least seven hours per night, consistent with recommendations from the American Academy of Sleep Medicine and the Sleep Research Society. The study found that counties with higher rates of sleep insufficiency had significantly shorter life expectancies, and this pattern held across nearly every state — all but three showed the negative correlation.
+
+"I didn't expect it to be so strongly correlated to life expectancy," Dr. McHill said. "When we evaluated all the lifestyle factors tied to how long people live, sleep stood out clearly. Its association with life expectancy was stronger than that of diet, physical activity, or social isolation."
+
+What makes this study unusual is its scope and methodology. Rather than relying on self-reported sleep data from a small sample, the researchers used population-level data spanning six years and covering every county in the United States, controlling for common adverse health behaviors including smoking, physical inactivity, food insecurity, and educational attainment.
+
+The findings arrive alongside a separate global study from Peking University and Army Medical University that tracked over 88,000 adults using actigraphy — wrist-worn devices that objectively measure sleep patterns — over an average of 6.8 years. That study, one of the largest to use objective sleep measurement, found that 92 diseases had more than 20% of their risk attributable to poor sleep behavior. Irregular bedtimes (after 12:30 AM) were linked to a 2.57-fold higher risk of liver cirrhosis, while low day-to-day sleep stability increased the risk of gangrene by 2.61 times.
+
+The Peking University study also challenged a long-standing assumption: that sleeping more than nine hours is harmful. While subjective reports have linked long sleep to stroke and heart disease, the objective actigraphy data found this association in only one disease. The researchers discovered that 21.67% of people who self-reported as "long sleepers" actually slept fewer than six hours — their time in bed was being confused with actual sleep time.
+
+Meanwhile, research on sleep consistency from a Circulation Research paper found that circadian disruption — irregular sleep-wake patterns — independently increases risk for cardiometabolic disease, even when total sleep duration is adequate. The American Heart Association has now included sleep health as one of its "Life's Essential 8" metrics for cardiovascular health, alongside diet, exercise, and blood pressure.
+
+The practical implications are straightforward but difficult: sleep seven to nine hours per night, go to bed and wake up at consistent times, and prioritize this above most other health interventions. As Dr. McHill put it, the effect of insufficient sleep "swamped the impact of diet and exercise as a predictor of life expectancy."
+
+--- Newsletter: Stanford Medicine Advances ---
+Subject: AI Can Now Predict 130 Diseases From a Single Night of Sleep Data
+
+Stanford Medicine researchers have developed an artificial intelligence model called SleepFM that can predict the risk of more than 130 diseases — including cancer, heart disease, and dementia — using data from a single night of sleep monitoring. The research, published in Nature Medicine in January 2026, represents a breakthrough in using sleep as a diagnostic window into overall health.
+
+SleepFM is a multimodal foundation model trained on nearly 600,000 hours of polysomnography (PSG) recordings from approximately 65,000 participants across multiple clinical cohorts. The primary training data came from Stanford Sleep Clinic (35,052 studies from participants aged 1 to 100 years) and BioSerenity (18,900 studies from ages 7 to 90), with additional data from the Multi-Ethnic Study of Atherosclerosis (MESA) and the Osteoporotic Fractures in Men Study (MrOS).
+
+Polysomnography captures synchronized physiological signals during sleep: brain activity via electroencephalography and electrooculography, heart rhythms from electrocardiography, muscle activity from electromyography, respiratory airflow, blood oxygen levels, eye movements, and leg movements. What makes SleepFM novel is its ability to integrate all of these signals simultaneously using a contrastive learning approach that accommodates different PSG configurations across clinical sites.
+
+The team employed self-supervised pretraining — the model learned patterns from raw sleep data without being told what diseases to look for — before being fine-tuned on specific prediction tasks. After analyzing more than 1,000 disease categories, SleepFM identified 130 conditions it could predict with clinically meaningful accuracy. The model achieved particularly strong performance for neurodegenerative conditions and cancers: Parkinson's disease (C-index of 0.89), dementia (0.85), hypertensive heart disease (0.84), heart attack (0.81), prostate cancer (0.89), and breast cancer (0.87). A C-index above 0.8 is considered strong predictive performance.
+
+The implications are significant because polysomnography is already widely performed — millions of sleep studies are conducted annually for conditions like sleep apnea. Currently, clinicians analyze these recordings primarily for sleep disorders. SleepFM suggests that the same data contains hidden signals about systemic disease risk that human experts cannot perceive but AI can detect.
+
+The model's ability to predict cancer risk from sleep data is perhaps the most surprising finding. The researchers hypothesize that subtle changes in autonomic nervous system function, brain wave patterns, and respiratory dynamics during sleep may reflect early-stage physiological changes caused by developing tumors — changes too subtle for conventional analysis but detectable by machine learning trained on hundreds of thousands of hours of data.
+
+There are important caveats. The predictions are probabilistic, not diagnostic — a high risk score means increased likelihood, not certainty. The model was trained primarily on clinical populations (people referred for sleep studies), who may not be representative of the general population. And real-world implementation would require standardized PSG protocols and careful validation across diverse populations.
+
+Still, the research suggests a future where a routine sleep study could serve double duty: diagnosing sleep disorders while simultaneously screening for dozens of other conditions. As the authors note, sleep is one of the few clinical settings where patients are continuously monitored for hours, generating rich physiological data that has been largely underutilized for broader health assessment.
+
+The study adds to a growing body of evidence — alongside the OHSU longevity research and global circadian rhythm studies — that sleep is not merely restorative downtime but an active window into the body's health status, and that disruptions to normal sleep patterns are both a symptom and a cause of serious disease.

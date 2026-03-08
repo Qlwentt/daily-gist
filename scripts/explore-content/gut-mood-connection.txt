@@ -1,0 +1,111 @@
+--- Newsletter: ZOE Science & Nutrition ---
+Subject: Your gut microbiome is controlling your mood (and what to do about it)
+
+You probably think of your brain as the organ in charge of your emotions. But mounting evidence suggests there's another player calling the shots — and it lives in your intestines.
+
+Your gut and brain are in constant conversation, and the main phone line between them is the vagus nerve. This cranial nerve runs from your brainstem all the way down to your abdomen, carrying signals in both directions. Crucially, about 80% of the vagus nerve's fibers are afferent — meaning they send information from the gut up to the brain, not the other way around. Your gut is doing most of the talking.
+
+Here's a number that surprises almost everyone: approximately 95% of your body's serotonin is produced in your gut, not your brain. Serotonin is the neurotransmitter most closely associated with mood regulation, and it's the target of SSRIs, the most commonly prescribed antidepressants. Specialized cells in your intestinal lining called enterochromaffin cells are the factories. While gut-produced serotonin doesn't cross the blood-brain barrier directly, it influences brain function through vagal signaling and by modulating inflammation — which absolutely does affect your mental state.
+
+At ZOE, we've been studying this connection through our PREDICT program, the largest ongoing nutritional science study in the world. Our data from over 15,000 participants has revealed something striking: people with greater microbiome diversity consistently report better mental health outcomes, including lower rates of anxiety and depressive symptoms. This held true even after controlling for diet quality, exercise, sleep, and socioeconomic factors.
+
+We're not the only ones finding this. A landmark 2019 study published in Nature Microbiology by Mireia Valles-Colomer and colleagues at KU Leuven analyzed gut microbiome data from over 1,000 people enrolled in the Flemish Gut Flora Project. They identified two genera of bacteria — Coprococcus and Dialister — that were consistently depleted in individuals diagnosed with depression, even after accounting for the effects of antidepressant medication. Coprococcus in particular has a metabolic pathway related to dopamine, the neurotransmitter linked to motivation and reward.
+
+Professor Tim Spector, our co-founder and lead scientist, has been vocal about one practical takeaway from all of this research: aim to eat 30 different plant foods per week. That sounds like a lot, but it includes fruits, vegetables, whole grains, legumes, nuts, seeds, herbs, and spices. Each one feeds different communities of gut bacteria, promoting the diversity that appears so closely linked to mental well-being.
+
+"When I started tracking my own plant diversity," Tim has said, "I realized I was eating the same eight or nine plants on rotation. Most people are. Getting to 30 isn't about eating more — it's about eating more variety."
+
+This doesn't mean yogurt is a replacement for therapy. But it does mean that what you eat is shaping the chemical environment in which your brain operates, and the microbes in your gut are the intermediaries. The old saying "you are what you eat" might be better phrased as "you feel what your microbes eat."
+
+We'll be sharing more findings from our PREDICT 4 cohort later this spring, including new data on how ultra-processed food consumption correlates with specific microbiome signatures linked to mood disorders. Stay tuned.
+
+Eat well,
+The ZOE Science Team
+
+--- Newsletter: Huberman Lab Neural Network ---
+Subject: The neuroscience of your gut-brain axis — protocols for mood, focus, and mental health
+
+Welcome to the Huberman Lab Neural Network newsletter. This week we're diving into one of the most actively researched areas in neuroscience: the gut-brain axis, and how you can leverage it for better mental health.
+
+THE SECOND BRAIN YOU DIDN'T KNOW YOU HAD
+
+Your gastrointestinal tract contains approximately 500 million neurons — more than your spinal cord. This network is called the enteric nervous system, and it's so complex and autonomous that neuroscientists refer to it as the "second brain." It can operate entirely independently of your central nervous system, coordinating digestion through its own reflex circuits. But it doesn't operate in isolation. Through the vagus nerve, the enteric nervous system sends a continuous stream of information to your brainstem, hypothalamus, and limbic system — the brain regions governing mood, stress, and emotional regulation.
+
+Germ-free mouse studies from researchers like John Cryan and Ted Dinan at University College Cork have been foundational here. Mice raised without any gut bacteria show dramatically altered stress responses, elevated corticosterone (the rodent equivalent of cortisol), and reduced BDNF expression in the hippocampus. When you colonize their guts with normal bacteria, these deficits partially reverse — but only if you do it during a critical developmental window. This suggests the microbiome doesn't just correlate with brain function; it shapes it during development.
+
+FERMENTED FOODS VS. FIBER: THE STANFORD STUDY
+
+In 2021, a research group led by Justin Sonnenburg and Christopher Gardner at Stanford published a randomized controlled trial in Cell that compared two dietary interventions: a high-fiber diet versus a high-fermented-food diet, sustained over 10 weeks.
+
+The results were not what many researchers expected. The high-fermented-food group (consuming 6+ servings per day of foods like yogurt, kefir, kimchi, sauerkraut, and kombucha) showed a significant increase in microbiome diversity and a measurable decrease in 19 inflammatory markers, including interleukin-6. The high-fiber group did not show these changes. Their microbiomes appeared to lack the enzymatic capacity to break down the novel fiber — at least within the study's timeframe.
+
+This is an important finding. Fiber is critical for gut health, but if you're trying to increase microbial diversity specifically, fermented foods appear to be a faster and more reliable lever.
+
+SHORT-CHAIN FATTY ACIDS AND NEUROINFLAMMATION
+
+When gut bacteria ferment dietary fiber, they produce short-chain fatty acids (SCFAs) — primarily butyrate, propionate, and acetate. Butyrate in particular has potent anti-inflammatory properties. It strengthens the intestinal barrier (reducing "leaky gut"), modulates the immune system, and crosses the blood-brain barrier where it inhibits histone deacetylases (HDACs), enzymes involved in neuroinflammation and neurodegeneration.
+
+Chronic low-grade neuroinflammation is increasingly recognized as a driver of depression, anxiety, and cognitive decline. By supporting SCFA production through diet, you're essentially providing your brain with an anti-inflammatory substrate.
+
+ACTIONABLE PROTOCOLS
+
+Based on the peer-reviewed literature discussed on the podcast and in our journal club:
+
+1. Fermented food servings: Aim for 2-4 servings daily. Start with one and increase gradually to avoid GI discomfort. Yogurt, kefir, sauerkraut (unpasteurized), kimchi, miso, and kombucha all count. Variety matters — rotate sources.
+
+2. Prebiotic fiber sources: Include garlic, onions, leeks, asparagus, Jerusalem artichokes, under-ripe bananas, and oats. These contain inulin and fructooligosaccharides that preferentially feed beneficial bacteria including Bifidobacteria and Faecalibacterium prausnitzii.
+
+3. Avoid unnecessary antibiotics: A single course of broad-spectrum antibiotics can reduce microbiome diversity for 6-12 months. This isn't a statement against medically necessary antibiotics — it's a reminder to avoid them for viral infections where they provide no benefit. If you do take antibiotics, increasing fermented food intake during and after the course may help accelerate recovery.
+
+4. Polyphenol-rich foods: Dark chocolate (>70% cacao), blueberries, green tea, and extra virgin olive oil contain polyphenols that function as prebiotics, selectively promoting beneficial gut bacteria.
+
+As always, these protocols are based on published research. Individual responses will vary. Consult your physician before making significant dietary changes.
+
+Thank you for your interest in science,
+Andrew Huberman, Ph.D.
+
+--- Newsletter: The Examine.com Research Digest ---
+Subject: Probiotics for depression and anxiety: what the clinical evidence actually shows
+
+The idea that swallowing a capsule of bacteria could improve your mental health sounds like it belongs on a late-night infomercial. But the research field of "psychobiotics" — probiotics and prebiotics that influence brain function through gut-brain interactions — has attracted serious scientific attention over the past decade. This month we're reviewing what the evidence actually supports, and where the hype has outrun the data.
+
+THE TERM AND THE TERRITORY
+
+"Psychobiotics" was coined by Ted Dinan and John Cryan in a 2013 paper in Biological Psychiatry. They defined the term as live organisms that, when ingested in adequate amounts, produce a health benefit in patients suffering from psychiatric illness. The proposed mechanisms are plausible and well-characterized in preclinical models: modulation of the hypothalamic-pituitary-adrenal (HPA) axis, production of neurotransmitter precursors, reduction of systemic inflammation via short-chain fatty acid production, and direct vagal nerve signaling.
+
+The question isn't whether gut bacteria can influence brain function — the animal data is robust. The question is whether specific probiotic supplements, at commercially available doses, produce clinically meaningful effects in humans.
+
+STRAINS THAT HAVE ACTUAL EVIDENCE
+
+Not all probiotics are created equal, and this is where most commercial marketing falls apart. Effects are strain-specific, not species-specific. Lactobacillus rhamnosus (JB-1) reduced anxiety-like and depression-like behavior in mice through a mechanism dependent on the vagus nerve — vagotomized mice showed no benefit (Bravo et al., PNAS, 2011). However, a subsequent randomized controlled trial in healthy human volunteers by Kelly et al. (2017) found no significant effect of the same strain on stress, cognition, or mood. This is a common pattern in the field: dramatic preclinical results that don't cleanly translate to humans.
+
+Bifidobacterium longum 1714 has a somewhat better human track record. A 2016 RCT by Allen et al. found that 4 weeks of supplementation reduced cortisol output in response to a social stress test and modestly improved performance on a visuospatial memory task. The effect sizes were small but statistically significant. A subsequent study from the same group showed subtle EEG changes consistent with reduced stress reactivity.
+
+A 2019 meta-analysis by Liu et al. in BMJ Nutrition, Prevention & Health pooled data from 34 controlled trials and concluded that probiotics had a small but significant effect on depression symptoms (SMD = -0.24, 95% CI: -0.36 to -0.12). However, the effect was driven primarily by studies in participants with clinical depression, not healthy volunteers, and was more pronounced in studies using multi-strain formulations.
+
+THE LIMITATIONS ARE SIGNIFICANT
+
+Let's be direct about the problems with this literature:
+
+Sample sizes are small. Most RCTs in this area have 30-80 participants per arm. This is underpowered to detect the modest effect sizes we're likely dealing with, and it inflates the risk of both false positives and imprecise effect estimates.
+
+Strain specificity is poorly controlled. Many studies use proprietary blends where the exact strains, viability at consumption, and colony-forming unit (CFU) counts are inconsistently reported. A "Lactobacillus acidophilus" from one manufacturer is not the same organism as a "Lactobacillus acidophilus" from another — strain-level differences in gene content can be substantial.
+
+Duration is typically short. Most trials run 4-8 weeks. We have limited data on whether effects persist, accumulate, or attenuate with long-term use.
+
+Publication bias is likely. Positive results in a trendy field get published; null results often don't. The funnel plots in existing meta-analyses show asymmetry consistent with missing negative studies.
+
+WHY MOST COMMERCIAL PROBIOTICS ARE USELESS
+
+Here is the uncomfortable reality: the vast majority of probiotic supplements on the market have no rigorous clinical evidence supporting their specific formulation for any indication, let alone mental health. The strains with the best evidence (like B. longum 1714) are available in a small number of products. Most commercial probiotics contain strains selected for their ability to survive manufacturing and shelf storage, not for demonstrated health effects.
+
+Furthermore, probiotic bacteria generally do not colonize the gut. They transit through. This means any benefit requires continuous daily consumption, and it also means the "reset your gut" marketing language is fundamentally misleading. You're not planting a garden; you're renting temporary workers.
+
+THE BOTTOM LINE
+
+The gut-brain axis is real, well-supported by mechanistic research, and likely relevant to mental health. But the leap from "gut bacteria influence brain function" to "this probiotic supplement will improve your mood" is larger than most consumers realize. If you want to support your gut microbiome for mental health, the best-supported intervention isn't a supplement — it's dietary diversity, particularly fermented foods and prebiotic fiber. If you do choose a probiotic, look for products that specify strains (not just species), cite human clinical trials for their specific formulation, and disclose CFU counts at expiration rather than at manufacture.
+
+We'll update this review as larger, better-designed trials are published. Several are currently underway, including a 500-participant multicenter RCT of a psychobiotic formulation for major depressive disorder. That's the kind of study this field needs.
+
+Kamal Patel
+Editor-in-Chief, Examine.com

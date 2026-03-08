@@ -1,0 +1,126 @@
+--- Newsletter: ParentData by Emily Oster ---
+Subject: What the Data Actually Says About Screen Time (It's Not What You Think)
+
+Happy Wednesday, parents.
+
+I want to talk about screen time today because I got approximately 400 emails last week after the new JAMA Pediatrics paper dropped, and most of them boiled down to some version of: "Should I feel terrible about the iPad?"
+
+Short answer: probably not. Let me walk you through it.
+
+The study in question followed about 2,400 children from ages 1 to 9 and found associations between early screen exposure and slightly lower scores on developmental assessments at age 9. The headlines were predictably apocalyptic. But when you actually read the paper — which I did, twice, with coffee — the effect sizes were tiny. We're talking about a 2-3 point difference on a scale where the standard deviation is 15. That's within the noise range for most practical purposes.
+
+Here's what drives me crazy about the screen time discourse: we treat it as a monolith. "Screen time" encompasses everything from a toddler passively watching cocomelon loops for four hours to a 7-year-old building a Minecraft world with her friends to a teenager FaceTiming her cousin in another state. These are fundamentally different activities with fundamentally different cognitive demands, and lumping them together is like saying "food consumption" without distinguishing between broccoli and gummy bears.
+
+The research that does try to make these distinctions — and there's more of it now than five years ago — tells a more nuanced story. A 2023 meta-analysis by Madigan et al. in JAMA Pediatrics (yes, the same journal) found that interactive screen use showed no negative associations with language development, and in some cases showed modest positive associations. The concern is really about passive consumption, and specifically about displacement — what screen time is replacing. If it's replacing conversation with caregivers, that's concerning. If it's replacing the thirty minutes of silence while you cook dinner, the data suggest it's basically fine.
+
+Now, let's talk about the AAP guidelines, because they come up in every conversation I have about this. The American Academy of Pediatrics recommends no screen time before 18 months (except video calls), limited use from 18-24 months with high-quality programming, and no more than one hour per day for ages 2-5. These guidelines are based on the best available evidence, but they were also designed to be conservative — the AAP has said as much. And the reality is that basically nobody follows them. Survey data from Common Sense Media shows that children ages 2-4 average about 2.5 hours of screen time per day. If the guidelines were defining healthy behavior, we'd expect to see a generation of cognitively impaired children, and we simply don't.
+
+The social media question is genuinely different, and I want to be clear about that. The correlational evidence linking social media use — particularly Instagram and TikTok — to adolescent mental health concerns, especially in girls, is more robust than the general screen time literature. Jean Twenge's data in "iGen" and the more recent work by Jonathan Haidt have methodological limitations (they're largely correlational), but the consistency of the signal across multiple datasets and countries is hard to dismiss entirely. I'd separate this conversation completely from the "should my 4-year-old watch Bluey" conversation.
+
+What does the evidence actually support? A few things I feel reasonably confident about:
+
+Content matters more than time. High-quality, interactive, age-appropriate content is meaningfully different from passive scrolling.
+
+Co-viewing helps. When parents watch with kids and talk about what they're seeing, it transforms passive consumption into something closer to shared reading.
+
+Displacement is the real mechanism. If screens are replacing sleep, physical activity, or face-to-face interaction, that's the problem — not the screen itself.
+
+Moderate use is fine. The kids who watch zero screens and the kids who watch eight hours a day are both outliers. The vast middle — an hour or two of reasonable content — does not appear to produce measurable harm in well-designed studies.
+
+So should you feel guilty about the iPad at dinner? The data say no. Your energy is better spent on the things we know matter: reading with your kids, talking to them during meals, making sure they're sleeping enough, and getting them outside. The screen is a tool. Like most tools, the dose and the context matter more than the tool itself.
+
+That said, I'd still keep TikTok away from your 11-year-old. Different conversation, different data, different stakes.
+
+See you Friday for the mailbag.
+
+Emily
+
+
+--- Newsletter: The Atlantic's "On Parenting" ---
+Subject: The Anxious Generation and What Parents Can Actually Do About It
+
+By Sara Mosle
+
+When Jonathan Haidt published "The Anxious Generation" last spring, it landed like a grenade in the already fraught landscape of American parenting. His thesis is straightforward and, to many parents, intuitively compelling: the combination of smartphone proliferation and overprotective parenting has produced a generation of adolescents who are anxious, depressed, and ill-equipped for the demands of adult life. The prescription follows from the diagnosis — delay smartphones, ban social media for kids under 16, restore unsupervised play, and let children experience the manageable risks that build resilience.
+
+The book spent months on the bestseller list. School boards from coast to coast began implementing phone-free policies. Legislation advanced in dozens of states. And yet, as with most simple explanations for complex phenomena, the picture is considerably more complicated than Haidt's narrative suggests.
+
+The strongest pushback has come from researchers who study adolescent mental health directly. Candice Odgers, a psychologist at UC Irvine, published a pointed review in Nature arguing that the evidence for a causal link between social media and teen mental health is "not compelling" and that Haidt's work cherry-picks studies while ignoring contradictory findings. Andrew Przybylski at the Oxford Internet Institute has made similar arguments, pointing to his own large-scale studies showing that the association between screen time and well-being is roughly equivalent to the association between wearing glasses and well-being — statistically detectable but practically meaningless.
+
+Haidt has responded to these critiques, sometimes persuasively, sometimes less so. The honest assessment is that the evidence is mixed, the methodological challenges are enormous (you can't randomize children into "smartphone" and "no smartphone" conditions for ethical reasons), and anyone claiming certainty on either side is overstepping what the data support.
+
+But here's what's interesting: even Haidt's critics tend to agree with his parenting prescriptions, if not always his causal reasoning. Almost no developmental psychologist thinks young children benefit from unrestricted smartphone access. Almost all of them think unstructured play is crucial for development. The disagreement is about why kids are struggling, not about whether the proposed interventions are reasonable.
+
+And this is where the free-range kids movement — once dismissed as a fringe libertarian hobby horse — has found surprising mainstream traction. Lenore Skenazy, who was dubbed "America's Worst Mom" in 2008 after letting her 9-year-old ride the New York City subway alone, now runs Let Grow, an organization whose ideas have been written into law in multiple states. Utah passed the first free-range parenting law in 2018, explicitly stating that allowing children age-appropriate independence does not constitute neglect. Texas, Oklahoma, Colorado, and several other states have followed with similar legislation.
+
+The irony that we need laws to permit childhood independence is not lost on anyone involved. Peter Gray, the Boston College psychologist whose research on the decline of play has been cited by both Haidt and Skenazy, has documented a steady decrease in children's unsupervised time over the past 50 years — a period during which, by virtually every measure, childhood has become dramatically safer. Violent crime against children has plummeted. Abduction by strangers, the fear that launched a thousand helicopter parents, is extraordinarily rare and has not increased. Cars are safer. Playgrounds, despite the padded-surface revolution, still exist. The objective risks of childhood have decreased while the subjective perception of danger has skyrocketed.
+
+What changed? Gray and others point to a feedback loop: as neighborhoods emptied of unsupervised children (because parents kept them inside), the remaining children playing outside looked abnormal, which made their parents feel irresponsible, which led to more children being kept inside. Add 24-hour news coverage of rare but horrifying child abductions, social media shaming of parents who grant independence, and mandatory reporter laws that are sometimes interpreted aggressively, and you get a culture in which letting a 10-year-old walk to the park alone feels like a radical act.
+
+So what can parents actually do? The emerging consensus — drawing from Haidt, Skenazy, Gray, and researchers who disagree with all three of them on various points — looks something like this:
+
+Support phone-free schools. Whatever you believe about the causal mechanisms, phones in classrooms are a distraction, and the schools that have removed them report improvements in student engagement and social interaction.
+
+Delay the smartphone. The specific age matters less than ensuring your child has the maturity to handle it. A phone with calling and texting but no social media is a reasonable intermediate step.
+
+Embrace unstructured time. Not every afternoon needs a scheduled activity. Boredom is productive. Let kids figure out what to do with themselves.
+
+Accept reasonable risk. Your child will fall off things, get into conflicts with peers, and occasionally be unsupervised. This is not neglect. It is childhood.
+
+Talk to other parents. The collective action problem is real — no one wants their kid to be the only one without a phone, or the only one playing outside. Coordinate with other families.
+
+The anxious generation may or may not have been created by smartphones. But the cure — more independence, more play, more trust in children's competence — is worth pursuing regardless of the cause.
+
+
+--- Newsletter: Free-Range Kids by Lenore Skenazy ---
+Subject: Independence Is the Best Gift You Can Give Your Kid (Yes, Even Now)
+
+Hey folks,
+
+Got a letter this week from a mom in suburban Maryland who said she lets her 8-year-old walk to the school bus stop — four houses down — by himself, and another parent reported her to the school counselor for "neglect."
+
+Four. Houses. Down.
+
+I wish I could say this was unusual. My inbox suggests otherwise. But let's zoom out, because I think it's time for a reality check on what childhood actually looks like in America right now, and what it could look like if we all collectively took a breath.
+
+Let's start with the thing nobody wants to hear: your kids are safer than you were. I know, I know. It doesn't feel that way. But the data is unambiguous. According to the FBI's Uniform Crime Report, violent crime against children has declined by more than 50% since the early 1990s. The Department of Justice reports that the rate of sexual abuse against children has dropped by 62% since 1992. Stranger abductions — the thing every parent catastrophizes about — number about 100-150 per year in a country of 73 million children. You are more likely to be struck by lightning.
+
+I'm not saying bad things don't happen. They do, and they're devastating when they do. But we have built an entire parenting culture around the statistical equivalent of lightning strikes, and the cost of that culture is enormous. Peter Gray at Boston College has documented a direct correlation between the decline in children's unsupervised time and the rise in childhood anxiety and depression. When you never let kids solve their own problems, navigate their own conflicts, or manage their own risks, you don't protect them — you disable them.
+
+Here's what I hear from parents who've started letting go:
+
+"My 10-year-old started walking to his friend's house instead of me driving him. The first week he was nervous. By the third week, he was planning routes and timing himself. His confidence is through the roof." — Dad in Austin
+
+"I let my 7-year-old make her own breakfast. She burned the toast twice and once put salt in her cereal instead of sugar. She's now the best breakfast maker in the family." — Mom in Portland
+
+"My 12-year-old takes the city bus to his guitar lessons. Other parents think I'm insane. He thinks he's Batman." — Mom in Chicago
+
+These aren't stories about negligence. They're stories about competence. And competence is built through practice, which requires the opportunity to try and sometimes fail.
+
+So what's age-appropriate? I get asked this constantly. There's no universal answer because every kid and every community is different, but here's a rough framework based on what developmental psychologists generally agree on:
+
+Age 6-7: Play in the yard unsupervised. Walk to a neighbor's house on the same street. Help with simple kitchen tasks (with training).
+
+Age 8-9: Walk or bike to school (if the route is reasonable). Stay home alone for short periods (30-60 minutes). Go to a store and make a small purchase.
+
+Age 10-11: Stay home for a few hours. Watch younger siblings briefly. Navigate the neighborhood independently. Use public transportation in familiar areas with preparation.
+
+Age 12-13: Babysit younger children. Travel independently in known areas. Manage their own schedule for after-school activities.
+
+These aren't radical suggestions. They're what childhood looked like for basically every generation in human history until about 1995.
+
+Now, I know some of you are thinking: "That's great, Lenore, but I'll get CPS called on me." Fair concern. And this is why the legal landscape matters. Utah led the way in 2018 with a law that explicitly says letting your kid play outside, walk to school, or stay in the car briefly is not neglect. Since then, Texas, Oklahoma, Colorado, Virginia, and Connecticut have passed similar laws. Let Grow — the nonprofit I co-founded with Peter Gray and Jonathan Haidt — has model legislation and has worked with lawmakers in over 20 states. We're winning this fight, but slowly.
+
+The bigger battle is cultural. It's the side-eye at the playground. It's the neighborhood Facebook group where someone posts a photo of an unsupervised child like it's evidence of a crime. It's the internalized voice that says you're a bad parent if you're not watching your kid every second.
+
+Here's what I want you to try this week: pick one thing your kid could do independently but doesn't because you've been doing it for them. Maybe it's walking to school. Maybe it's making a snack. Maybe it's resolving a fight with a sibling without you intervening. Let them do it. Watch what happens.
+
+They might struggle. They might fail. They will almost certainly surprise you.
+
+Richard Louv, who wrote "Last Child in the Woods," said something that's stuck with me for years: "The question isn't whether we can afford to let our children be more independent. The question is whether we can afford not to."
+
+Our kids don't need more supervision. They need more trust.
+
+Go let them do something.
+
+Lenore

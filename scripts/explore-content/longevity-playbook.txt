@@ -1,0 +1,38 @@
+--- Newsletter: Peter Attia's The Drive ---
+Subject: Training for The Centenarian Decathlon: zone 2, VO2 max, stability, and strength
+
+The "centenarian decathlon" represents a set of specific physical activities designed to ensure quality of life during the "marginal decade" — the final ten years of life. The concept forces you to work backward: if you want to do a goblet squat with 30 pounds at age 85, you need to be squatting significantly more at age 60, because physical decline is coming whether you train or not. You need to build a surplus now.
+
+The decathlon includes 18 events: lifting a 30-pound child from a squat, rising from the floor using only one point of contact, pressing a 30-pound suitcase overhead, dead hanging for 30 seconds, farmer's carry for one minute with 25 percent of body weight per hand, navigating stairs with proper foot alignment, single-leg stance for 30 seconds with eyes open, hex bar deadlift at body weight for 5 reps, dumbbell lunges with 15 percent body weight per hand, a three-mile walk within 60 minutes, carrying 20 pounds up four flights of stairs, maintaining VO2 max above 30 mL/min/kg, and treading water for 10 minutes, among others.
+
+Peak cardiorespiratory fitness, measured in terms of VO2 max, is perhaps the single most powerful marker for longevity. A study of 122,007 patients who underwent exercise treadmill testing at the Cleveland Clinic over more than two decades found that being in the lowest fitness category versus elite carried an adjusted hazard ratio of 5.04 for all-cause mortality. That risk exceeded traditional factors like smoking, diabetes, and coronary artery disease. Each 1-MET increase in fitness corresponded to a 13 to 15 percent drop in mortality risk.
+
+The training framework is built on four pillars: aerobic efficiency through Zone 2 training, peak aerobic output through VO2 max intervals, strength, and stability. For those with limited time, the weekly breakdown is roughly one hour of aerobic training split 80/20 between Zone 2 and VO2 max intervals, one hour of strength training, and 30 to 40 minutes of stability work distributed as 10-minute daily sessions. Zone 2 training means steady-state aerobic work where conversation remains possible but somewhat difficult, typically 60 to 70 percent of maximum heart rate, for 30 to 45 minutes per session.
+
+The overarching principle: if everything in your life is at a six or seven out of ten, taking your exercise to a 10 out of 10 can have a significant impact on both the length and quality of your life.
+
+--- Newsletter: Fight Aging! ---
+Subject: A Review of the Present State of Epigenetic Reprogramming to Treat Aging
+
+Epigenetic reprogramming is one of the most actively researched approaches to reversing biological aging. The core technology uses the Yamanaka transcription factors — OCT4, SOX2, KLF4, and c-MYC — to partially reprogram cells, restoring youthful epigenetic control over gene expression and mitochondrial function without fully converting them into induced pluripotent stem cells.
+
+The results in aged mice are striking. Cyclic induction of these factors in physiologically aged mice restored youthful multi-omics signatures — including DNA methylation, transcriptomic, and lipidomic profiles — across multiple organs including the spleen, liver, skin, kidney, lung, and skeletal muscle. Even single one-week cycles produced systemic rejuvenation markers.
+
+Several companies are racing to translate this into clinical therapies. Life Biosciences' lead program ER-100 uses three of the four Yamanaka factors (Oct4, Sox2, Klf4) and is being developed for optic neuropathies, including glaucoma and non-arteritic anterior ischemic optic neuropathy, with plans to enter the clinic in the first quarter of 2026. Altos Labs, funded with $3 billion, and Retro Biosciences, backed by $180 million from Sam Altman, are pursuing similar approaches.
+
+However, the review emphasizes a critical barrier: different cell types require different reprogramming conditions. What is good for lung cells is bad for liver cells. What is good for one type of cell in the liver is bad for its neighbor. Negative outcomes from improper dosing include cell death, tissue dysfunction, and cancer risk. There is also a fundamental limitation: reprogramming cannot repair DNA damage, and it cannot enable cells to break down molecular waste that even young cells struggle to handle.
+
+No whole-body therapy yet exists without severe trade-offs. But the trajectory of the research — from basic science to clinical candidates in under a decade — suggests that targeted tissue-specific applications may arrive within the next five years.
+
+--- Newsletter: ScienceDaily / Penn State Research ---
+Subject: Calorie Restriction Study Reveals Complexities in How Diet Impacts Aging
+
+Penn State researchers have published new findings from CALERIE, the first randomized clinical trial of calorie restriction in healthy, non-obese humans. The trial, funded by the National Institute on Aging, randomized 220 healthy men and women at three U.S. sites to either a 25 percent calorie restriction or normal diet for two years, with measurements taken at baseline, 12 months, and 24 months.
+
+The study examined how restricting calories affects telomere length, a key marker of biological aging. The results revealed a surprising and counterintuitive pattern. During year one, participants on caloric restriction lost weight and experienced faster telomere loss compared to controls. But during the second year, after weight stabilized, the caloric restriction group lost telomeres more slowly than the control group. By the end of two years, the two groups had converged with statistically similar telomere lengths.
+
+Lead author Waylon Hastings explained the mechanism: when cells consume less energy due to caloric restriction, there are fewer waste products, and the cell does not break down as quickly. Associate Professor Idan Shalev noted the complexity: "We hypothesized telomere loss would be slower among people on caloric restriction. Instead, we found people on caloric restriction lost telomeres more rapidly at first and then more slowly after their weight stabilized."
+
+Separately, an earlier CALERIE analysis found that caloric restriction slowed the pace of aging as measured by the DunedinPACE DNA methylation algorithm, representing a 2 to 3 percent slowing that in other studies translates to a 10 to 15 percent reduction in mortality risk — an effect similar to a smoking cessation intervention. Previous CALERIE research also demonstrated that caloric restriction may reduce harmful cholesterol and lower blood pressure.
+
+The researchers are now analyzing 10-year follow-up data to determine longer-term effects on telomere length and whether the intervention had lasting impacts on healthy aging.

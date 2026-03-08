@@ -232,6 +232,13 @@ export default function Home() {
             Pricing
           </a>
           <Link
+            href="/explore"
+            className="text-sm font-medium no-underline hidden md:inline hover:!text-[#1a0e2e]"
+            style={{ color: "#5a4d6b" }}
+          >
+            Explore
+          </Link>
+          <Link
             href="/login"
             className="text-sm font-medium no-underline px-5 py-2.5 rounded-lg transition-all hover:-translate-y-px"
             style={{ background: "#1a0e2e", color: "#faf7f2" }}
@@ -242,7 +249,7 @@ export default function Home() {
       </nav>
 
       {/* HERO */}
-      <section className="min-h-screen flex items-center px-8 pt-32 pb-16 relative overflow-hidden">
+      <section className="flex items-center px-8 pt-28 pb-10 relative overflow-hidden">
         <div
           className="absolute pointer-events-none rounded-full"
           style={{
@@ -520,7 +527,7 @@ export default function Home() {
       </section>
 
       {/* SOCIAL PROOF */}
-      <section className="py-12 px-8 text-center">
+      <section className="py-6 px-8 text-center">
         <div
           className="flex items-center justify-center gap-8 flex-wrap text-sm"
           style={{ color: "#8a7f96" }}
@@ -528,7 +535,7 @@ export default function Home() {
           {[
             { strong: "5+", text: "newsletters synthesized daily" },
             { strong: "10 min", text: "average episode" },
-            { strong: "Any", text: "podcast app" },
+            { strong: "Most", text: "podcast apps" },
           ].map((item) => (
             <div key={item.strong} className="flex items-center gap-2">
               <strong className="font-semibold" style={{ color: "#1a0e2e" }}>
@@ -537,6 +544,38 @@ export default function Home() {
               {item.text}
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* EXPLORE CTA */}
+      <section ref={revealRef} className="py-6 px-8 text-center">
+        <div className="max-w-[600px] mx-auto">
+          <p
+            className="text-sm font-medium mb-4"
+            style={{ color: "#5a4d6b" }}
+          >
+            Not sure yet? Hear it for yourself.
+          </p>
+          <Link
+            href="/explore"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold no-underline transition-all hover:-translate-y-0.5"
+            style={{
+              background: "rgba(45, 27, 78, 0.06)",
+              color: "#1a0e2e",
+              border: "1px solid rgba(45, 27, 78, 0.1)",
+            }}
+          >
+            Browse sample episodes
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M3 8h10m0 0L9 4m4 4L9 12"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
         </div>
       </section>
 
@@ -614,7 +653,7 @@ export default function Home() {
                 num: "3",
                 icon: "🎧",
                 title: "Listen in your podcast app",
-                desc: "Subscribe with your private RSS feed. Episodes appear alongside your other shows — Apple Podcasts, Spotify, Overcast, anything.",
+                desc: "Subscribe with your private RSS feed. Episodes appear alongside your other shows — Apple Podcasts, Overcast, Pocket Casts, and more. Note: Spotify does not support private RSS feeds.",
                 numBg:
                   "linear-gradient(135deg, rgba(232, 164, 74, 0.1), rgba(245, 204, 127, 0.15))",
                 numColor: "#e8a44a",
@@ -721,8 +760,8 @@ export default function Home() {
               },
               {
                 icon: "📱",
-                title: "Works with every podcast app",
-                desc: "Standard RSS feed. No proprietary app required. Listen wherever you already listen to podcasts.",
+                title: "Works with most podcast apps",
+                desc: "Standard RSS feed. No proprietary app required. Compatible with Apple Podcasts, Overcast, Pocket Casts, and more. Spotify does not support private RSS feeds.",
               },
             ].map((feature) => (
               <div
@@ -837,7 +876,7 @@ export default function Home() {
                   "Daily podcast generation",
                   "Choose your delivery time",
                   "Private RSS feed",
-                  "Works with any podcast app",
+                  "Works with most podcast apps",
                 ].map((f) => (
                   <li
                     key={f}

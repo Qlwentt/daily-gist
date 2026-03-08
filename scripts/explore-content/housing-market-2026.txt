@@ -1,0 +1,136 @@
+--- Newsletter: The Hustle ---
+Subject: Nobody Can Afford a House But Prices Keep Going Up. Here's Why.
+
+Happy Thursday. We need to talk about the housing market, because it makes absolutely no sense — until it does.
+
+The median U.S. home price hit $427,000 in February 2026. Median household income: $82,500. That puts the price-to-income ratio at 5.2x, the highest in recorded American history. For reference, this ratio was 3.6x in 2000 and 4.7x at the peak of the 2006 housing bubble.
+
+And yet — prices keep rising. Up 4.8% year-over-year nationally. In some markets, double digits.
+
+The culprit is deceptively simple: nobody is selling.
+
+The Lock-In Effect is Eating the Market
+
+Between 2020 and 2022, roughly 14 million homeowners locked in mortgage rates below 3%. Another 25 million have rates below 4%. Today's 30-year fixed rate sits around 5.8% — better than 2023's 7.5% peak, but still nearly double what most existing homeowners are paying.
+
+The math is brutal. A homeowner with a $400,000 mortgage at 2.9% pays $1,663/month. If they sell and buy a similar home at today's rate, that payment jumps to $2,348/month — a $685 monthly increase for essentially the same house. So they don't move. They renovate the kitchen. They convert the garage. They stay put.
+
+The result: existing home inventory is sitting at 3.1 months of supply, roughly half the 5-6 months economists consider "balanced." In competitive coastal markets like Boston, San Jose, and Seattle, inventory is below 1.5 months.
+
+Who's Actually Buying?
+
+Here's where it gets interesting. First-time homebuyers made up just 24% of purchases in 2025, the lowest share since NAR started tracking in 1981. The typical first-time buyer is now 38 years old, up from 29 in 1981.
+
+Cash buyers, meanwhile, hit 32% of transactions — a record. That's a mix of downsizing boomers, investors, and the small slice of millennials who got help from family wealth. And that's the real story here.
+
+The generational wealth gap in housing is now self-reinforcing. Boomers own $18.8 trillion in real estate equity. Gen X owns $9.2 trillion. Millennials — the largest generation — own $5.1 trillion, and most of that is concentrated among older millennials who bought before 2022. Gen Z owns virtually nothing.
+
+Parents who bought homes in the '80s and '90s can help their kids with down payments. Parents who didn't can't. The wealth compounds, the gap widens, and homeownership increasingly becomes an inherited status rather than an earned one.
+
+The Political Powder Keg
+
+Both parties know this is a problem. The bipartisan HOUSES Act, introduced in January, would offer a $15,000 tax credit for first-time buyers and fund 500,000 new starter homes through federal land grants. The CBO scored it at $42 billion over 10 years.
+
+Will it pass? Housing economists are skeptical it would move the needle much. $15,000 doesn't go far when you need $85,000 for a 20% down payment on the median home. And 500,000 homes spread over 10 years is a rounding error against the estimated 4.5 million unit housing deficit.
+
+The uncomfortable truth: the housing crisis isn't a bug. For the 66% of Americans who own homes, rising prices are a feature. Their largest asset is appreciating. Their net worth is growing. They vote at higher rates than renters. And any policy that would meaningfully increase supply — and therefore moderate prices — faces fierce local opposition from existing homeowners who show up to every zoning meeting.
+
+Nobody wants to say it, but here it is: the people who benefit from the crisis outnumber the people who suffer from it, and they're more politically organized. That's why this problem isn't going away.
+
+--- Newsletter: Kyla Scanlon's Newsletter ---
+Subject: The Housing Recession That Isn't
+
+Housing is in a recession. Except it's not. Depending on which metric you look at, the U.S. housing market is either deeply distressed or wildly overheated. It's somehow both at once, and that paradox tells us something important about the economy we've built.
+
+The Bifurcation
+
+Housing starts fell to 1.35 million annualized in January 2026, down 12% from a year ago and well below the 1.5 million pace economists say we need to keep up with population growth. Existing home sales clocked 4.0 million in 2025, the worst year since 1995. By volume metrics, housing is in a deep freeze.
+
+But prices? The Case-Shiller National Index is up 4.8% year-over-year. Twenty of the top 20 metro areas posted price gains. There is no market in America where home prices are meaningfully declining.
+
+The divergence comes from geography. We've built two entirely separate housing markets in this country, and they're moving in opposite directions.
+
+**Sun Belt Overbuilding.** Between 2021 and 2024, builders went all-in on Austin, Phoenix, Jacksonville, and Nashville. Multifamily permits in the Sun Belt surged 85% above the pre-pandemic baseline. Now those units are hitting the market all at once. Austin apartment rents are down 14% from their 2023 peak. Phoenix has 28,000 units under construction. Jacksonville vacancy rates hit 9.2%, the highest in a decade. Builders are offering two months free rent, covering moving costs, waiving deposits.
+
+**Coastal Undersupply.** Meanwhile, in the Northeast, California, and Pacific Northwest, basically nothing got built. New York City permitted just 24,000 units in 2025 against estimated demand for 40,000+. San Francisco's pipeline has been gutted by construction cost inflation and office-to-residential conversion delays. Boston's condo inventory is at a 15-year low.
+
+The result is a country where you can get a brand-new two-bedroom apartment in Austin for $1,400/month but a studio in Somerville, Massachusetts costs $2,600. These are not the same economy.
+
+Insurance: The New Affordability Crisis
+
+Here's what nobody was talking about two years ago that is now dominating kitchen-table conversations: insurance.
+
+Homeowners insurance premiums rose 33% nationally between 2023 and 2025. In Florida, the average annual premium hit $6,200 — more than triple the national average. In Louisiana, $5,800. In California's wildfire zones, some homeowners are paying $12,000-$18,000 annually, if they can get coverage at all.
+
+State Farm pulled out of California entirely in late 2025. Citizens Property Insurance in Florida — the insurer of last resort — now covers 1.4 million policies, up from 400,000 in 2019. These state-backed plans are underfunded and would require massive taxpayer bailouts after a major hurricane.
+
+The insurance crisis is effectively repricing climate risk into housing in real-time. A home in Tampa might look affordable based on the mortgage payment, but add $500/month in insurance and the total cost picture changes dramatically. Homebuyers are starting to factor this in, and it's creating a secondary valuation adjustment that isn't captured in traditional price indices.
+
+What the Fed Rate Cuts Actually Mean
+
+The Fed has cut rates 175 basis points from the peak. Mortgage rates have dropped from 7.5% to 5.8%. But here's the disconnect that people keep getting wrong: the Fed doesn't control mortgage rates, not directly.
+
+Mortgage rates are priced off the 10-year Treasury yield plus a spread. That spread has been historically wide — around 280 basis points versus the long-run average of 170 basis points. Lenders are charging more because of prepayment uncertainty, regulatory costs, and the volatility hangover from 2022-2023.
+
+For mortgage rates to meaningfully drop — say, to 4.5-5.0% — you'd need BOTH the 10-year yield to fall AND the spread to normalize. The first is happening slowly. The second requires time and stability that we haven't had yet.
+
+And even at 5%, the lock-in effect persists for anyone with a sub-3.5% rate. We might need to wait for people to move for life reasons — divorce, job changes, retirement, death — rather than financial ones. Some housing economists estimate it could take until 2030-2032 for existing home sales to normalize to pre-pandemic levels.
+
+The housing recession is real. It's just not showing up in prices, because prices are the one metric that can't crack when supply is this constrained. The damage is instead showing up in volume, in mobility, in wealth concentration, and in the dreams of a generation that was told homeownership was the American birthright. The vibes are off.
+
+--- Newsletter: Redfin Research ---
+Subject: New Data: Where Americans Are Moving in 2026 (And Why the Map Is Shifting)
+
+Our latest migration data tells a clear story: Americans are still moving south and west, but the specific destinations are changing — and the reasons why are evolving fast.
+
+Where the People Are Going
+
+Redfin's Q4 2025 net migration data shows the top five metros for net inbound moves:
+
+1. **Dallas-Fort Worth, TX** — 41,200 net inflows
+2. **Tampa-St. Petersburg, FL** — 28,900 net inflows
+3. **Nashville, TN** — 24,100 net inflows
+4. **Raleigh-Durham, NC** — 19,700 net inflows
+5. **Boise, ID** — 12,800 net inflows
+
+The outflow leaders won't surprise you: San Francisco (-38,400), New York (-35,200), Los Angeles (-31,600), Chicago (-18,900), and Washington D.C. (-14,300).
+
+But dig into the data and the picture gets more nuanced.
+
+The Texas Surge Is Diversifying
+
+DFW continues to dominate, but the growth is spreading beyond the metro's traditional suburban corridors. McKinney, Frisco, and Celina — exurban cities 40-60 miles north of downtown Dallas — saw population growth of 6-9% in 2025. These aren't bedroom communities for downtown commuters. They're becoming self-contained employment hubs with their own corporate campuses, medical centers, and retail corridors.
+
+San Antonio posted 18,400 net inflows (up 22% year-over-year), driven by cybersecurity and defense-adjacent employers. The median home price there — $298,000 — is one of the lowest among major Texas metros and a fraction of what similar homes cost in departing markets.
+
+Houston's inflows (16,200) were notably driven by energy transition jobs. The irony isn't lost on us: people are moving to the oil capital of America to work in renewables.
+
+Remote Work Is Building a New Geography
+
+We've been tracking remote work's impact on migration for four years now, and the 2025 data confirms something we've suspected: the "secondary city" phenomenon isn't a pandemic blip. It's structural.
+
+Cities between 100,000-500,000 population saw 3.2% faster home price appreciation than cities over 1 million. Chattanooga, TN (population 187,000) saw home prices rise 8.7% year-over-year. Huntsville, AL (population 228,000) rose 9.1%. Greenville, SC (population 74,000 city, 950,000 metro) rose 7.8%.
+
+The common thread: these cities offer median home prices 40-60% below comparable coastal metros, have invested in broadband infrastructure (Chattanooga's municipal gigabit fiber is now a legitimate economic development tool), and provide lifestyle amenities — outdoor recreation, arts scenes, walkable downtowns — that remote workers prioritize.
+
+Our survey data shows 34% of Redfin users who relocated in 2025 cited remote work flexibility as the primary enabler of their move. That's down from 38% in 2023, but it's leveling off rather than declining — suggesting remote-enabled migration is now baked into baseline behavior, not a temporary pandemic effect.
+
+The Rise of Build-to-Rent
+
+One of the most significant shifts in our data: build-to-rent (BTR) communities now account for 9.4% of all single-family construction starts, up from 6.1% in 2023 and less than 3% in 2019.
+
+BTR is exactly what it sounds like — purpose-built single-family homes designed from the start as rental properties, typically organized in small communities of 100-300 homes with shared amenities. Major institutional players — Invitation Homes, American Homes 4 Rent, and newer entrants like AHV Communities — are building at scale in DFW, Phoenix, Atlanta, and Charlotte.
+
+The typical BTR tenant profile: household income of $95,000-$130,000, often dual-income couples aged 28-40, who want a single-family lifestyle but can't clear the down payment hurdle or don't want to commit to a specific market. Monthly rents run $1,800-$2,600, which is often comparable to or below the total cost of ownership (mortgage + insurance + taxes + maintenance) for a similar purchased home.
+
+BTR is a pragmatic response to the affordability crisis, but it raises legitimate questions about long-term wealth building. Renters don't build equity. If BTR becomes a permanent substitute for ownership for a large segment of the middle class, the wealth implications over a 30-year horizon are enormous.
+
+What AI Construction Could Mean
+
+We'd be remiss not to mention the technology angle. AI-powered construction is moving from pilot phase to early deployment. ICON's 3D-printed homes in Georgetown, TX are now selling at $275,000 — roughly 15% below comparable traditionally built homes. Modular construction company Veev (backed by $600 million in venture funding) claims 40% faster build times using machine learning for design optimization and prefabrication.
+
+The promise is real but the timeline matters. Even optimistic projections suggest AI-assisted construction could reduce new home costs by 20-30% — but only at scale, and only by the late 2020s. In the meantime, construction labor shortages persist. The industry needs an estimated 500,000 additional workers, and the average age of a construction worker is now 43.
+
+Technology will help, but it won't be the silver bullet that solves the housing crisis in the near term. The constraints are fundamentally about land use policy, zoning, and political will — problems that no algorithm can optimize away.
+
+The bottom line from our data: America is slowly sorting itself into affordable interior metros and expensive coastal ones, with remote work accelerating the process. The question is whether the affordable destinations stay affordable as demand concentrates there — and early signs from Boise, Nashville, and Austin suggest the answer is "not for long."

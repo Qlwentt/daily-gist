@@ -1,0 +1,84 @@
+--- Newsletter: Lenny's Newsletter ---
+Subject: The data is in: here's who's winning the return-to-office battle
+
+There's been a lot of noise about return-to-office mandates, but I wanted to cut through the vibes and look at what the actual data says. So I spent the last two weeks digging into the research, talking to founders on both sides, and pulling together what I think is the clearest picture we have right now.
+
+Let's start with Nick Bloom. If you don't know him, he's a Stanford economist who's been studying remote work for over 20 years — long before the pandemic made it everyone's favorite debate topic. His team at WFH Research has been tracking structured hybrid arrangements (typically 3 days in office, 2 days remote) across hundreds of companies since 2021.
+
+The headline finding: structured hybrid reduces quit rates by 33% with zero measurable impact on performance or promotion rates. That's from a randomized controlled trial at Trip.com with 1,600 employees, published in Nature in June 2024. This isn't a survey. It's not self-reported. It's an actual experiment with a control group.
+
+Now here's where it gets interesting for product and engineering leaders specifically. Bloom's data shows that the productivity impact varies dramatically by job function:
+
+- Individual contributor coding work: no difference between remote and in-office
+- Cross-functional product work (design reviews, sprint planning, roadmap alignment): 10-15% faster cycle times when done in-person
+- Creative ideation and brainstorming: slight edge for in-person, but the effect disappears after teams have worked together for 6+ months
+
+So the blanket "remote is better" or "office is better" framing completely misses the point. The answer depends on what kind of work you're optimizing for.
+
+Let's look at the companies that have gone all-in on each side.
+
+Fully remote and thriving: GitLab (2,000+ employees, public company, $500M+ revenue), Automattic (the WordPress parent company, 1,900 employees across 96 countries), Zapier (800+ employees, profitable, growing 30% YoY), and Buffer (small but consistently ranked as one of the best places to work). What do they have in common? They all invested heavily in async communication infrastructure. GitLab's handbook is 2,000+ pages. Automattic built their entire culture around P2 blogs and text-based decision making. These aren't companies that just "went remote" — they rebuilt their operating systems from scratch.
+
+Forcing RTO and struggling with it: Amazon mandated 5 days in office starting January 2025 and saw a spike in attrition among senior engineers — exactly the people they can least afford to lose. JPMorgan's Jamie Dimon has been the most vocal RTO advocate on Wall Street, calling remote work an "aberration," but their own internal surveys showed 67% of employees preferred hybrid. Dell told remote workers they'd be ineligible for promotion, then faced a PR backlash when 50% of their workforce chose to stay remote anyway, effectively saying "fine, we'll take the career hit."
+
+The Scoop Technologies Flex Index, which tracks office policies at 9,000+ companies, shows that as of Q4 2025: 37% of companies are structured hybrid, 32% are fully flexible (employee choice), 18% are full-time in-office, and only 13% are fully remote. The trend line over the last two years has been a slow migration from "fully flexible" toward "structured hybrid" — not toward full-time office.
+
+My take: The companies that will win the next decade are the ones that stop treating this as an ideological question and start treating it as an operating model decision. Match the work to the environment. Invest in the infrastructure for whatever model you choose. And for the love of god, stop making people commute 90 minutes to sit on Zoom calls in a conference room.
+
+One more data point to leave you with: Bloom's team estimates that the average American worker values the option to work from home 2-3 days per week at about 8% of their salary. That means if you're forcing full RTO, you're effectively asking employees to take an 8% pay cut relative to competitors who offer hybrid. In a tight labor market for senior talent, that math matters.
+
+What's your company doing? Hit reply — I read every response.
+
+--- Newsletter: Culture Study by Anne Helen Petersen ---
+Subject: Remote work created two classes of workers and we're only starting to reckon with it
+
+In the spring of 2020, I wrote about how the pandemic had revealed a fundamental divide in the American workforce — not between essential and non-essential workers, as the early framing had it, but between people whose jobs could be done from anywhere and people whose jobs required a physical body in a physical place. Four years later, that divide hasn't just persisted. It's calcified into something that looks increasingly like a new class structure.
+
+Let me explain what I mean.
+
+The "laptop class" — a term that started as a sneer from conservative commentators but has since been adopted more broadly — refers to the roughly 35-40% of American workers whose jobs consist primarily of manipulating information on screens. Software engineers, marketers, consultants, writers, designers, project managers, analysts. These workers emerged from the pandemic with something genuinely new: geographic flexibility. They could live in Boise instead of San Francisco. They could work from Portugal for a month. They could skip the commute and get two hours of their life back every day.
+
+The other 60-65% — nurses, teachers, electricians, warehouse workers, baristas, bus drivers, home health aides — got none of that. They got called heroes for about six months, maybe received a hazard pay bump that quietly disappeared, and then went back to being invisible. The pandemic didn't change the fundamental nature of their work at all, except to make it more stressful and more dangerous.
+
+Here's where it gets politically interesting. The resentment between these two classes has become a genuine political force. When politicians rail against "elites working from their pajamas," they're tapping into something real. There's a visceral unfairness to watching your neighbor take a mid-afternoon walk with their dog while you're clocking in for your shift at the distribution center. It doesn't matter that the knowledge worker might be logging on again at 9 PM — the optics of freedom are powerful.
+
+This has manifested in concrete ways. In 2024 and 2025, we saw a wave of municipal ballot measures targeting remote workers: proposals for "empty office" taxes in San Francisco and New York, attempts to change zoning laws to prevent full-time remote work in residential neighborhoods (yes, really), and pushback against digital nomad visas in countries like Portugal and Indonesia where the cost-of-living arbitrage was pricing out locals.
+
+The downtown question is particularly thorny. Commercial real estate in major city centers is still struggling — office vacancy rates in San Francisco hit 37% in late 2025, and Manhattan isn't far behind at 22%. The entire economic ecosystem that depended on office workers — the lunch spots, the dry cleaners, the parking garages, the transit systems — has been fundamentally disrupted. Cities like San Francisco and Chicago are attempting to convert office buildings to residential, but the economics are brutal. Most office floor plates are too deep, the plumbing isn't configured for residential use, and the conversions that have happened cost nearly as much as building new.
+
+Meanwhile, the cities that are thriving are the ones that figured out they needed to attract residents, not commuters. Boise, Raleigh, Chattanooga, Tulsa (which literally pays remote workers $10,000 to move there) — these places have seen population booms driven almost entirely by laptop-class migration. The tax base shifts. The political dynamics shift. Suddenly you have a bunch of Bay Area liberals in deep-red states, and the local politics get very weird very fast.
+
+What I keep coming back to is how poorly our existing frameworks handle this. The labor movement was built around the workplace as a physical site of solidarity. Unions organized factories and offices. What does labor organizing look like when half the workforce doesn't share a physical space? The Starbucks and Amazon warehouse unionization efforts have been led almost exclusively by in-person workers — the people who still have a shop floor to organize on. Remote knowledge workers, despite their complaints about burnout and surveillance software, have shown almost zero interest in collective action.
+
+And then there's the generational dimension that nobody talks about enough. Young workers entering the job market in 2024-2026 are being told by many companies that they need to be in the office to "learn the culture" and "build relationships" — while watching their managers work from home on Fridays. The hypocrisy is not lost on them. A recent survey from Deloitte found that 71% of Gen Z workers said they would take a lower-paying job if it offered full location flexibility. They're not lazy. They watched their parents commute for decades and decided that wasn't the life they wanted.
+
+The remote work divide isn't really about remote work. It's about who gets autonomy and who doesn't. It's about which kinds of labor we value enough to offer flexibility and which kinds we don't. And until we're honest about that, we're going to keep having the wrong conversation.
+
+--- Newsletter: Charter ---
+Subject: The office isn't dying — it's being reinvented (here's what's actually replacing it)
+
+The discourse around offices has been remarkably binary: either the office is dead and we're all working from beaches forever, or the RTO mandates prove that remote was always a temporary aberration. Neither of these is right. What's actually happening is more interesting and more nuanced than either camp admits.
+
+Let's start with the physical space itself.
+
+WeWork's bankruptcy in November 2023 was supposed to be the death knell for flexible workspace. Instead, it cleared the field for a new generation of operators who learned from WeWork's mistakes. Industrious (backed by CBRE) has grown to 200+ locations by focusing on enterprise clients rather than freelancers. IWG, the parent company of Regus, has been quietly expanding and now operates 4,000+ locations globally. Newer entrants like Daybase are building "neighborhood work centers" — small, 20-30 person spaces in suburban areas, designed for the hybrid worker who doesn't want to commute downtown but needs somewhere better than their kitchen table.
+
+The commercial real estate firm JLL estimates that flexible workspace now accounts for about 8% of total office inventory in major US metros, up from 2% in 2019. Their projection for 2028: 15-20%. That growth is being driven almost entirely by enterprise deals — companies like Deloitte, Philips, and Microsoft are leasing flex space for satellite teams instead of maintaining their own offices in secondary markets.
+
+But here's the bigger shift: the very concept of what an "office" is for has fundamentally changed. The old model was the office as a place where work happens — you came in, sat at your assigned desk, did your job, and went home. The new model is the office as a place where collaboration happens. You do your focused individual work wherever you want, and you come to the office specifically for the things that benefit from physical proximity: whiteboarding sessions, team rituals, client meetings, onboarding new hires, and the kind of serendipitous hallway conversations that Zoom can't replicate.
+
+This shift has real implications for office design. Assigned desks are disappearing — CBRE reports that 62% of companies with hybrid policies have moved to some form of hot-desking or hoteling. The ratio of collaborative space to individual space has flipped: pre-pandemic offices were typically 70% individual workstations and 30% meeting/collaboration space. New office buildouts are closer to 40% individual and 60% collaborative, with more variety in the types of spaces (phone booths, project rooms, casual lounge areas, workshop spaces with writable walls).
+
+Now let's talk about the AI angle, because it's about to scramble the entire conversation again.
+
+The jobs that most companies insist need to be in-person are often the ones most susceptible to AI automation. Customer service, data entry, basic financial analysis, routine legal review — these are roles where companies have historically said "we need you in the office for oversight and training," but they're also exactly the roles that AI agents are starting to handle. Meanwhile, the jobs that are hardest to automate — creative direction, complex negotiation, physical therapy, skilled trades — are a mix of inherently remote-compatible (creative work) and inherently location-dependent (trades).
+
+McKinsey's latest workforce report projects that by 2028, roughly 30% of current in-office-mandated roles could be done either by AI or by remote workers augmented with AI tools. That's going to blow up a lot of RTO justifications. If the reason you needed people in the office was for routine supervision, and AI can now do the routine work, why do you need the office?
+
+Finally: what does Gen Z actually want? There's been a lazy narrative that young workers all want to be remote because they're antisocial digital natives. The data tells a different story. A 2025 survey from Gallup found that workers under 30 actually have the strongest preference for hybrid — not fully remote. They want to come into an office 2-3 days a week. But (and this is the crucial part) they want the office days to be worth the commute.
+
+What Gen Z rejects isn't the office itself — it's the performative office. The "come in to prove you're working" office. The surveillance-as-management office. They want to come in for mentorship, for team bonding, for the social dimension of work that you genuinely can't get on Slack. They don't want to come in to sit in a cubicle with headphones on doing exactly what they'd do at home.
+
+The companies getting this right — Airbnb, Spotify, Atlassian — have invested in making office days genuinely different from remote days. Airbnb flies teams together quarterly for intensive collaboration weeks. Spotify's "Work From Anywhere" program includes dedicated team weeks where the entire squad is in one location. Atlassian has cut their office footprint by 40% but invested the savings into team gathering spaces and travel budgets.
+
+The office isn't dying. But the office as a daily obligation — as a place you go because that's where your desk is — that version is absolutely dying. What's replacing it is something more intentional, more flexible, and honestly more expensive per square foot but cheaper in aggregate. The future of the office is the office you actually want to go to.
