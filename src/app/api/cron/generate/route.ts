@@ -31,7 +31,38 @@ type FailedEpisodeRow = {
   retry_attempts: number;
 };
 
+type CategorizationRule = {
+  sender_email: string;
+  from_name_pattern: string | null;
+  subject_pattern: string | null;
+  category: string;
+  priority: number;
+};
+
 const MAX_RETRY_ATTEMPTS = 3;
+
+// Voice constants for free edition (random selection per category episode)
+const MALE_VOICES = [
+  "Achird", "Algenib", "Algieba", "Charon", "Enceladus", "Fenrir",
+  "Iapetus", "Orus", "Puck", "Rasalgethi", "Sadachbia", "Sadaltager",
+  "Schedar", "Umbriel", "Zubenelgenubi",
+];
+const FEMALE_VOICES = [
+  "Achernar", "Aoede", "Autonoe", "Callirrhoe", "Despina", "Erinome",
+  "Gacrux", "Kore", "Laomedeia", "Leda", "Pulcherrima", "Sulafat",
+  "Vindemiatrix", "Zephyr",
+];
+
+const FREE_CTA_TEXT =
+  "If you want a personalized podcast built from your own newsletters, upgrade at dailygist.fyi";
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -44,8 +75,182 @@ export async function GET(request: Request) {
   const supabase = createAdminClient();
 
   let triggered = 0;
+  let freeTriggered = 0;
   let retried = 0;
   const errors: { userId: string; error: string }[] = [];
+
+  const FREE_TIER_USER_ID = process.env.FREE_TIER_USER_ID;
+
+  // -----------------------------------------------------------------------
+  // Phase 0: Free Edition — category episodes for the system user
+  // -----------------------------------------------------------------------
+
+  if (FREE_TIER_USER_ID) {
+    try {
+      // Fetch system user's timezone and generation hour
+      const { data: systemUser } = await supabase
+        .from("users")
+        .select("id, email, timezone, generation_hour")
+        .eq("id", FREE_TIER_USER_ID)
+        .single<{ id: string; email: string; timezone: string; generation_hour: number }>();
+
+      if (systemUser) {
+        const currentHour = getCurrentHourInTimezone(systemUser.timezone);
+
+        if (currentHour === systemUser.generation_hour) {
+          // Fetch categorization rules for the system user
+          const { data: ruleRows } = await supabase
+            .from("categorization_rules")
+            .select("sender_email, from_name_pattern, subject_pattern, category, priority")
+            .eq("user_id", FREE_TIER_USER_ID)
+            .order("priority", { ascending: false })
+            .returns<CategorizationRule[]>();
+
+          const rules = ruleRows ?? [];
+
+          if (rules.length > 0) {
+            // Fetch unprocessed emails for the system user
+            const { data: freeEmails } = await supabase
+              .from("raw_emails")
+              .select("id, from_name, from_email, subject, text_body, html_body")
+              .eq("user_id", FREE_TIER_USER_ID)
+              .is("processed_at", null)
+              .order("received_at", { ascending: true })
+              .returns<RawEmailRow[]>();
+
+            // Match each email against rules to find its category
+            function matchCategory(email: RawEmailRow): string | null {
+              const matching = rules.filter(
+                (r) => r.sender_email === email.from_email
+              );
+              // Try rules with patterns first (already sorted by priority)
+              const patternRule = matching.find((r) => {
+                const hasPattern = r.from_name_pattern || r.subject_pattern;
+                if (!hasPattern) return false;
+                if (r.from_name_pattern) {
+                  const nameMatch = email.from_name
+                    ?.toLowerCase()
+                    .includes(r.from_name_pattern.toLowerCase());
+                  if (!nameMatch) return false;
+                }
+                if (r.subject_pattern) {
+                  const subjectMatch = email.subject
+                    ?.toLowerCase()
+                    .includes(r.subject_pattern.toLowerCase());
+                  if (!subjectMatch) return false;
+                }
+                return true;
+              });
+              if (patternRule) return patternRule.category;
+              // Fall back to catch-all (no patterns)
+              const catchAll = matching.find(
+                (r) => !r.from_name_pattern && !r.subject_pattern
+              );
+              return catchAll?.category ?? null;
+            }
+
+            // Group emails by matched category
+            const emailsByCategory = new Map<string, RawEmailRow[]>();
+            for (const email of freeEmails ?? []) {
+              const category = matchCategory(email);
+              if (!category) continue;
+              if (!emailsByCategory.has(category)) {
+                emailsByCategory.set(category, []);
+              }
+              emailsByCategory.get(category)!.push(email);
+            }
+
+            const today = getTodayInTimezone(systemUser.timezone);
+            const formattedDate = getFormattedDateInTimezone(systemUser.timezone);
+
+            for (const [category, emails] of emailsByCategory) {
+              try {
+                // Check if episode already exists for this category today
+                const { data: existingEp } = await supabase
+                  .from("episodes")
+                  .select("id, status")
+                  .eq("user_id", FREE_TIER_USER_ID)
+                  .eq("date", today)
+                  .eq("category", category)
+                  .maybeSingle();
+
+                if (existingEp) {
+                  // Skip if already queued/processing/ready
+                  if (["queued", "processing", "ready"].includes(existingEp.status)) {
+                    continue;
+                  }
+                }
+
+                const hostVoice = pickRandom(MALE_VOICES);
+                const guestVoice = pickRandom(FEMALE_VOICES);
+                const title = `Daily Gist: ${capitalize(category)} — ${formattedDate}`;
+                const newsletterText = formatEmailsForPodcast(emails);
+                const emailIds = emails.map((e) => e.id);
+                const storagePath = `${FREE_TIER_USER_ID}/${today}-${category}.mp3`;
+
+                const episodeData = {
+                  user_id: FREE_TIER_USER_ID,
+                  date: today,
+                  category,
+                  title,
+                  status: "queued" as const,
+                  job_input: {
+                    newsletter_text: newsletterText,
+                    email_ids: emailIds,
+                    storage_path: storagePath,
+                    date: today,
+                    target_length_minutes: 10,
+                    intro_music: "random",
+                    host_voice: hostVoice,
+                    guest_voice: guestVoice,
+                    cta_text: FREE_CTA_TEXT,
+                  },
+                };
+
+                if (existingEp) {
+                  const { error: updateError } = await supabase
+                    .from("episodes")
+                    .update(episodeData)
+                    .eq("id", existingEp.id);
+
+                  if (updateError) {
+                    errors.push({
+                      userId: FREE_TIER_USER_ID,
+                      error: `Failed to re-queue free ${category} episode: ${updateError.message}`,
+                    });
+                    continue;
+                  }
+                } else {
+                  const { error: insertError } = await supabase
+                    .from("episodes")
+                    .insert(episodeData);
+
+                  if (insertError) {
+                    errors.push({
+                      userId: FREE_TIER_USER_ID,
+                      error: `Failed to queue free ${category} episode: ${insertError.message}`,
+                    });
+                    continue;
+                  }
+                }
+
+                freeTriggered++;
+              } catch (err) {
+                const message = err instanceof Error ? err.message : "Unknown error";
+                errors.push({
+                  userId: FREE_TIER_USER_ID,
+                  error: `Free ${category} episode failed: ${message}`,
+                });
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      errors.push({ userId: FREE_TIER_USER_ID, error: `Free phase error: ${message}` });
+    }
+  }
 
   // -----------------------------------------------------------------------
   // Phase 1: Trigger new episodes for users at their generation hour
@@ -65,10 +270,10 @@ export async function GET(request: Request) {
     );
   }
 
-  // Deduplicate user IDs
+  // Deduplicate user IDs, exclude system user (handled in Phase 0)
   const candidateUserIds = [
     ...new Set((usersWithEmails || []).map((r) => r.user_id)),
-  ];
+  ].filter((id) => id !== FREE_TIER_USER_ID);
 
   if (candidateUserIds.length > 0) {
     // Fetch timezone and generation_hour for candidate users
@@ -122,11 +327,50 @@ export async function GET(request: Request) {
         const emailIds = emails.map((e) => e.id);
         const storagePath = `${userId}/${today}.mp3`;
 
-        // Upsert episode with status='queued' and job_input — workers pick it up
-        const { error: upsertError } = await supabase
+        // Check if episode already exists for this user today (personal)
+        const { data: existingEp } = await supabase
           .from("episodes")
-          .upsert(
-            {
+          .select("id, status")
+          .eq("user_id", userId)
+          .eq("date", today)
+          .is("category", null)
+          .maybeSingle();
+
+        if (existingEp) {
+          if (["queued", "processing", "ready"].includes(existingEp.status)) {
+            continue;
+          }
+          // Re-queue failed/pending episode
+          const { error: updateError } = await supabase
+            .from("episodes")
+            .update({
+              title,
+              status: "queued",
+              job_input: {
+                newsletter_text: newsletterText,
+                email_ids: emailIds,
+                storage_path: storagePath,
+                date: today,
+                user_email: user.email,
+                target_length_minutes: 10,
+                intro_music: user.intro_music,
+                host_voice: user.host_voice,
+                guest_voice: user.guest_voice,
+              },
+            })
+            .eq("id", existingEp.id);
+
+          if (updateError) {
+            errors.push({
+              userId,
+              error: `Failed to re-queue episode: ${updateError.message}`,
+            });
+            continue;
+          }
+        } else {
+          const { error: insertError } = await supabase
+            .from("episodes")
+            .insert({
               user_id: userId,
               date: today,
               title,
@@ -137,21 +381,20 @@ export async function GET(request: Request) {
                 storage_path: storagePath,
                 date: today,
                 user_email: user.email,
-                target_length_minutes: 10, // TODO: derive from user tier/preference
+                target_length_minutes: 10,
                 intro_music: user.intro_music,
                 host_voice: user.host_voice,
                 guest_voice: user.guest_voice,
               },
-            },
-            { onConflict: "user_id,date" }
-          );
+            });
 
-        if (upsertError) {
-          errors.push({
-            userId,
-            error: `Failed to queue episode: ${upsertError.message}`,
-          });
-          continue;
+          if (insertError) {
+            errors.push({
+              userId,
+              error: `Failed to queue episode: ${insertError.message}`,
+            });
+            continue;
+          }
         }
 
         triggered++;
@@ -259,6 +502,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     triggered,
+    freeTriggered,
     retried,
     ...(errors.length > 0 ? { errors } : {}),
   });

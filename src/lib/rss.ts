@@ -29,7 +29,7 @@ function toRfc2822(dateStr: string): string {
   return new Date(dateStr).toUTCString();
 }
 
-export function generateFeedXml(episodes: EpisodeItem[]): string {
+export function generateFeedXml(episodes: EpisodeItem[], feedTitle?: string): string {
   const items = episodes
     .map((ep) => {
       let enclosure = "";
@@ -65,7 +65,7 @@ ${duration}
   xmlns:content="http://purl.org/rss/1.0/modules/content/"
   xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Daily Gist</title>
+    <title>${escapeXml(feedTitle || "Daily Gist")}</title>
     <description>Your newsletters, as a daily podcast</description>
     <link>${escapeXml(process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi")}</link>
     <language>en-us</language>
@@ -75,7 +75,7 @@ ${duration}
     <itunes:image href="https://www.dailygist.fyi/podcast-cover.png?v=2" />
     <image>
       <url>https://www.dailygist.fyi/podcast-cover.png?v=2</url>
-      <title>Daily Gist</title>
+      <title>${escapeXml(feedTitle || "Daily Gist")}</title>
       <link>https://www.dailygist.fyi</link>
     </image>
     <itunes:category text="News" />

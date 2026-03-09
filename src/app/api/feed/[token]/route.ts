@@ -3,6 +3,8 @@ import { generateFeedXml } from "@/lib/rss";
 
 type UserRow = {
   id: string;
+  tier: string;
+  category: string | null;
 };
 
 type EpisodeRow = {
@@ -18,17 +20,19 @@ type EpisodeRow = {
 };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
+  const url = new URL(request.url);
+  const categoryParam = url.searchParams.get("category");
 
   const supabase = createAdminClient();
 
   // Look up user by rss_token
   const { data: user } = await supabase
     .from("users")
-    .select("id")
+    .select("id, tier, category")
     .eq("rss_token", token)
     .single<UserRow>();
 
@@ -36,17 +40,40 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  // Fetch ready episodes
-  const { data: episodes } = await supabase
+  const FREE_TIER_USER_ID = process.env.FREE_TIER_USER_ID;
+
+  // Determine feed title and query filters
+  let feedTitle: string | undefined;
+  let episodeQuery = supabase
     .from("episodes")
     .select(
       "id, title, date, transcript, audio_url, audio_duration_seconds, audio_size_bytes, share_code, created_at"
     )
-    .eq("user_id", user.id)
     .eq("status", "ready")
     .order("date", { ascending: false })
-    .limit(50)
-    .returns<EpisodeRow[]>();
+    .limit(50);
+
+  if (categoryParam) {
+    // Category feed — system user's episodes for this category
+    const targetUserId = FREE_TIER_USER_ID || user.id;
+    episodeQuery = episodeQuery
+      .eq("user_id", targetUserId)
+      .eq("category", categoryParam);
+    const label = categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1);
+    feedTitle = `Daily Gist: ${label}`;
+  } else if (user.tier === "free" && user.category && FREE_TIER_USER_ID) {
+    // Free user default — their chosen category from system user
+    episodeQuery = episodeQuery
+      .eq("user_id", FREE_TIER_USER_ID)
+      .eq("category", user.category);
+    const label = user.category.charAt(0).toUpperCase() + user.category.slice(1);
+    feedTitle = `Daily Gist: ${label}`;
+  } else {
+    // Personal feed
+    episodeQuery = episodeQuery.eq("user_id", user.id);
+  }
+
+  const { data: episodes } = await episodeQuery.returns<EpisodeRow[]>();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi";
   const items = (episodes || []).map((ep) => ({
@@ -62,7 +89,7 @@ export async function GET(
     shareUrl: ep.share_code ? `${appUrl}/s/${ep.share_code}` : null,
   }));
 
-  const xml = generateFeedXml(items);
+  const xml = generateFeedXml(items, feedTitle);
 
   return new Response(xml, {
     status: 200,
