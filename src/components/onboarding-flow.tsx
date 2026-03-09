@@ -62,12 +62,291 @@ function linkify(text: string): ReactNode[] {
   );
 }
 
+const FREE_CATEGORIES = [
+  { value: "tech", label: "Tech", description: "AI, software, startups, crypto" },
+  { value: "business", label: "Business", description: "Strategy, leadership, markets" },
+  { value: "finance", label: "Finance", description: "Investing, economics, personal finance" },
+  { value: "productivity", label: "Productivity", description: "Habits, tools, time management" },
+];
+
 export function OnboardingFlow({
   forwardingAddress,
   feedUrl,
   initialStep = 1,
   initialEpisode = null,
   tier = "free",
+  currentIntroMusic = null,
+  currentHostVoice = "Charon",
+  currentGuestVoice = "Sulafat",
+}: {
+  forwardingAddress: string;
+  feedUrl: string;
+  initialStep?: 1 | 2 | 3 | 4;
+  initialEpisode?: EpisodeStatus | null;
+  tier?: string;
+  currentIntroMusic?: string | null;
+  currentHostVoice?: string;
+  currentGuestVoice?: string;
+}) {
+  // Free tier gets a simplified 2-step flow
+  if (tier === "free") {
+    return <FreeOnboardingFlow feedUrl={feedUrl} />;
+  }
+
+  return (
+    <PaidOnboardingFlow
+      forwardingAddress={forwardingAddress}
+      feedUrl={feedUrl}
+      initialStep={initialStep}
+      initialEpisode={initialEpisode}
+      tier={tier}
+      currentIntroMusic={currentIntroMusic}
+      currentHostVoice={currentHostVoice}
+      currentGuestVoice={currentGuestVoice}
+    />
+  );
+}
+
+function FreeOnboardingFlow({ feedUrl }: { feedUrl: string }) {
+  const [freeStep, setFreeStep] = useState<1 | 2>(1);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const handleCategorySelect = async () => {
+    if (!selectedCategory) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/account/category", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: selectedCategory }),
+      });
+      if (res.ok) {
+        setFreeStep(2);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleComplete = async () => {
+    await fetch("/api/onboarding/complete", { method: "POST" });
+    window.location.href = "/dashboard";
+  };
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      {/* Step indicator — 2 steps */}
+      <div className="flex items-center gap-2">
+        {[1, 2].map((s) => (
+          <div key={s} className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors"
+              style={{
+                background: freeStep >= s
+                  ? "linear-gradient(135deg, #6b4c9a, #9d7cd8)"
+                  : "rgba(45, 27, 78, 0.08)",
+                color: freeStep >= s ? "#faf7f2" : "#8a7f96",
+              }}
+            >
+              {freeStep > s ? (
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="2,7 5.5,10.5 12,4" />
+                </svg>
+              ) : (
+                s
+              )}
+            </div>
+            {s < 2 && (
+              <div
+                className="w-12 h-0.5 rounded"
+                style={{
+                  background: freeStep > s
+                    ? "#6b4c9a"
+                    : "rgba(45, 27, 78, 0.08)",
+                }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {freeStep === 1 && (
+        <>
+          <div>
+            <h1
+              className="text-2xl"
+              style={{
+                fontFamily: "var(--font-instrument-serif), serif",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Choose Your Category
+            </h1>
+            <p className="text-sm mt-1" style={{ color: "#5a4d6b" }}>
+              Pick a topic and get a daily podcast episode curated from top newsletters.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {FREE_CATEGORIES.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setSelectedCategory(cat.value)}
+                className="w-full text-left p-4 rounded-2xl transition-all"
+                style={{
+                  background: selectedCategory === cat.value
+                    ? "rgba(107, 76, 154, 0.08)"
+                    : "#fff",
+                  border: selectedCategory === cat.value
+                    ? "2px solid #6b4c9a"
+                    : "1px solid rgba(45, 27, 78, 0.08)",
+                }}
+              >
+                <p className="text-sm font-semibold" style={{ color: "#1a0e2e" }}>
+                  {cat.label}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "#5a4d6b" }}>
+                  {cat.description}
+                </p>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handleCategorySelect}
+            disabled={!selectedCategory || saving}
+            className="w-full py-3 rounded-xl text-sm font-medium transition-all"
+            style={{
+              background: selectedCategory ? "#6b4c9a" : "rgba(45, 27, 78, 0.1)",
+              color: selectedCategory ? "#faf7f2" : "#8a7f96",
+              cursor: selectedCategory ? "pointer" : "not-allowed",
+            }}
+          >
+            {saving ? "Saving..." : "Continue"}
+          </button>
+        </>
+      )}
+
+      {freeStep === 2 && (
+        <FreeRssStep feedUrl={feedUrl} onComplete={handleComplete} />
+      )}
+    </div>
+  );
+}
+
+function FreeRssStep({
+  feedUrl,
+  onComplete,
+}: {
+  feedUrl: string;
+  onComplete: () => void;
+}) {
+  return (
+    <>
+      <div>
+        <h1
+          className="text-2xl"
+          style={{
+            fontFamily: "var(--font-instrument-serif), serif",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Add to Your Podcast App
+        </h1>
+        <p className="text-sm mt-1" style={{ color: "#5a4d6b" }}>
+          Copy this RSS feed URL into your favorite podcast app. New episodes appear daily.
+        </p>
+      </div>
+
+      <div
+        className="bg-white rounded-2xl p-6"
+        style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
+      >
+        <p className="text-sm font-medium mb-3" style={{ color: "#1a0e2e" }}>
+          Your podcast feed
+        </p>
+        <div
+          className="flex items-center gap-2 p-3 rounded-xl mb-4"
+          style={{ background: "rgba(45, 27, 78, 0.04)" }}
+        >
+          <code
+            className="flex-1 text-sm break-all"
+            style={{ color: "#1a0e2e" }}
+          >
+            {feedUrl}
+          </code>
+          <CopyButton text={feedUrl} />
+        </div>
+
+        <div className="space-y-3 text-sm">
+          <details className="group">
+            <summary className="cursor-pointer font-medium" style={{ color: "#1a0e2e" }}>
+              Apple Podcasts
+            </summary>
+            <div className="mt-2 pl-4 space-y-1" style={{ color: "#5a4d6b" }}>
+              <p>1. Open Apple Podcasts on your Mac</p>
+              <p>2. Go to File &rarr; Add a Show by URL (or Cmd+Shift+U)</p>
+              <p>3. Paste your RSS feed URL and click Follow</p>
+              <p>4. The podcast will sync to your iPhone automatically</p>
+            </div>
+          </details>
+
+          <details className="group">
+            <summary className="cursor-pointer font-medium" style={{ color: "#1a0e2e" }}>
+              Overcast
+            </summary>
+            <div className="mt-2 pl-4 space-y-1" style={{ color: "#5a4d6b" }}>
+              <p>1. Open Overcast and tap the + button</p>
+              <p>2. Tap &quot;Add URL&quot;</p>
+              <p>3. Paste your RSS feed URL and tap Add</p>
+            </div>
+          </details>
+
+          <details className="group">
+            <summary className="cursor-pointer font-medium" style={{ color: "#1a0e2e" }}>
+              Pocket Casts
+            </summary>
+            <div className="mt-2 pl-4 space-y-1" style={{ color: "#5a4d6b" }}>
+              <p>1. Open Pocket Casts and tap Search</p>
+              <p>2. Scroll down and tap &quot;Submit RSS&quot;</p>
+              <p>3. Paste your RSS feed URL and tap Find</p>
+              <p>4. Tap Subscribe</p>
+            </div>
+          </details>
+
+          <details className="group">
+            <summary className="cursor-pointer font-medium" style={{ color: "#1a0e2e" }}>
+              Castro
+            </summary>
+            <div className="mt-2 pl-4 space-y-1" style={{ color: "#5a4d6b" }}>
+              <p>1. Open Castro and go to Library</p>
+              <p>2. Tap the + button, then &quot;Add by URL&quot;</p>
+              <p>3. Paste your RSS feed URL and tap Add</p>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <button
+        onClick={onComplete}
+        className="w-full py-3 rounded-xl text-sm font-medium transition-colors"
+        style={{ background: "#6b4c9a", color: "#faf7f2" }}
+      >
+        Go to Dashboard
+      </button>
+    </>
+  );
+}
+
+function PaidOnboardingFlow({
+  forwardingAddress,
+  feedUrl,
+  initialStep = 1,
+  initialEpisode = null,
+  tier = "pro",
   currentIntroMusic = null,
   currentHostVoice = "Charon",
   currentGuestVoice = "Sulafat",

@@ -102,6 +102,7 @@ class GenerateRequest(BaseModel):
     host_voice: str | None = None
     guest_voice: str | None = None
     intro_music: str | None = None
+    cta_text: str | None = None
 
 
 class GenerateResponse(BaseModel):
@@ -145,6 +146,8 @@ def generate(body: GenerateRequest, _auth: None = Depends(verify_token)):
         kwargs["guest_voice"] = body.guest_voice
     if body.intro_music is not None:
         kwargs["intro_music"] = body.intro_music
+    if body.cta_text is not None:
+        kwargs["cta_text"] = body.cta_text
 
     try:
         mp3_bytes, transcript, source_newsletters = generate_podcast(
@@ -199,6 +202,7 @@ def _process_job(episode_id: str, user_id: str, job_input: dict):
         intro_music = job_input.get("intro_music")
         host_voice = job_input.get("host_voice", "Charon")
         guest_voice = job_input.get("guest_voice", "Sulafat")
+        cta_text = job_input.get("cta_text")
 
         logger.info(
             "Processing job: episode_id=%s, user_id=%s, %d chars input",
@@ -229,6 +233,7 @@ def _process_job(episode_id: str, user_id: str, job_input: dict):
                     intro_music=intro_music,
                     host_voice=host_voice,
                     guest_voice=guest_voice,
+                    cta_text=cta_text,
                 )
                 break  # success
             except Exception as exc:

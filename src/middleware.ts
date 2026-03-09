@@ -44,6 +44,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Protect admin routes — require auth + ADMIN_USER_ID match
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    if (!user || user.id !== process.env.ADMIN_USER_ID) {
+      const url = request.nextUrl.clone();
+      url.pathname = user ? "/dashboard" : "/login";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Redirect logged-in users away from landing/login pages
   if ((request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/") && user) {
     const url = request.nextUrl.clone();
@@ -55,5 +64,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/login"],
+  matcher: ["/", "/dashboard/:path*", "/admin/:path*", "/login"],
 };

@@ -1,9 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { NotificationBanners } from "@/components/notification-banner";
 import { EpisodeList } from "@/components/episode-list";
 import { CopyButton } from "@/components/copy-button";
+
+const TIER_LABELS: Record<string, string> = {
+  free: "Free Edition",
+  pro: "Basic Edition",
+  power: "Special Edition",
+};
 
 type Episode = {
   id: string;
@@ -24,6 +31,7 @@ type UserRecord = {
   forwarding_address: string;
   rss_token: string;
   tier: string;
+  category: string | null;
   onboarding_completed_at: string | null;
   forwarding_setup_at: string | null;
 };
@@ -47,7 +55,7 @@ export default async function DashboardPage() {
   // Fetch user record
   const { data: userRecord } = await supabase
     .from("users")
-    .select("id, email, forwarding_address, rss_token, tier, onboarding_completed_at, forwarding_setup_at")
+    .select("id, email, forwarding_address, rss_token, tier, category, onboarding_completed_at, forwarding_setup_at")
     .eq("id", user.id)
     .single<UserRecord>();
 
@@ -57,6 +65,28 @@ export default async function DashboardPage() {
         <p style={{ color: "#5a4d6b" }}>Setting up your account...</p>
       </div>
     );
+  }
+
+  // Free users see episodes from the system user's category
+  const isFreeWithCategory =
+    userRecord.tier === "free" && userRecord.category;
+  const FREE_TIER_USER_ID = process.env.FREE_TIER_USER_ID;
+
+  // Build episode query based on tier
+  const admin = createAdminClient();
+  let episodeQuery = admin
+    .from("episodes")
+    .select("id, title, date, status, transcript, error_message, share_code, audio_url, source_newsletters, progress_stage")
+    .order("date", { ascending: false })
+    .limit(20);
+
+  if (isFreeWithCategory && FREE_TIER_USER_ID) {
+    episodeQuery = episodeQuery
+      .eq("user_id", FREE_TIER_USER_ID)
+      .eq("category", userRecord.category!)
+      .eq("status", "ready");
+  } else {
+    episodeQuery = episodeQuery.eq("user_id", user.id);
   }
 
   // Fetch notifications and episodes in parallel
@@ -73,13 +103,7 @@ export default async function DashboardPage() {
       .order("created_at", { ascending: false })
       .limit(10)
       .returns<Notification[]>(),
-    supabase
-      .from("episodes")
-      .select("id, title, date, status, transcript, error_message, share_code, audio_url, source_newsletters, progress_stage")
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(20)
-      .returns<Episode[]>(),
+    episodeQuery.returns<Episode[]>(),
   ]);
 
   const hasEpisodes = episodes && episodes.length > 0;
@@ -97,8 +121,51 @@ export default async function DashboardPage() {
         <NotificationBanners notifications={notifications} />
       )}
 
-      {/* Forwarding setup alert */}
-      {userRecord.onboarding_completed_at && !userRecord.forwarding_setup_at && (
+      {/* Free tier upgrade banner */}
+      {userRecord.tier === "free" && (
+        <div
+          className="rounded-2xl p-5 flex items-start gap-4"
+          style={{
+            background: "linear-gradient(135deg, rgba(107, 76, 154, 0.08), rgba(232, 164, 74, 0.08))",
+            border: "1px solid rgba(107, 76, 154, 0.15)",
+          }}
+        >
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ background: "linear-gradient(135deg, #6b4c9a, #e8a44a)" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#faf7f2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="7,1 9,5 13,5.5 10,8.5 11,13 7,10.5 3,13 4,8.5 1,5.5 5,5" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium" style={{ color: "#1a0e2e" }}>
+              You&apos;re on the {TIER_LABELS.free}
+              {userRecord.category && (
+                <span
+                  className="ml-2 px-2 py-0.5 rounded-lg text-xs font-medium"
+                  style={{ background: "rgba(107, 76, 154, 0.12)", color: "#6b4c9a" }}
+                >
+                  {userRecord.category.charAt(0).toUpperCase() + userRecord.category.slice(1)}
+                </span>
+              )}
+            </p>
+            <p className="text-xs mt-1" style={{ color: "#5a4d6b" }}>
+              Upgrade to get a personalized podcast from your own newsletters.
+            </p>
+            <Link
+              href="/pricing"
+              className="inline-block mt-3 px-4 py-2 rounded-xl text-xs font-medium transition-colors"
+              style={{ background: "#6b4c9a", color: "#faf7f2" }}
+            >
+              View plans
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Forwarding setup alert — only for paid users */}
+      {userRecord.tier !== "free" && userRecord.onboarding_completed_at && !userRecord.forwarding_setup_at && (
         <div
           className="rounded-2xl p-5 flex items-start gap-4"
           style={{
@@ -243,8 +310,8 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Onboarding banner — only when no episodes */}
-      {!hasEpisodes && (
+      {/* Onboarding banner — only when no episodes and paid tier */}
+      {!hasEpisodes && userRecord.tier !== "free" && (
         <div
           className="rounded-2xl p-5 bg-white"
           style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
@@ -272,14 +339,20 @@ export default async function DashboardPage() {
             No episodes yet.
           </p>
           <p className="text-sm" style={{ color: "#8a7f96" }}>
-            Forward your first newsletter to{" "}
-            <code
-              className="px-1.5 py-0.5 rounded text-xs"
-              style={{ background: "rgba(45, 27, 78, 0.06)" }}
-            >
-              {userRecord.forwarding_address}
-            </code>{" "}
-            to get started!
+            {userRecord.tier === "free"
+              ? "Your first episode will appear here soon. Check back tomorrow!"
+              : (
+                <>
+                  Forward your first newsletter to{" "}
+                  <code
+                    className="px-1.5 py-0.5 rounded text-xs"
+                    style={{ background: "rgba(45, 27, 78, 0.06)" }}
+                  >
+                    {userRecord.forwarding_address}
+                  </code>{" "}
+                  to get started!
+                </>
+              )}
           </p>
         </div>
       ) : (

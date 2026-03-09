@@ -53,6 +53,7 @@ def generate_podcast(
     intro_music: str | None = None,
     host_voice: str = "Charon",
     guest_voice: str = "Sulafat",
+    cta_text: str | None = None,
 ) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
@@ -105,7 +106,7 @@ def generate_podcast(
     _report("second_half")
     logger.info("Step 3/4: Generating second half...")
 
-    second_half = _generate_section_gemini(outline, newsletter_text, "second", _SCRIPT_MODEL, previous_turns=first_half, words_per_section=words_per_section)
+    second_half = _generate_section_gemini(outline, newsletter_text, "second", _SCRIPT_MODEL, previous_turns=first_half, words_per_section=words_per_section, cta_text=cta_text)
 
     logger.info("Step 3/4 complete: second half %d chars", len(second_half))
 
@@ -440,6 +441,7 @@ def _generate_section_gemini(
     model_id: str,
     previous_turns: str | None = None,
     words_per_section: int = 1250,
+    cta_text: str | None = None,
 ) -> str:
     """Call 2 or 3 (Gemini): Generate dialogue for the first or second half."""
     client = _get_gemini_text_client()
@@ -523,7 +525,8 @@ def _generate_section_gemini(
             f"The VERY LAST turn in your output MUST be Person1 signing off. This is non-negotiable.\n"
             f"The sign-off turn must include:\n"
             f"- A brief thematic wrap-up (theme: \"{outline.get('outro_theme', '')}\")\n"
-            f"- That's your Daily Gist for today \n"
+            + (f"- Before the sign-off, one host should casually mention: \"{cta_text}\". Keep it brief and conversational. Do not repeat it elsewhere.\n" if cta_text else "")
+            + f"- That's your Daily Gist for today \n"
             f"- Credit the sources naturally: {source_names}\n"
             f"- A friendly farewell\n"
             f"In the closing attribution, list ONLY the newsletter names that appear in the source "

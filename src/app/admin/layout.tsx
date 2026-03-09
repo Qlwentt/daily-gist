@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Instrument_Serif, DM_Sans } from "next/font/google";
-import { createClient } from "@/lib/supabase/server";
 
 const instrumentSerif = Instrument_Serif({
   weight: "400",
@@ -14,14 +13,11 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 });
 
-export default async function DashboardLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const isAdmin = user?.id === process.env.ADMIN_USER_ID;
   return (
     <div
       className={`${instrumentSerif.variable} ${dmSans.variable} min-h-screen`}
@@ -42,7 +38,7 @@ export default async function DashboardLayout({
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-8">
               <Link
-                href="/dashboard"
+                href="/admin"
                 className="text-xl font-normal"
                 style={{
                   fontFamily: "var(--font-instrument-serif), serif",
@@ -50,7 +46,17 @@ export default async function DashboardLayout({
                   color: "#1a0e2e",
                 }}
               >
-                Daily Gist
+                Daily Gist{" "}
+                <span
+                  className="text-xs font-medium px-2 py-0.5 rounded-lg align-middle"
+                  style={{
+                    background: "rgba(107, 76, 154, 0.12)",
+                    color: "#6b4c9a",
+                    fontFamily: "var(--font-dm-sans), system-ui, sans-serif",
+                  }}
+                >
+                  Admin
+                </span>
               </Link>
               <div className="flex space-x-4">
                 <Link
@@ -60,37 +66,6 @@ export default async function DashboardLayout({
                 >
                   Dashboard
                 </Link>
-                <Link
-                  href="/dashboard/settings"
-                  className="text-sm font-medium transition-colors hover:opacity-70"
-                  style={{ color: "#5a4d6b" }}
-                >
-                  Settings
-                </Link>
-                <Link
-                  href="/explore"
-                  className="text-sm font-medium transition-colors hover:opacity-70"
-                  style={{ color: "#5a4d6b" }}
-                >
-                  Explore
-                </Link>
-                <a
-                  href="mailto:support@dailygist.fyi"
-                  target="_blank"
-                  className="text-sm font-medium transition-colors hover:opacity-70"
-                  style={{ color: "#5a4d6b" }}
-                >
-                  Support
-                </a>
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="text-sm font-medium transition-colors hover:opacity-70"
-                    style={{ color: "#6b4c9a" }}
-                  >
-                    Admin
-                  </Link>
-                )}
               </div>
             </div>
             <div className="flex items-center">
