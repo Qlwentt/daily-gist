@@ -979,52 +979,16 @@ _TRUNCATION_TOLERANCE = 0.75      # flag if actual < 75% of expected
 
 
 def _synthesize_chunked(client: genai.Client, turns: list[dict], tmp_dir: str, mp3_path: str, on_progress: "callable | None" = None, voice_config: types.SpeechConfig | None = None, host_voice: str = "Charon", guest_voice: str = "Sulafat") -> None:
-    preamble = _build_tts_preamble(host_voice, guest_voice)
-
     total_words = sum(len(t["text"].split()) for t in turns)
-    expected_sec = (total_words / _EXPECTED_WPM) * 60
-    prompt = preamble + "\n".join(f"{t['speaker']}: {t['text']}" for t in turns)
-
     logger.info(
-        "Single-call TTS: %d turns, %d words, expected=%.0fs, prompt=%d chars",
-        len(turns), total_words, expected_sec, len(prompt),
+        "Chunked TTS: %d turns, %d words",
+        len(turns), total_words,
     )
 
-    # Try single-call TTS first — no chunking, no boundaries, no problems
-    single_call_timeout = _TTS_SINGLE_CALL_TIMEOUT_MS // 1000
-    audio_data = _tts_generate(client, prompt, label="Single-call", voice_config=voice_config, timeout_s=single_call_timeout)
-    wav_path = os.path.join(tmp_dir, "single.wav")
-    _save_wav(wav_path, audio_data)
-    result = AudioSegment.from_wav(wav_path)
-    actual_sec = len(result) / 1000.0
-
-    if on_progress:
-        try:
-            on_progress("audio", {"chunk": 1, "total": 1})
-        except Exception:
-            logger.warning("on_progress callback failed", exc_info=True)
-
-    logger.info(
-        "Single-call TTS: actual=%.0fs, expected=%.0fs, ratio=%.2f",
-        actual_sec, expected_sec, actual_sec / max(expected_sec, 1),
+    result = _synthesize_chunked_fallback(
+        client, turns, tmp_dir, on_progress=on_progress, voice_config=voice_config,
+        host_voice=host_voice, guest_voice=guest_voice,
     )
-
-    # Check for loop or truncation
-    is_looped = actual_sec > expected_sec * _LOOP_DURATION_TOLERANCE
-    is_truncated = expected_sec >= 5 and actual_sec < expected_sec * _TRUNCATION_TOLERANCE
-
-    if is_looped or is_truncated:
-        issue = "loop" if is_looped else "truncation"
-        logger.warning(
-            "Single-call %s detected (actual=%.0fs, expected=%.0fs). Falling back to chunked TTS...",
-            issue, actual_sec, expected_sec,
-        )
-        result = _synthesize_chunked_fallback(
-            client, turns, tmp_dir, on_progress=on_progress, voice_config=voice_config,
-            host_voice=host_voice, guest_voice=guest_voice,
-        )
-    else:
-        logger.info("Single-call TTS: audio looks clean, no chunking needed")
 
     # Pad end with 1s silence to prevent MP3 encoder truncation
     result = result + AudioSegment.silent(duration=1000)
