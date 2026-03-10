@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminRulesTable } from "@/components/admin-rules-table";
 import { AdminEmailsTable } from "@/components/admin-emails-table";
