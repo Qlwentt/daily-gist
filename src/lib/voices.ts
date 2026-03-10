@@ -34,3 +34,8 @@ export const VOICES: { name: string; label: string; gender: "M" | "F" }[] = [
 export function getVoiceAlias(geminiName: string): string {
   return VOICES.find((v) => v.name === geminiName)?.label ?? geminiName;
 }
+
+/** Get the gender of a voice by its Gemini name */
+export function getVoiceGender(geminiName: string): "M" | "F" {
+  return VOICES.find((v) => v.name === geminiName)?.gender ?? "M";
+}
