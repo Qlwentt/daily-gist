@@ -59,12 +59,17 @@ export async function POST() {
     year: "numeric",
   })}`;
 
+  // Delete any existing personal episode for today, then insert fresh
+  await admin
+    .from("episodes")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("date", today)
+    .is("category", null);
+
   const { data: episode, error: insertError } = await admin
     .from("episodes")
-    .upsert(
-      { user_id: user.id, date: today, title, status: "processing" },
-      { onConflict: "user_id,date" }
-    )
+    .insert({ user_id: user.id, date: today, title, status: "processing" })
     .select("id")
     .single<{ id: string }>();
 

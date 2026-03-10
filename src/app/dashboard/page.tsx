@@ -109,8 +109,8 @@ export default async function DashboardPage() {
   const hasEpisodes = episodes && episodes.length > 0;
   const feedUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi"}/api/feed/${userRecord.rss_token}`;
 
-  // Redirect to onboarding if not completed and no episodes
-  if (!hasEpisodes && !userRecord.onboarding_completed_at) {
+  // Redirect to onboarding if not completed
+  if (!userRecord.onboarding_completed_at) {
     redirect("/dashboard/onboarding");
   }
 

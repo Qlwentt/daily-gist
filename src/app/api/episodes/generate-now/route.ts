@@ -67,11 +67,29 @@ export async function POST() {
   const emailIds = emails.map((e) => e.id);
   const storagePath = `${user.id}/${today}.mp3`;
 
-  // Upsert episode with status='queued' + job_input — workers pick it up
-  const { data: episode, error: upsertError } = await admin
+  // Check for existing personal episode today (re-queue if terminal, return if in-flight)
+  const { data: existing } = await admin
     .from("episodes")
-    .upsert(
-      {
+    .select("id, status")
+    .eq("user_id", user.id)
+    .eq("date", today)
+    .is("category", null)
+    .single<{ id: string; status: string }>();
+
+  let episode: { id: string };
+
+  if (existing && (existing.status === "queued" || existing.status === "processing")) {
+    // Already in-flight — return existing
+    episode = existing;
+  } else {
+    if (existing) {
+      // Terminal state (ready/error) — delete and re-create
+      await admin.from("episodes").delete().eq("id", existing.id);
+    }
+
+    const { data: newEpisode, error: insertError } = await admin
+      .from("episodes")
+      .insert({
         user_id: user.id,
         date: today,
         title,
@@ -87,18 +105,18 @@ export async function POST() {
           host_voice: userRecord.host_voice,
           guest_voice: userRecord.guest_voice,
         },
-      },
-      { onConflict: "user_id,date" }
-    )
-    .select("id")
-    .single<{ id: string }>();
+      })
+      .select("id")
+      .single<{ id: string }>();
 
-  if (upsertError || !episode) {
-    console.error("Failed to queue episode:", upsertError?.message);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    if (insertError || !newEpisode) {
+      console.error("Failed to queue episode:", insertError?.message);
+      return NextResponse.json(
+        { error: "Server error" },
+        { status: 500 }
+      );
+    }
+    episode = newEpisode;
   }
 
   return NextResponse.json({ episode_id: episode.id });
