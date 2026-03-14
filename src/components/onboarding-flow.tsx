@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { CopyButton } from "@/components/copy-button";
 import { IntroMusicPicker } from "@/components/intro-music-picker";
 import { VoicePicker } from "@/components/voice-picker";
+import { NamePronunciation } from "@/components/name-pronunciation";
 
 
 type Email = {
@@ -78,6 +79,8 @@ export function OnboardingFlow({
   currentIntroMusic = null,
   currentHostVoice = "Charon",
   currentGuestVoice = "Sulafat",
+  currentDisplayName = null,
+  currentPhonetic = null,
 }: {
   forwardingAddress: string;
   feedUrl: string;
@@ -87,6 +90,8 @@ export function OnboardingFlow({
   currentIntroMusic?: string | null;
   currentHostVoice?: string;
   currentGuestVoice?: string;
+  currentDisplayName?: string | null;
+  currentPhonetic?: string | null;
 }) {
   // Free tier gets a simplified 2-step flow
   if (tier === "free") {
@@ -103,6 +108,8 @@ export function OnboardingFlow({
       currentIntroMusic={currentIntroMusic}
       currentHostVoice={currentHostVoice}
       currentGuestVoice={currentGuestVoice}
+      currentDisplayName={currentDisplayName}
+      currentPhonetic={currentPhonetic}
     />
   );
 }
@@ -350,6 +357,8 @@ function PaidOnboardingFlow({
   currentIntroMusic = null,
   currentHostVoice = "Charon",
   currentGuestVoice = "Sulafat",
+  currentDisplayName = null,
+  currentPhonetic = null,
 }: {
   forwardingAddress: string;
   feedUrl: string;
@@ -359,6 +368,8 @@ function PaidOnboardingFlow({
   currentIntroMusic?: string | null;
   currentHostVoice?: string;
   currentGuestVoice?: string;
+  currentDisplayName?: string | null;
+  currentPhonetic?: string | null;
 }) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(initialStep);
   const [emails, setEmails] = useState<Email[]>([]);
@@ -523,6 +534,8 @@ function PaidOnboardingFlow({
           currentIntroMusic={currentIntroMusic}
           currentHostVoice={currentHostVoice}
           currentGuestVoice={currentGuestVoice}
+          currentDisplayName={currentDisplayName}
+          currentPhonetic={currentPhonetic}
         />
       )}
 
@@ -562,6 +575,8 @@ function ForwardStep({
   currentIntroMusic,
   currentHostVoice,
   currentGuestVoice,
+  currentDisplayName,
+  currentPhonetic,
 }: {
   forwardingAddress: string;
   emails: Email[];
@@ -572,6 +587,8 @@ function ForwardStep({
   currentIntroMusic: string | null;
   currentHostVoice: string;
   currentGuestVoice: string;
+  currentDisplayName: string | null;
+  currentPhonetic: string | null;
 }) {
   return (
     <>
@@ -733,6 +750,14 @@ function ForwardStep({
         currentGuestVoice={currentGuestVoice}
         isPower={tier === "power"}
       />
+
+      {/* Personalized Name — power only */}
+      {tier === "power" && (
+        <NamePronunciation
+          currentDisplayName={currentDisplayName}
+          currentPhonetic={currentPhonetic}
+        />
+      )}
 
       {/* Generate button */}
       {(() => {

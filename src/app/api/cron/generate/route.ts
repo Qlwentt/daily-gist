@@ -27,6 +27,8 @@ type UserRow = {
   intro_music: string | null;
   host_voice: string;
   guest_voice: string;
+  display_name: string | null;
+  display_name_phonetic: string | null;
 };
 
 type FailedEpisodeRow = {
@@ -250,7 +252,7 @@ export async function GET(request: Request) {
     // Fetch timezone and generation_hour for candidate users
     const { data: users, error: usersError } = await supabase
       .from("users")
-      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice")
+      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice, display_name, display_name_phonetic")
       .in("id", candidateUserIds)
       .returns<UserRow[]>();
 
@@ -383,6 +385,7 @@ export async function GET(request: Request) {
 
               const { data: existingEp } = await existingQuery.maybeSingle();
 
+              const userName = user.display_name_phonetic || user.display_name || undefined;
               const episodeData = {
                 user_id: userId,
                 date: today,
@@ -400,6 +403,7 @@ export async function GET(request: Request) {
                   host_voice: hostVoice,
                   guest_voice: guestVoice,
                   ...(collection ? { collection_name: collection.name } : {}),
+                  ...(userName ? { user_name: userName } : {}),
                 },
               };
 
@@ -440,6 +444,7 @@ export async function GET(request: Request) {
           const newsletterText = formatEmailsForPodcast(emails);
           const emailIds = emails.map((e) => e.id);
           const storagePath = `${userId}/${today}.mp3`;
+          const userName = user.display_name_phonetic || user.display_name || undefined;
 
           const { data: existingEp } = await supabase
             .from("episodes")
@@ -448,6 +453,19 @@ export async function GET(request: Request) {
             .eq("date", today)
             .is("category", null)
             .maybeSingle();
+
+          const jobInput = {
+            newsletter_text: newsletterText,
+            email_ids: emailIds,
+            storage_path: storagePath,
+            date: today,
+            user_email: user.email,
+            target_length_minutes: 10,
+            intro_music: user.intro_music,
+            host_voice: user.host_voice,
+            guest_voice: user.guest_voice,
+            ...(userName ? { user_name: userName } : {}),
+          };
 
           if (existingEp) {
             if (["queued", "processing", "ready"].includes(existingEp.status)) {
@@ -458,17 +476,7 @@ export async function GET(request: Request) {
               .update({
                 title,
                 status: "queued",
-                job_input: {
-                  newsletter_text: newsletterText,
-                  email_ids: emailIds,
-                  storage_path: storagePath,
-                  date: today,
-                  user_email: user.email,
-                  target_length_minutes: 10,
-                  intro_music: user.intro_music,
-                  host_voice: user.host_voice,
-                  guest_voice: user.guest_voice,
-                },
+                job_input: jobInput,
               })
               .eq("id", existingEp.id);
 
@@ -484,17 +492,7 @@ export async function GET(request: Request) {
                 date: today,
                 title,
                 status: "queued",
-                job_input: {
-                  newsletter_text: newsletterText,
-                  email_ids: emailIds,
-                  storage_path: storagePath,
-                  date: today,
-                  user_email: user.email,
-                  target_length_minutes: 10,
-                  intro_music: user.intro_music,
-                  host_voice: user.host_voice,
-                  guest_voice: user.guest_voice,
-                },
+                job_input: jobInput,
               });
 
             if (insertError) {
@@ -532,7 +530,7 @@ export async function GET(request: Request) {
     const failedUserIds = [...new Set(failedEpisodes.map((e) => e.user_id))];
     const { data: failedUsers, error: failedUsersError } = await supabase
       .from("users")
-      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice")
+      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice, display_name, display_name_phonetic")
       .in("id", failedUserIds)
       .returns<UserRow[]>();
 
@@ -569,6 +567,7 @@ export async function GET(request: Request) {
           const storagePath = `${ep.user_id}/${today}.mp3`;
 
           // Reset episode to queued with job_input, increment retry_attempts
+          const retryUserName = user.display_name_phonetic || user.display_name || undefined;
           const { error: updateError } = await supabase
             .from("episodes")
             .update({
@@ -586,6 +585,7 @@ export async function GET(request: Request) {
                 intro_music: user.intro_music,
                 host_voice: user.host_voice,
                 guest_voice: user.guest_voice,
+                ...(retryUserName ? { user_name: retryUserName } : {}),
               },
             })
             .eq("id", ep.id);

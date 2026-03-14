@@ -55,6 +55,7 @@ def generate_podcast(
     guest_voice: str = "Sulafat",
     cta_text: str | None = None,
     collection_name: str | None = None,
+    user_name: str | None = None,
 ) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
@@ -100,14 +101,14 @@ def generate_podcast(
     _report("first_half")
     logger.info("Step 2/4: Generating first half...")
 
-    first_half = _generate_section_gemini(outline, newsletter_text, "first", _SCRIPT_MODEL, words_per_section=words_per_section, collection_name=collection_name)
+    first_half = _generate_section_gemini(outline, newsletter_text, "first", _SCRIPT_MODEL, words_per_section=words_per_section, collection_name=collection_name, user_name=user_name)
 
     logger.info("Step 2/4 complete: first half %d chars", len(first_half))
 
     _report("second_half")
     logger.info("Step 3/4: Generating second half...")
 
-    second_half = _generate_section_gemini(outline, newsletter_text, "second", _SCRIPT_MODEL, previous_turns=first_half, words_per_section=words_per_section, cta_text=cta_text)
+    second_half = _generate_section_gemini(outline, newsletter_text, "second", _SCRIPT_MODEL, previous_turns=first_half, words_per_section=words_per_section, cta_text=cta_text, user_name=user_name)
 
     logger.info("Step 3/4 complete: second half %d chars", len(second_half))
 
@@ -444,6 +445,7 @@ def _generate_section_gemini(
     words_per_section: int = 1250,
     cta_text: str | None = None,
     collection_name: str | None = None,
+    user_name: str | None = None,
 ) -> str:
     """Call 2 or 3 (Gemini): Generate dialogue for the first or second half."""
     client = _get_gemini_text_client()
@@ -460,7 +462,9 @@ def _generate_section_gemini(
             f"- Person1's first turn: Welcome line + ONE short teaser sentence (40 words max total).\n"
             f"- Person2's first turn: Immediate reaction or question.\n"
             f"- Then they unpack the hook together.\n"
-            f"Person1's turn MUST begin with: \"Welcome to Daily Gist"
+            f"Person1's turn MUST begin with: \""
+            f"{'Hi ' + user_name + ', welcome' if user_name else 'Welcome'}"
+            f" to Daily Gist"
             f"{': ' + collection_name + ' Edition' if collection_name else ''}"
             f" — your newsletters, distilled into conversation!\"\n"
             f"Hook to weave in: \"{outline.get('intro_hook', '')}\"\n"
@@ -529,7 +533,7 @@ def _generate_section_gemini(
             f"The sign-off turn must include:\n"
             f"- A brief thematic wrap-up (theme: \"{outline.get('outro_theme', '')}\")\n"
             + (f"- Before the sign-off, one host should casually mention: \"{cta_text}\". Keep it brief and conversational. Do not repeat it elsewhere.\n" if cta_text else "")
-            + f"- That's your Daily Gist for today \n"
+            + f"- That's your Daily Gist for today{', ' + user_name if user_name else ''}\n"
             f"- Credit the sources naturally: {source_names}\n"
             f"- A friendly farewell\n"
             f"In the closing attribution, list ONLY the newsletter names that appear in the source "

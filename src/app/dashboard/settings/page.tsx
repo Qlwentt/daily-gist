@@ -7,6 +7,7 @@ import { SaveButton } from "@/components/save-button";
 import { DeleteAccountSection } from "@/components/delete-account-section";
 import { IntroMusicPicker } from "@/components/intro-music-picker";
 import { VoicePicker } from "@/components/voice-picker";
+import { NamePronunciation } from "@/components/name-pronunciation";
 import { CategoryPicker } from "@/components/category-picker";
 import { CollectionsManager } from "@/components/collections-manager";
 
@@ -22,6 +23,8 @@ type UserRecord = {
   intro_music: string | null;
   host_voice: string;
   guest_voice: string;
+  display_name: string | null;
+  display_name_phonetic: string | null;
 };
 
 type RawEmail = {
@@ -115,7 +118,7 @@ export default async function SettingsPage() {
   const [{ data: userRecord }, { data: recentEmails }, { data: collections }] = await Promise.all([
     supabase
       .from("users")
-      .select("email, forwarding_address, rss_token, timezone, tier, category, generation_hour, intro_music, host_voice, guest_voice")
+      .select("email, forwarding_address, rss_token, timezone, tier, category, generation_hour, intro_music, host_voice, guest_voice, display_name, display_name_phonetic")
       .eq("id", user.id)
       .single<UserRecord>(),
     supabase
@@ -250,6 +253,14 @@ export default async function SettingsPage() {
           currentHostVoice={userRecord.host_voice}
           currentGuestVoice={userRecord.guest_voice}
           isPower={userRecord.tier === "power"}
+        />
+      )}
+
+      {/* Personalized Name — power only */}
+      {isPower && (
+        <NamePronunciation
+          currentDisplayName={userRecord.display_name}
+          currentPhonetic={userRecord.display_name_phonetic}
         />
       )}
 
