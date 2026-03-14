@@ -54,6 +54,7 @@ def generate_podcast(
     host_voice: str = "Charon",
     guest_voice: str = "Sulafat",
     cta_text: str | None = None,
+    collection_name: str | None = None,
 ) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
@@ -99,7 +100,7 @@ def generate_podcast(
     _report("first_half")
     logger.info("Step 2/4: Generating first half...")
 
-    first_half = _generate_section_gemini(outline, newsletter_text, "first", _SCRIPT_MODEL, words_per_section=words_per_section)
+    first_half = _generate_section_gemini(outline, newsletter_text, "first", _SCRIPT_MODEL, words_per_section=words_per_section, collection_name=collection_name)
 
     logger.info("Step 2/4 complete: first half %d chars", len(first_half))
 
@@ -442,6 +443,7 @@ def _generate_section_gemini(
     previous_turns: str | None = None,
     words_per_section: int = 1250,
     cta_text: str | None = None,
+    collection_name: str | None = None,
 ) -> str:
     """Call 2 or 3 (Gemini): Generate dialogue for the first or second half."""
     client = _get_gemini_text_client()
@@ -458,8 +460,9 @@ def _generate_section_gemini(
             f"- Person1's first turn: Welcome line + ONE short teaser sentence (40 words max total).\n"
             f"- Person2's first turn: Immediate reaction or question.\n"
             f"- Then they unpack the hook together.\n"
-            f"Person1's turn MUST begin with: \"Welcome to Daily Gist — your newsletters, distilled "
-            f"into conversation!\"\n"
+            f"Person1's turn MUST begin with: \"Welcome to Daily Gist"
+            f"{': ' + collection_name + ' Edition' if collection_name else ''}"
+            f" — your newsletters, distilled into conversation!\"\n"
             f"Hook to weave in: \"{outline.get('intro_hook', '')}\"\n"
             f"Do NOT write an outro or sign-off. End mid-conversation, ready to continue."
         )

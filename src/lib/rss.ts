@@ -29,7 +29,7 @@ function toRfc2822(dateStr: string): string {
   return new Date(dateStr).toUTCString();
 }
 
-export function generateFeedXml(episodes: EpisodeItem[], feedTitle?: string): string {
+export function generateFeedXml(episodes: EpisodeItem[], feedTitle?: string, coverUrl?: string): string {
   const items = episodes
     .map((ep) => {
       let enclosure = "";
@@ -72,9 +72,9 @@ ${duration}
     <itunes:author>Daily Gist</itunes:author>
     <itunes:summary>Your newsletters, as a daily podcast</itunes:summary>
     <itunes:explicit>false</itunes:explicit>
-    <itunes:image href="https://www.dailygist.fyi/podcast-cover.png?v=2" />
+    <itunes:image href="${escapeXml(coverUrl || "https://www.dailygist.fyi/podcast-cover.png?v=2")}" />
     <image>
-      <url>https://www.dailygist.fyi/podcast-cover.png?v=2</url>
+      <url>${escapeXml(coverUrl || "https://www.dailygist.fyi/podcast-cover.png?v=2")}</url>
       <title>${escapeXml(feedTitle || "Daily Gist")}</title>
       <link>https://www.dailygist.fyi</link>
     </image>

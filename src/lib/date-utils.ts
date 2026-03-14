@@ -20,3 +20,15 @@ export function getFormattedDateInTimezone(timezone: string): string {
     year: "numeric",
   });
 }
+
+/** Returns 0 (Sunday) through 6 (Saturday) in the given timezone. */
+export function getDayOfWeekInTimezone(timezone: string): number {
+  const dayStr = new Date().toLocaleDateString("en-US", {
+    timeZone: timezone,
+    weekday: "short",
+  });
+  const map: Record<string, number> = {
+    Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+  };
+  return map[dayStr] ?? new Date().getDay();
+}

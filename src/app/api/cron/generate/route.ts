@@ -8,7 +8,12 @@ import {
   getCurrentHourInTimezone,
   getTodayInTimezone,
   getFormattedDateInTimezone,
+  getDayOfWeekInTimezone,
 } from "@/lib/date-utils";
+import {
+  groupEmailsByCategory,
+  type CategorizationRule,
+} from "@/lib/categorize-emails";
 
 type UserIdRow = {
   user_id: string;
@@ -31,12 +36,13 @@ type FailedEpisodeRow = {
   retry_attempts: number;
 };
 
-type CategorizationRule = {
-  sender_email: string;
-  from_name_pattern: string | null;
-  subject_pattern: string | null;
-  category: string;
-  priority: number;
+type CollectionRow = {
+  slug: string;
+  host_voice: string | null;
+  guest_voice: string | null;
+  intro_music: string | null;
+  name: string;
+  schedule_days: number[];
 };
 
 const MAX_RETRY_ATTEMPTS = 3;
@@ -118,46 +124,11 @@ export async function GET(request: Request) {
               .order("received_at", { ascending: true })
               .returns<RawEmailRow[]>();
 
-            // Match each email against rules to find its category
-            function matchCategory(email: RawEmailRow): string | null {
-              const matching = rules.filter(
-                (r) => r.sender_email === email.from_email
-              );
-              // Try rules with patterns first (already sorted by priority)
-              const patternRule = matching.find((r) => {
-                const hasPattern = r.from_name_pattern || r.subject_pattern;
-                if (!hasPattern) return false;
-                if (r.from_name_pattern) {
-                  const nameMatch = email.from_name
-                    ?.toLowerCase()
-                    .includes(r.from_name_pattern.toLowerCase());
-                  if (!nameMatch) return false;
-                }
-                if (r.subject_pattern) {
-                  const subjectMatch = email.subject
-                    ?.toLowerCase()
-                    .includes(r.subject_pattern.toLowerCase());
-                  if (!subjectMatch) return false;
-                }
-                return true;
-              });
-              if (patternRule) return patternRule.category;
-              // Fall back to catch-all (no patterns)
-              const catchAll = matching.find(
-                (r) => !r.from_name_pattern && !r.subject_pattern
-              );
-              return catchAll?.category ?? null;
-            }
-
-            // Group emails by matched category
+            // Group emails by matched category (skip unmatched for free tier)
+            const allGrouped = groupEmailsByCategory(freeEmails ?? [], rules);
             const emailsByCategory = new Map<string, RawEmailRow[]>();
-            for (const email of freeEmails ?? []) {
-              const category = matchCategory(email);
-              if (!category) continue;
-              if (!emailsByCategory.has(category)) {
-                emailsByCategory.set(category, []);
-              }
-              emailsByCategory.get(category)!.push(email);
+            for (const [cat, emails] of allGrouped) {
+              if (cat) emailsByCategory.set(cat, emails);
             }
 
             const today = getTodayInTimezone(systemUser.timezone);
@@ -299,6 +270,36 @@ export async function GET(request: Request) {
     const userIds = eligibleUsers.map((u) => u.id);
     const userMap = new Map(eligibleUsers.map((u) => [u.id, u]));
 
+    // Batch-fetch collections and rules for all eligible users
+    const { data: allCollections } = await supabase
+      .from("collections")
+      .select("user_id, slug, name, host_voice, guest_voice, intro_music, schedule_days")
+      .in("user_id", userIds)
+      .returns<(CollectionRow & { user_id: string })[]>();
+
+    const collectionsMap = new Map<string, CollectionRow[]>();
+    for (const c of allCollections ?? []) {
+      if (!collectionsMap.has(c.user_id)) collectionsMap.set(c.user_id, []);
+      collectionsMap.get(c.user_id)!.push(c);
+    }
+
+    // Only fetch rules for users that have collections
+    const usersWithCollections = userIds.filter((id) => collectionsMap.has(id));
+    let rulesMap = new Map<string, CategorizationRule[]>();
+    if (usersWithCollections.length > 0) {
+      const { data: allRules } = await supabase
+        .from("categorization_rules")
+        .select("user_id, sender_email, from_name_pattern, subject_pattern, category, priority")
+        .in("user_id", usersWithCollections)
+        .order("priority", { ascending: false })
+        .returns<(CategorizationRule & { user_id: string })[]>();
+
+      for (const r of allRules ?? []) {
+        if (!rulesMap.has(r.user_id)) rulesMap.set(r.user_id, []);
+        rulesMap.get(r.user_id)!.push(r);
+      }
+    }
+
     for (const userId of userIds) {
       try {
         // Fetch unprocessed emails for this user
@@ -322,82 +323,188 @@ export async function GET(request: Request) {
         const user = userMap.get(userId)!;
         const userTimezone = user.timezone;
         const today = getTodayInTimezone(userTimezone);
-        const title = `Your Daily Gist — ${getFormattedDateInTimezone(userTimezone)}`;
-        const newsletterText = formatEmailsForPodcast(emails);
-        const emailIds = emails.map((e) => e.id);
-        const storagePath = `${userId}/${today}.mp3`;
+        const formattedDate = getFormattedDateInTimezone(userTimezone);
+        const userCollections = collectionsMap.get(userId);
+        const userRules = rulesMap.get(userId) ?? [];
 
-        // Check if episode already exists for this user today (personal)
-        const { data: existingEp } = await supabase
-          .from("episodes")
-          .select("id, status")
-          .eq("user_id", userId)
-          .eq("date", today)
-          .is("category", null)
-          .maybeSingle();
+        if (userCollections && userCollections.length > 0 && userRules.length > 0) {
+          // --- Collection-aware generation (rotating weekly schedule) ---
+          // Only ONE episode per day: the collection scheduled for today,
+          // or catch-all (unmatched emails) if no collection is scheduled.
+          const dayOfWeek = getDayOfWeekInTimezone(userTimezone);
+          const grouped = groupEmailsByCategory(emails, userRules);
 
-        if (existingEp) {
-          if (["queued", "processing", "ready"].includes(existingEp.status)) {
-            continue;
+          const scheduledCollection = userCollections.find(
+            (c) => c.schedule_days.includes(dayOfWeek)
+          );
+
+          // Pick exactly one bucket to generate from
+          let category: string | null;
+          let collection: CollectionRow | null;
+          let bucketEmails: RawEmailRow[];
+
+          if (scheduledCollection) {
+            category = scheduledCollection.slug;
+            collection = scheduledCollection;
+            bucketEmails = grouped.get(category) ?? [];
+          } else {
+            // No collection scheduled → catch-all from unmatched emails
+            category = null;
+            collection = null;
+            bucketEmails = grouped.get(null) ?? [];
           }
-          // Re-queue failed/pending episode
-          const { error: updateError } = await supabase
-            .from("episodes")
-            .update({
-              title,
-              status: "queued",
-              job_input: {
-                newsletter_text: newsletterText,
-                email_ids: emailIds,
-                storage_path: storagePath,
-                date: today,
-                user_email: user.email,
-                target_length_minutes: 10,
-                intro_music: user.intro_music,
-                host_voice: user.host_voice,
-                guest_voice: user.guest_voice,
-              },
-            })
-            .eq("id", existingEp.id);
 
-          if (updateError) {
-            errors.push({
-              userId,
-              error: `Failed to re-queue episode: ${updateError.message}`,
-            });
-            continue;
+          if (bucketEmails.length > 0) {
+            try {
+              const suffix = category ? `-${category}` : "";
+              const title = collection
+                ? `Daily Gist: ${collection.name} — ${formattedDate}`
+                : `Your Daily Gist — ${formattedDate}`;
+              const storagePath = `${userId}/${today}${suffix}.mp3`;
+
+              const hostVoice = collection?.host_voice ?? user.host_voice;
+              const guestVoice = collection?.guest_voice ?? user.guest_voice;
+              const introMusic = collection?.intro_music ?? user.intro_music;
+
+              const newsletterText = formatEmailsForPodcast(bucketEmails);
+              const emailIds = bucketEmails.map((e) => e.id);
+
+              let existingQuery = supabase
+                .from("episodes")
+                .select("id, status")
+                .eq("user_id", userId)
+                .eq("date", today);
+
+              if (category) {
+                existingQuery = existingQuery.eq("category", category);
+              } else {
+                existingQuery = existingQuery.is("category", null);
+              }
+
+              const { data: existingEp } = await existingQuery.maybeSingle();
+
+              const episodeData = {
+                user_id: userId,
+                date: today,
+                category: category ?? undefined,
+                title,
+                status: "queued" as const,
+                job_input: {
+                  newsletter_text: newsletterText,
+                  email_ids: emailIds,
+                  storage_path: storagePath,
+                  date: today,
+                  user_email: user.email,
+                  target_length_minutes: 10,
+                  intro_music: introMusic,
+                  host_voice: hostVoice,
+                  guest_voice: guestVoice,
+                  ...(collection ? { collection_name: collection.name } : {}),
+                },
+              };
+
+              if (existingEp) {
+                if (["queued", "processing", "ready"].includes(existingEp.status)) {
+                  // already in progress — skip
+                } else {
+                  const { error: updateError } = await supabase
+                    .from("episodes")
+                    .update(episodeData)
+                    .eq("id", existingEp.id);
+
+                  if (updateError) {
+                    errors.push({ userId, error: `Failed to re-queue ${category ?? "personal"} episode: ${updateError.message}` });
+                  } else {
+                    triggered++;
+                  }
+                }
+              } else {
+                const { error: insertError } = await supabase
+                  .from("episodes")
+                  .insert(episodeData);
+
+                if (insertError) {
+                  errors.push({ userId, error: `Failed to queue ${category ?? "personal"} episode: ${insertError.message}` });
+                } else {
+                  triggered++;
+                }
+              }
+            } catch (err) {
+              const message = err instanceof Error ? err.message : "Unknown error";
+              errors.push({ userId, error: `Collection ${category ?? "personal"} failed: ${message}` });
+            }
           }
         } else {
-          const { error: insertError } = await supabase
+          // --- Standard single-episode generation (no collections) ---
+          const title = `Your Daily Gist — ${formattedDate}`;
+          const newsletterText = formatEmailsForPodcast(emails);
+          const emailIds = emails.map((e) => e.id);
+          const storagePath = `${userId}/${today}.mp3`;
+
+          const { data: existingEp } = await supabase
             .from("episodes")
-            .insert({
-              user_id: userId,
-              date: today,
-              title,
-              status: "queued",
-              job_input: {
-                newsletter_text: newsletterText,
-                email_ids: emailIds,
-                storage_path: storagePath,
+            .select("id, status")
+            .eq("user_id", userId)
+            .eq("date", today)
+            .is("category", null)
+            .maybeSingle();
+
+          if (existingEp) {
+            if (["queued", "processing", "ready"].includes(existingEp.status)) {
+              continue;
+            }
+            const { error: updateError } = await supabase
+              .from("episodes")
+              .update({
+                title,
+                status: "queued",
+                job_input: {
+                  newsletter_text: newsletterText,
+                  email_ids: emailIds,
+                  storage_path: storagePath,
+                  date: today,
+                  user_email: user.email,
+                  target_length_minutes: 10,
+                  intro_music: user.intro_music,
+                  host_voice: user.host_voice,
+                  guest_voice: user.guest_voice,
+                },
+              })
+              .eq("id", existingEp.id);
+
+            if (updateError) {
+              errors.push({ userId, error: `Failed to re-queue episode: ${updateError.message}` });
+              continue;
+            }
+          } else {
+            const { error: insertError } = await supabase
+              .from("episodes")
+              .insert({
+                user_id: userId,
                 date: today,
-                user_email: user.email,
-                target_length_minutes: 10,
-                intro_music: user.intro_music,
-                host_voice: user.host_voice,
-                guest_voice: user.guest_voice,
-              },
-            });
+                title,
+                status: "queued",
+                job_input: {
+                  newsletter_text: newsletterText,
+                  email_ids: emailIds,
+                  storage_path: storagePath,
+                  date: today,
+                  user_email: user.email,
+                  target_length_minutes: 10,
+                  intro_music: user.intro_music,
+                  host_voice: user.host_voice,
+                  guest_voice: user.guest_voice,
+                },
+              });
 
-          if (insertError) {
-            errors.push({
-              userId,
-              error: `Failed to queue episode: ${insertError.message}`,
-            });
-            continue;
+            if (insertError) {
+              errors.push({ userId, error: `Failed to queue episode: ${insertError.message}` });
+              continue;
+            }
           }
-        }
 
-        triggered++;
+          triggered++;
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         errors.push({ userId, error: message });

@@ -26,6 +26,7 @@ export async function GET(
   const { token } = await params;
   const url = new URL(request.url);
   const categoryParam = url.searchParams.get("category");
+  const collectionParam = url.searchParams.get("collection");
 
   const supabase = createAdminClient();
 
@@ -41,9 +42,11 @@ export async function GET(
   }
 
   const FREE_TIER_USER_ID = process.env.FREE_TIER_USER_ID;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi";
 
-  // Determine feed title and query filters
+  // Determine feed title, cover URL, and query filters
   let feedTitle: string | undefined;
+  let coverUrl: string | undefined;
   let episodeQuery = supabase
     .from("episodes")
     .select(
@@ -53,7 +56,25 @@ export async function GET(
     .order("date", { ascending: false })
     .limit(50);
 
-  if (categoryParam) {
+  if (collectionParam && user.tier !== "free") {
+    // Collection feed — paid user's own episodes for this collection slug
+    episodeQuery = episodeQuery
+      .eq("user_id", user.id)
+      .eq("category", collectionParam);
+
+    // Look up collection name for feed title
+    const { data: collection } = await supabase
+      .from("collections")
+      .select("name")
+      .eq("user_id", user.id)
+      .eq("slug", collectionParam)
+      .single();
+
+    feedTitle = collection?.name
+      ? `Daily Gist: ${collection.name}`
+      : `Daily Gist: ${collectionParam}`;
+    coverUrl = `${appUrl}/api/cover?name=${encodeURIComponent(collection?.name || collectionParam)}`;
+  } else if (categoryParam) {
     // Category feed — system user's episodes for this category
     const targetUserId = FREE_TIER_USER_ID || user.id;
     episodeQuery = episodeQuery
@@ -69,13 +90,14 @@ export async function GET(
     const label = user.category.charAt(0).toUpperCase() + user.category.slice(1);
     feedTitle = `Daily Gist: ${label}`;
   } else {
-    // Personal feed
-    episodeQuery = episodeQuery.eq("user_id", user.id);
+    // Personal feed (catch-all for paid users, or no category)
+    episodeQuery = episodeQuery
+      .eq("user_id", user.id)
+      .is("category", null);
   }
 
   const { data: episodes } = await episodeQuery.returns<EpisodeRow[]>();
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi";
   const items = (episodes || []).map((ep) => ({
     id: ep.id,
     title: ep.title,
@@ -89,7 +111,7 @@ export async function GET(
     shareUrl: ep.share_code ? `${appUrl}/s/${ep.share_code}` : null,
   }));
 
-  const xml = generateFeedXml(items, feedTitle);
+  const xml = generateFeedXml(items, feedTitle, coverUrl);
 
   return new Response(xml, {
     status: 200,

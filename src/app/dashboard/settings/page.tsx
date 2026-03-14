@@ -8,6 +8,7 @@ import { DeleteAccountSection } from "@/components/delete-account-section";
 import { IntroMusicPicker } from "@/components/intro-music-picker";
 import { VoicePicker } from "@/components/voice-picker";
 import { CategoryPicker } from "@/components/category-picker";
+import { CollectionsManager } from "@/components/collections-manager";
 
 
 type UserRecord = {
@@ -111,7 +112,7 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
-  const [{ data: userRecord }, { data: recentEmails }] = await Promise.all([
+  const [{ data: userRecord }, { data: recentEmails }, { data: collections }] = await Promise.all([
     supabase
       .from("users")
       .select("email, forwarding_address, rss_token, timezone, tier, category, generation_hour, intro_music, host_voice, guest_voice")
@@ -124,6 +125,11 @@ export default async function SettingsPage() {
       .order("received_at", { ascending: false })
       .limit(10)
       .returns<RawEmail[]>(),
+    supabase
+      .from("collections")
+      .select("id, name, slug, host_voice, guest_voice, intro_music, schedule_days, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true }),
   ]);
 
   if (!userRecord) {
@@ -132,6 +138,26 @@ export default async function SettingsPage() {
 
   const feedUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://dailygist.fyi"}/api/feed/${userRecord.rss_token}`;
   const isFree = userRecord.tier === "free";
+  const isPower = userRecord.tier === "power";
+
+  // Compute source counts per collection slug
+  let collectionsWithCounts: { id: string; name: string; slug: string; host_voice: string | null; guest_voice: string | null; intro_music: string | null; schedule_days: number[]; source_count: number }[] = [];
+  if (isPower && collections && collections.length > 0) {
+    const { data: rules } = await supabase
+      .from("categorization_rules")
+      .select("category")
+      .eq("user_id", user.id);
+
+    const sourceCounts: Record<string, number> = {};
+    for (const rule of rules ?? []) {
+      sourceCounts[rule.category] = (sourceCounts[rule.category] || 0) + 1;
+    }
+
+    collectionsWithCounts = collections.map((c: { id: string; name: string; slug: string; host_voice: string | null; guest_voice: string | null; intro_music: string | null; schedule_days: number[] }) => ({
+      ...c,
+      source_count: sourceCounts[c.slug] || 0,
+    }));
+  }
 
   return (
     <div className="max-w-2xl space-y-8">
@@ -224,6 +250,14 @@ export default async function SettingsPage() {
           currentHostVoice={userRecord.host_voice}
           currentGuestVoice={userRecord.guest_voice}
           isPower={userRecord.tier === "power"}
+        />
+      )}
+
+      {/* Collections — power only */}
+      {isPower && (
+        <CollectionsManager
+          rssToken={userRecord.rss_token}
+          initialCollections={collectionsWithCounts}
         />
       )}
 
