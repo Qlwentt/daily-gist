@@ -48,6 +48,7 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const revealRefs = useRef<HTMLElement[]>([]);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Detect auth hash fragments before paint. The blocking <script> in layout.tsx
   // hides the page via visibility:hidden; we restore it once React takes over.
@@ -94,6 +95,7 @@ export default function Home() {
       },
       { threshold: 0.15 },
     );
+    observerRef.current = observer;
 
     revealRefs.current.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
@@ -156,6 +158,7 @@ export default function Home() {
       el.style.transform = "translateY(30px)";
       el.style.transition = "opacity 0.7s ease, transform 0.7s ease";
       revealRefs.current.push(el);
+      observerRef.current?.observe(el);
     }
   }, []);
 
@@ -1044,6 +1047,100 @@ export default function Home() {
                 Start listening free
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section ref={revealRef} id="faq" className="py-24 px-8 relative">
+        <div className="max-w-[680px] mx-auto">
+          <div className="text-center mb-12">
+            <div
+              className="text-xs uppercase font-semibold mb-3"
+              style={{ letterSpacing: "0.15em", color: "#6b4c9a" }}
+            >
+              FAQ
+            </div>
+            <h2
+              style={{
+                fontFamily:
+                  "var(--font-instrument-serif), 'Instrument Serif', serif",
+                fontSize: "clamp(2rem, 4vw, 3rem)",
+                letterSpacing: "-0.02em",
+                color: "#1a0e2e",
+                lineHeight: 1.1,
+              }}
+            >
+              Questions? Answered.
+            </h2>
+          </div>
+
+          <div
+            className="space-y-3"
+          >
+            {[
+              {
+                q: "What is Daily Gist?",
+                a: "Daily Gist turns your email newsletters into a short, conversational podcast you can listen to on the go. Instead of reading through a pile of newsletters, just hit play during your commute or workout.",
+              },
+              {
+                q: "How does it work?",
+                a: "Forward your newsletters to your unique Daily Gist email address. Each day, we synthesize everything into a natural two-host conversation and deliver it to your podcast app via a private RSS feed.",
+              },
+              {
+                q: "Which podcast apps does it work with?",
+                a: "Any app that supports RSS feeds \u2014 Apple Podcasts, Overcast, Pocket Casts, Castro, and more. Spotify does not currently support private RSS feeds, so it won\u2019t work there.",
+              },
+              {
+                q: "What\u2019s the difference between the plans?",
+                a: "The Free Edition lets you listen to curated podcasts from popular newsletter categories. Basic Edition uses your own forwarded newsletters. Special Edition adds custom voices, personalized name greetings, intro music, and up to 7 separate podcast collections.",
+              },
+              {
+                q: "Can I try it before paying?",
+                a: "Every new account starts with a 7-day free trial of the Special Edition, so you can experience the full feature set before deciding. After that, you can continue with a paid plan or switch to the Free Edition.",
+              },
+              {
+                q: "How long are the episodes?",
+                a: "About 10 minutes. The AI distills your newsletters into a concise, two-host conversation \u2014 long enough to cover the highlights, short enough for a commute.",
+              },
+              {
+                q: "What if I don\u2019t get any newsletters one day?",
+                a: "No newsletters, no episode \u2014 simple as that. You\u2019ll only get a podcast when there\u2019s something to talk about.",
+              },
+            ].map(({ q, a }) => (
+              <details
+                key={q}
+                className="group bg-white rounded-2xl transition-all"
+                style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
+              >
+                <summary
+                  className="flex items-center justify-between cursor-pointer px-6 py-5 text-left font-medium select-none list-none [&::-webkit-details-marker]:hidden"
+                  style={{ color: "#1a0e2e" }}
+                >
+                  {q}
+                  <svg
+                    className="flex-shrink-0 ml-4 transition-transform group-open:rotate-45"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                  >
+                    <path
+                      d="M10 4v12m-6-6h12"
+                      stroke="#6b4c9a"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </summary>
+                <div
+                  className="px-6 pb-5 text-sm leading-relaxed"
+                  style={{ color: "#5a4d6b" }}
+                >
+                  {a}
+                </div>
+              </details>
+            ))}
           </div>
         </div>
       </section>
