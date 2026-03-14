@@ -1015,7 +1015,7 @@ export default function Home() {
                   "Choose your podcast voices",
                   "Personalized name greeting",
                   "Intro music",
-                  "Up to 4 podcast collections",
+                  "Up to 7 podcast collections",
                 ].map((f) => (
                   <li
                     key={f}

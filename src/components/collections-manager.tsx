@@ -26,7 +26,7 @@ type Rule = {
   from_name_pattern: string | null;
 };
 
-const MAX_COLLECTIONS = 4;
+const MAX_COLLECTIONS = 7;
 
 export function CollectionsManager({
   rssToken,
