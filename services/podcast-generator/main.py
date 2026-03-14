@@ -205,6 +205,7 @@ def _process_job(episode_id: str, user_id: str, job_input: dict):
         cta_text = job_input.get("cta_text")
         collection_name = job_input.get("collection_name")
         user_name = job_input.get("user_name")
+        discussion_style = job_input.get("discussion_style", "intellectual")
 
         logger.info(
             "Processing job: episode_id=%s, user_id=%s, %d chars input",
@@ -238,6 +239,7 @@ def _process_job(episode_id: str, user_id: str, job_input: dict):
                     cta_text=cta_text,
                     collection_name=collection_name,
                     user_name=user_name,
+                    discussion_style=discussion_style,
                 )
                 break  # success
             except Exception as exc:

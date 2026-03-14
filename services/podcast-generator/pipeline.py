@@ -56,6 +56,7 @@ def generate_podcast(
     cta_text: str | None = None,
     collection_name: str | None = None,
     user_name: str | None = None,
+    discussion_style: str = "intellectual",
 ) -> tuple[bytes, str, list[str]]:
     """Generate a podcast episode from newsletter text.
 
@@ -101,14 +102,14 @@ def generate_podcast(
     _report("first_half")
     logger.info("Step 2/4: Generating first half...")
 
-    first_half = _generate_section_gemini(outline, newsletter_text, "first", _SCRIPT_MODEL, words_per_section=words_per_section, collection_name=collection_name, user_name=user_name)
+    first_half = _generate_section_gemini(outline, newsletter_text, "first", _SCRIPT_MODEL, words_per_section=words_per_section, collection_name=collection_name, user_name=user_name, discussion_style=discussion_style)
 
     logger.info("Step 2/4 complete: first half %d chars", len(first_half))
 
     _report("second_half")
     logger.info("Step 3/4: Generating second half...")
 
-    second_half = _generate_section_gemini(outline, newsletter_text, "second", _SCRIPT_MODEL, previous_turns=first_half, words_per_section=words_per_section, cta_text=cta_text, user_name=user_name)
+    second_half = _generate_section_gemini(outline, newsletter_text, "second", _SCRIPT_MODEL, previous_turns=first_half, words_per_section=words_per_section, cta_text=cta_text, user_name=user_name, discussion_style=discussion_style)
 
     logger.info("Step 3/4 complete: second half %d chars", len(second_half))
 
@@ -173,7 +174,7 @@ def _filter_user_from_sources(outline: dict, user_email: str) -> None:
 
 _SCRIPT_MODEL = "gemini-3-flash-preview"
 
-_DIALOGUE_RULES = """\
+_DIALOGUE_RULES_INTELLECTUAL = """\
 - Person1 is the main summarizer. Person2 is the curious questioner.
 -Each host should have a distinct rhetorical style. One host tends toward vivid \
 metaphors and narrative. The other is more data-driven and blunt. \
@@ -249,13 +250,84 @@ and instead invent original comparisons drawn from the story's details
 - Person1 MUST deliver the final outro/sign-off. Person1 is the anchor of the show and should \
 always open and close the episode."""
 
+_DIALOGUE_RULES_EASY = """\
+- Person1 is the main summarizer. Person2 is the curious questioner.
+- The hosts talk like two friends catching up over coffee. Keep it warm, relaxed, and easy \
+to follow — think 5th grade reading level.
+- Use short sentences. Prefer common, everyday words over fancy vocabulary.
+- If a concept is technical or complex, break it down with a simple example or analogy \
+from everyday life before moving on. E.g. "It's kind of like when you..."
+- Explain any jargon, acronyms, or industry terms in plain language the first time they come up.
+- Vary conversational style: sometimes one explains while the other reacts, sometimes they \
+build on each other's ideas, sometimes Person2 asks a simple follow-up question.
+
+DISAGREEMENT — The hosts should NOT disagree on every topic. Disagreement is a tool, not \
+a structure. Use it sparingly — only when the material genuinely supports two reasonable \
+interpretations. Most of the time, the hosts should:
+  - Build on each other's points
+  - Ask genuine questions to draw out more detail
+  - Agree and move forward when there's no real tension
+  - Share enthusiasm together when something is genuinely interesting
+When they do disagree, it should feel natural and friendly, not combative.
+
+PERSON2 FILLER BAN — Person2 must NEVER open a turn with a generic reaction phrase. \
+BANNED openers: "That's a chilling thought", "That's an astronomical figure", \
+"That's a head-scratcher", "That's a rare sight", "That's a stark term", \
+"That really hits home", "I can only imagine", any variation of "That's a [adjective] [noun]". \
+Instead, Person2 should respond with a specific follow-up thought, a simple question, \
+or a relatable reaction. Person2's first words should add substance, not validate.
+
+- Draw simple connections between stories when they relate to each other.
+- TRANSITIONS: Move naturally between topics. Don't force connections — a simple "So here's \
+another interesting thing..." is fine. Never use generic transitions like "speaking of which" \
+or "let's shift gears".
+
+BANNED PHRASES AND PATTERNS — these sound AI-generated, never use them:
+  "great point", "exactly!" (as standalone), "that's so true", "you're not kidding", \
+  "absolutely!" (as standalone), "I'm buzzing", "I'm so excited", "what a day", \
+  "a fair point", "it's genuinely X", \
+  "I don't know if it's X or Y, probably both", "and speaking of..." (as a transition), \
+  "that raises huge questions about...", "it really underscores...", \
+  "it's a fascinating [noun]", "speaking of which", "let's shift gears".
+  Do NOT start consecutive Person2 turns with "So...".
+  Vary sentence openings. If you catch yourself falling into a pattern, break it.
+
+- Balance coverage — no single source > 30% of the conversation.
+- NEVER restate the same insight, stat, or example — even in different words. If a point was \
+made once, it's done. Listeners notice repetition immediately.
+- Avoid overusing filler words like 'genuinely', 'essentially', 'literally', 'incredibly'. \
+Each should appear at most once per episode.
+- Hosts should never refer to themselves or each other by name, speaker label, or tag. \
+No "I'm Person1" or "as Person2 said" — they are unnamed co-hosts.
+- Skip sponsored content, ads, and promotional/referral sections.
+- Use simple analogies from everyday life, humor, and relatable examples to keep things \
+engaging. Think "explaining to a smart friend who doesn't follow this topic."
+
+- Person1 MUST deliver the final outro/sign-off. Person1 is the anchor of the show and should \
+always open and close the episode."""
+
+# Keep module-level constant for backward compat (used by free-tier / tests)
+_DIALOGUE_RULES = _DIALOGUE_RULES_INTELLECTUAL
+
 _DIALOGUE_SYSTEM_PROMPT = f"""\
 You are writing dialogue for Daily Gist, a two-host podcast that summarizes newsletters.
 
 Rules:
 - Output ONLY a JSON array of dialogue turns. Each turn has "speaker" and "text".
 - No scratchpad, thinking blocks, stage directions, or meta-commentary.
-{_DIALOGUE_RULES}"""
+{_DIALOGUE_RULES_INTELLECTUAL}"""
+
+
+def _build_dialogue_system_prompt(discussion_style: str = "intellectual") -> str:
+    """Build the dialogue system prompt based on discussion style."""
+    rules = _DIALOGUE_RULES_EASY if discussion_style == "easy_listening" else _DIALOGUE_RULES_INTELLECTUAL
+    return f"""\
+You are writing dialogue for Daily Gist, a two-host podcast that summarizes newsletters.
+
+Rules:
+- Output ONLY a JSON array of dialogue turns. Each turn has "speaker" and "text".
+- No scratchpad, thinking blocks, stage directions, or meta-commentary.
+{rules}"""
 
 
 _GEMINI_TEXT_MAX_RETRIES = 3
@@ -446,6 +518,7 @@ def _generate_section_gemini(
     cta_text: str | None = None,
     collection_name: str | None = None,
     user_name: str | None = None,
+    discussion_style: str = "intellectual",
 ) -> str:
     """Call 2 or 3 (Gemini): Generate dialogue for the first or second half."""
     client = _get_gemini_text_client()
@@ -556,8 +629,10 @@ Here are the source newsletters:
 Target: {words_per_section} words of dialogue.
 Return a JSON array of dialogue turns. Each turn has "speaker" (Person1 or Person2) and "text"."""
 
+    system_prompt = _build_dialogue_system_prompt(discussion_style)
+
     result = _gemini_create_with_retry(
-        client, model_id, _DIALOGUE_SYSTEM_PROMPT, prompt,
+        client, model_id, system_prompt, prompt,
         max_tokens=16384, response_schema=_DIALOGUE_TURN_SCHEMA,
     )
 

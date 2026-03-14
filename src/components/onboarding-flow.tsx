@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CopyButton } from "@/components/copy-button";
 import { IntroMusicPicker } from "@/components/intro-music-picker";
+import { DiscussionStylePicker } from "@/components/discussion-style-picker";
 import { VoicePicker } from "@/components/voice-picker";
 import { NamePronunciation } from "@/components/name-pronunciation";
 
@@ -81,6 +82,7 @@ export function OnboardingFlow({
   currentGuestVoice = "Sulafat",
   currentDisplayName = null,
   currentPhonetic = null,
+  currentDiscussionStyle = "intellectual",
 }: {
   forwardingAddress: string;
   feedUrl: string;
@@ -92,6 +94,7 @@ export function OnboardingFlow({
   currentGuestVoice?: string;
   currentDisplayName?: string | null;
   currentPhonetic?: string | null;
+  currentDiscussionStyle?: string;
 }) {
   // Free tier gets a simplified 2-step flow
   if (tier === "free") {
@@ -110,6 +113,7 @@ export function OnboardingFlow({
       currentGuestVoice={currentGuestVoice}
       currentDisplayName={currentDisplayName}
       currentPhonetic={currentPhonetic}
+      currentDiscussionStyle={currentDiscussionStyle}
     />
   );
 }
@@ -359,6 +363,7 @@ function PaidOnboardingFlow({
   currentGuestVoice = "Sulafat",
   currentDisplayName = null,
   currentPhonetic = null,
+  currentDiscussionStyle = "intellectual",
 }: {
   forwardingAddress: string;
   feedUrl: string;
@@ -370,6 +375,7 @@ function PaidOnboardingFlow({
   currentGuestVoice?: string;
   currentDisplayName?: string | null;
   currentPhonetic?: string | null;
+  currentDiscussionStyle?: string;
 }) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(initialStep);
   const [emails, setEmails] = useState<Email[]>([]);
@@ -536,6 +542,7 @@ function PaidOnboardingFlow({
           currentGuestVoice={currentGuestVoice}
           currentDisplayName={currentDisplayName}
           currentPhonetic={currentPhonetic}
+          currentDiscussionStyle={currentDiscussionStyle}
         />
       )}
 
@@ -577,6 +584,7 @@ function ForwardStep({
   currentGuestVoice,
   currentDisplayName,
   currentPhonetic,
+  currentDiscussionStyle,
 }: {
   forwardingAddress: string;
   emails: Email[];
@@ -589,6 +597,7 @@ function ForwardStep({
   currentGuestVoice: string;
   currentDisplayName: string | null;
   currentPhonetic: string | null;
+  currentDiscussionStyle: string;
 }) {
   return (
     <>
@@ -737,6 +746,11 @@ function ForwardStep({
           </div>
         )}
       </div>
+
+      {/* Discussion Style */}
+      <DiscussionStylePicker
+        currentStyle={currentDiscussionStyle}
+      />
 
       {/* Intro Music */}
       <IntroMusicPicker

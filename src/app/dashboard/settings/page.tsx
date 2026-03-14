@@ -6,6 +6,7 @@ import { CopyButton } from "@/components/copy-button";
 import { SaveButton } from "@/components/save-button";
 import { DeleteAccountSection } from "@/components/delete-account-section";
 import { IntroMusicPicker } from "@/components/intro-music-picker";
+import { DiscussionStylePicker } from "@/components/discussion-style-picker";
 import { VoicePicker } from "@/components/voice-picker";
 import { NamePronunciation } from "@/components/name-pronunciation";
 import { CategoryPicker } from "@/components/category-picker";
@@ -25,6 +26,7 @@ type UserRecord = {
   guest_voice: string;
   display_name: string | null;
   display_name_phonetic: string | null;
+  discussion_style: string;
 };
 
 type RawEmail = {
@@ -118,7 +120,7 @@ export default async function SettingsPage() {
   const [{ data: userRecord }, { data: recentEmails }, { data: collections }] = await Promise.all([
     supabase
       .from("users")
-      .select("email, forwarding_address, rss_token, timezone, tier, category, generation_hour, intro_music, host_voice, guest_voice, display_name, display_name_phonetic")
+      .select("email, forwarding_address, rss_token, timezone, tier, category, generation_hour, intro_music, host_voice, guest_voice, display_name, display_name_phonetic, discussion_style")
       .eq("id", user.id)
       .single<UserRecord>(),
     supabase
@@ -237,6 +239,13 @@ export default async function SettingsPage() {
       {/* Category selector — free tier only */}
       {isFree && (
         <CategoryPicker currentCategory={userRecord.category} />
+      )}
+
+      {/* Discussion Style — paid only */}
+      {!isFree && (
+        <DiscussionStylePicker
+          currentStyle={userRecord.discussion_style}
+        />
       )}
 
       {/* Intro Music — paid only */}

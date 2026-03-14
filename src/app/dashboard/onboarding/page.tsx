@@ -13,6 +13,7 @@ type UserRecord = {
   guest_voice: string;
   display_name: string | null;
   display_name_phonetic: string | null;
+  discussion_style: string;
 };
 
 export default async function OnboardingPage() {
@@ -27,7 +28,7 @@ export default async function OnboardingPage() {
 
   const { data: userRecord } = await supabase
     .from("users")
-    .select("forwarding_address, rss_token, onboarding_completed_at, tier, intro_music, host_voice, guest_voice, display_name, display_name_phonetic")
+    .select("forwarding_address, rss_token, onboarding_completed_at, tier, intro_music, host_voice, guest_voice, display_name, display_name_phonetic, discussion_style")
     .eq("id", user.id)
     .single<UserRecord>();
 
@@ -70,6 +71,7 @@ export default async function OnboardingPage() {
       currentGuestVoice={userRecord.guest_voice}
       currentDisplayName={userRecord.display_name}
       currentPhonetic={userRecord.display_name_phonetic}
+      currentDiscussionStyle={userRecord.discussion_style}
     />
   );
 }

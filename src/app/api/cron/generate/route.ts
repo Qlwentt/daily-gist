@@ -29,6 +29,7 @@ type UserRow = {
   guest_voice: string;
   display_name: string | null;
   display_name_phonetic: string | null;
+  discussion_style: string;
 };
 
 type FailedEpisodeRow = {
@@ -252,7 +253,7 @@ export async function GET(request: Request) {
     // Fetch timezone and generation_hour for candidate users
     const { data: users, error: usersError } = await supabase
       .from("users")
-      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice, display_name, display_name_phonetic")
+      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice, display_name, display_name_phonetic, discussion_style")
       .in("id", candidateUserIds)
       .returns<UserRow[]>();
 
@@ -404,6 +405,7 @@ export async function GET(request: Request) {
                   guest_voice: guestVoice,
                   ...(collection ? { collection_name: collection.name } : {}),
                   ...(userName ? { user_name: userName } : {}),
+                  discussion_style: user.discussion_style,
                 },
               };
 
@@ -465,6 +467,7 @@ export async function GET(request: Request) {
             host_voice: user.host_voice,
             guest_voice: user.guest_voice,
             ...(userName ? { user_name: userName } : {}),
+            discussion_style: user.discussion_style,
           };
 
           if (existingEp) {
@@ -530,7 +533,7 @@ export async function GET(request: Request) {
     const failedUserIds = [...new Set(failedEpisodes.map((e) => e.user_id))];
     const { data: failedUsers, error: failedUsersError } = await supabase
       .from("users")
-      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice, display_name, display_name_phonetic")
+      .select("id, email, timezone, generation_hour, intro_music, host_voice, guest_voice, display_name, display_name_phonetic, discussion_style")
       .in("id", failedUserIds)
       .returns<UserRow[]>();
 
@@ -586,6 +589,7 @@ export async function GET(request: Request) {
                 host_voice: user.host_voice,
                 guest_voice: user.guest_voice,
                 ...(retryUserName ? { user_name: retryUserName } : {}),
+                discussion_style: user.discussion_style,
               },
             })
             .eq("id", ep.id);
