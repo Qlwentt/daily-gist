@@ -119,7 +119,7 @@ export function IntroMusicPicker({
               letterSpacing: "0.1em",
             }}
           >
-            Power
+            Special Edition
           </span>
         </div>
         <p className="text-sm mb-4" style={{ color: "rgba(255, 255, 255, 0.6)" }}>
@@ -183,7 +183,7 @@ export function IntroMusicPicker({
         )}
         {!isPower && (
           <p className="mt-3 text-sm" style={{ color: "rgba(255, 255, 255, 0.5)" }}>
-            Intro music is available on the Power plan.{" "}
+            Intro music is available on the Special Edition.{" "}
             <a
               href="/dashboard/settings#upgrade"
               className="underline"

@@ -161,7 +161,7 @@ export function CollectionsManager({
               letterSpacing: "0.1em",
             }}
           >
-            Power
+            Special Edition
           </span>
         </div>
         <p

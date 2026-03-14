@@ -121,7 +121,7 @@ export function VoicePicker({
               letterSpacing: "0.1em",
             }}
           >
-            Power
+            Special Edition
           </span>
         </div>
         <p className="text-sm mb-4" style={{ color: "rgba(255, 255, 255, 0.6)" }}>
@@ -273,7 +273,7 @@ export function VoicePicker({
         )}
         {!isPower && (
           <p className="mt-3 text-sm" style={{ color: "rgba(255, 255, 255, 0.5)" }}>
-            Custom voices are available on the Power plan.{" "}
+            Custom voices are available on the Special Edition.{" "}
             <a
               href="/dashboard/settings#upgrade"
               className="underline"

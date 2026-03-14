@@ -122,7 +122,7 @@ export function NamePronunciation({
                 letterSpacing: "0.1em",
               }}
             >
-              Power
+              Special Edition
             </span>
           </div>
           <p className="text-sm mb-4" style={{ color: "rgba(255, 255, 255, 0.6)" }}>

@@ -817,30 +817,82 @@ export default function Home() {
             Free during early access. Paid plans starting soon.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[800px] mx-auto">
-            {/* Pro */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-[1050px] mx-auto items-start">
+            {/* Free Edition */}
             <div
-              className="bg-white rounded-2xl p-10 relative text-left transition-all hover:-translate-y-1"
-              style={{
-                border: "1px solid #6b4c9a",
-                boxShadow: "0 8px 32px rgba(107, 76, 154, 0.12)",
-              }}
+              className="bg-white rounded-2xl p-8 relative text-left transition-all hover:-translate-y-1"
+              style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
             >
-              <div
-                className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[0.7rem] font-semibold uppercase"
-                style={{
-                  background: "linear-gradient(135deg, #2d1b4e, #6b4c9a)",
-                  color: "#faf7f2",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Most Popular
-              </div>
               <div
                 className="font-semibold text-lg mb-2"
                 style={{ color: "#1a0e2e" }}
               >
-                Pro
+                Free Edition
+              </div>
+              <div
+                className="mb-1"
+                style={{
+                  fontFamily:
+                    "var(--font-instrument-serif), 'Instrument Serif', serif",
+                  fontSize: "3rem",
+                  color: "#1a0e2e",
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                }}
+              >
+                $0
+              </div>
+              <p
+                className="text-sm mb-6"
+                style={{ color: "#5a4d6b", lineHeight: 1.5 }}
+              >
+                Listen to curated podcasts from popular newsletter categories.
+              </p>
+              <ul className="list-none mb-8 space-y-2 p-0">
+                {[
+                  "Pick a newsletter category",
+                  "Daily podcast generation",
+                  "Private RSS feed",
+                  "Works with most podcast apps",
+                ].map((f) => (
+                  <li
+                    key={f}
+                    className="flex items-center gap-2.5 text-sm"
+                    style={{ color: "#5a4d6b" }}
+                  >
+                    <span
+                      className="font-bold text-sm"
+                      style={{ color: "#4a9d6b" }}
+                    >
+                      ✓
+                    </span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/login"
+                className="block w-full py-3.5 rounded-xl text-center no-underline font-semibold transition-all hover:bg-[rgba(45,27,78,0.1)]"
+                style={{
+                  background: "rgba(45, 27, 78, 0.06)",
+                  color: "#1a0e2e",
+                  fontSize: "0.95rem",
+                }}
+              >
+                Get started
+              </Link>
+            </div>
+
+            {/* Basic Edition */}
+            <div
+              className="bg-white rounded-2xl p-8 relative text-left transition-all hover:-translate-y-1"
+              style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
+            >
+              <div
+                className="font-semibold text-lg mb-2"
+                style={{ color: "#1a0e2e" }}
+              >
+                Basic Edition
               </div>
               <div
                 className="mb-1"
@@ -868,15 +920,14 @@ export default function Home() {
                 className="text-sm mb-6"
                 style={{ color: "#5a4d6b", lineHeight: 1.5 }}
               >
-                For daily newsletter listeners who want it effortless.
+                Your own newsletters, turned into a daily podcast.
               </p>
               <ul className="list-none mb-8 space-y-2 p-0">
                 {[
-                  "Up to 5 newsletters",
+                  "Made with your own newsletters",
                   "Daily podcast generation",
                   "Choose your delivery time",
                   "Private RSS feed",
-                  "Works with most podcast apps",
                 ].map((f) => (
                   <li
                     key={f}
@@ -895,10 +946,10 @@ export default function Home() {
               </ul>
               <Link
                 href="/login"
-                className="block w-full py-3.5 rounded-xl text-center no-underline font-semibold transition-all hover:-translate-y-px"
+                className="block w-full py-3.5 rounded-xl text-center no-underline font-semibold transition-all hover:bg-[rgba(45,27,78,0.1)]"
                 style={{
-                  background: "#1a0e2e",
-                  color: "#faf7f2",
+                  background: "rgba(45, 27, 78, 0.06)",
+                  color: "#1a0e2e",
                   fontSize: "0.95rem",
                 }}
               >
@@ -906,16 +957,29 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Power */}
+            {/* Special Edition */}
             <div
-              className="bg-white rounded-2xl p-10 relative text-left transition-all hover:-translate-y-1"
-              style={{ border: "1px solid rgba(45, 27, 78, 0.08)" }}
+              className="bg-white rounded-2xl p-8 relative text-left transition-all hover:-translate-y-1"
+              style={{
+                border: "1px solid #6b4c9a",
+                boxShadow: "0 8px 32px rgba(107, 76, 154, 0.12)",
+              }}
             >
+              <div
+                className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[0.7rem] font-semibold uppercase"
+                style={{
+                  background: "linear-gradient(135deg, #2d1b4e, #6b4c9a)",
+                  color: "#faf7f2",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Most Popular
+              </div>
               <div
                 className="font-semibold text-lg mb-2"
                 style={{ color: "#1a0e2e" }}
               >
-                Power
+                Special Edition
               </div>
               <div
                 className="mb-1"
@@ -943,15 +1007,15 @@ export default function Home() {
                 className="text-sm mb-6"
                 style={{ color: "#5a4d6b", lineHeight: 1.5 }}
               >
-                For power readers who subscribe to everything.
+                Make it truly yours.
               </p>
               <ul className="list-none mb-8 space-y-2 p-0">
                 {[
-                  "Up to 15 newsletters",
-                  "Everything in Pro",
+                  "Everything in Basic",
                   "Choose your podcast voices",
-                  "Longer, deeper episodes",
-                  "Priority generation",
+                  "Personalized name greeting",
+                  "Intro music",
+                  "Up to 4 podcast collections",
                 ].map((f) => (
                   <li
                     key={f}
@@ -970,10 +1034,10 @@ export default function Home() {
               </ul>
               <Link
                 href="/login"
-                className="block w-full py-3.5 rounded-xl text-center no-underline font-semibold transition-all hover:bg-[rgba(45,27,78,0.1)]"
+                className="block w-full py-3.5 rounded-xl text-center no-underline font-semibold transition-all hover:-translate-y-px"
                 style={{
-                  background: "rgba(45, 27, 78, 0.06)",
-                  color: "#1a0e2e",
+                  background: "#1a0e2e",
+                  color: "#faf7f2",
                   fontSize: "0.95rem",
                 }}
               >
